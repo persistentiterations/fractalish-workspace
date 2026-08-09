@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>FINISH // Kinetic Duellum</title>
+<style>
+  :root {
+    --bg: #05060a;
+    --ink: #f4f0e6;
+    --muted: #7a8190;
+    --a: #5b9dff;
+    --b: #ff5b6e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    touch-action: none;
+  }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  .top {
+    position: absolute; top: 0; left: 0; right: 0;
+    padding: 18px 20px 0;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    pointer-events: none; z-index: 10;
+  }
+  .fighter-tag {
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .fighter-tag b {
+    display: block; font-size: 18px; letter-spacing: -0.02em;
+    color: var(--ink); margin-top: 2px; font-weight: 700;
+  }
+  .fighter-tag.right { text-align: right; }
+  .vs {
+    font-size: 12px; letter-spacing: 0.2em; color: var(--muted);
+    margin-top: 8px;
+  }
+
+  .bars {
+    position: absolute; top: 70px; left: 20px; right: 20px;
+    display: flex; gap: 12px; pointer-events: none; z-index: 10;
+  }
+  .bar-wrap { flex: 1; }
+  .bar-wrap span {
+    display: block; font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 4px;
+  }
+  .bar {
+    height: 6px; background: #12151c; border-radius: 99px; overflow: hidden;
+  }
+  .bar i {
+    display: block; height: 100%; border-radius: 99px;
+    transition: width 0.1s ease-out;
+  }
+  .bar.a i { background: linear-gradient(90deg, #3d7fd4, #7eb6ff); }
+  .bar.b i { background: linear-gradient(90deg, #d43d52, #ff7e8e); }
+
+  .phase {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: clamp(32px, 9vw, 64px); font-weight: 900;
+    letter-spacing: -0.03em; text-align: center;
+    pointer-events: none; z-index: 20;
+    opacity: 0; transition: opacity 0.2s;
+    text-shadow: 0 4px 40px #000;
+  }
+  .phase.show { opacity: 1; }
+
+  .dock {
+    position: absolute; bottom: 24px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 10px; z-index: 15;
+  }
+  .btn {
+    padding: 12px 22px;
+    background: rgba(20,24,32,0.85);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    color: var(--ink);
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    transition: transform 0.1s, border-color 0.2s, background 0.2s;
+  }
+  .btn:hover { border-color: rgba(255,255,255,0.3); background: rgba(30,38,50,0.9); }
+  .btn:active { transform: scale(0.94); }
+  .btn.primary {
+    background: linear-gradient(180deg, #e8c878, #c9a04a);
+    border-color: #f0d48a;
+    color: #1a1408;
+  }
+  .btn.action-a { border-color: rgba(91, 157, 255, 0.4); }
+  .btn.action-b { border-color: rgba(255, 91, 110, 0.4); }
+  .btn:disabled { opacity: 0.3; pointer-events: none; }
+
+  .result {
+    position: absolute; inset: 0;
+    display: none; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.65);
+    z-index: 30;
+    backdrop-filter: blur(10px);
+  }
+  .result.show { display: flex; }
+  .result-card {
+    background: #0e1218;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 24px;
+    padding: 36px 32px;
+    text-align: center;
+    max-width: 340px; width: 90%;
+    box-shadow: 0 30px 90px #000c;
+  }
+  .result-card h2 {
+    font-size: 32px; font-weight: 900; letter-spacing: -0.03em;
+    margin-bottom: 6px;
+  }
+  .result-card p {
+    color: var(--muted); font-size: 13px; margin-bottom: 24px;
+  }
+  .result-card .btn { display: inline-block; margin: 0 4px; }
+
+  .hint {
+    position: absolute; bottom: 92px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); opacity: 0.6; pointer-events: none; z-index: 5;
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div class="top">
+  <div class="fighter-tag"><span id="typeA">AGILE</span><b id="nameA">ION</b></div>
+  <div class="vs">VS</div>
+  <div class="fighter-tag right"><span id="typeB">HEAVY</span><b id="nameB">CRUX</b></div>
+</div>
+
+<div class="bars">
+  <div class="bar-wrap"><span>Integrity</span><div class="bar a"><i id="hpA" style="width:100%"></i></div></div>
+  <div class="bar-wrap" style="text-align:right"><span>Integrity</span><div class="bar b"><i id="hpB" style="width:100%"></i></div></div>
+</div>
+
+<div class="phase" id="phase"></div>
+<div class="hint" id="hint">tap to lunge · hold to charge · slam walls</div>
+
+<div class="dock">
+  <button class="btn action-a" id="btnActionA">Boost Ion</button>
+  <button class="btn primary" id="btnFight">FIGHT</button>
+  <button class="btn action-b" id="btnActionB">Boost Crux</button>
+</div>
+
+<div class="result" id="result">
+  <div class="result-card">
+    <h2 id="resultTitle">ION WINS</h2>
+    <p id="resultSub">Annihilated in 8 hits</p>
+    <button class="btn primary" id="btnRematch">REMATCH</button>
+    <button class="btn" id="btnNew">NEW DUEL</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+  let W, H, dpr;
+
+  const NAMES_A = ["ION","VOLT","NEX","ARC","FLUX","KITE","REM","SAX"];
+  const NAMES_B = ["CRUX","HEX","VOR","RIFT","GLYPH","TORN","JAX","NUL"];
+
+  let phase = "prep";
+  let shake = 0, flash = 0, slowmo = 1, time = 0, hitCount = 0;
+
+  function makeFighter(side, name) {
+    const isA = side === "a";
+    return {
+      side, name,
+      x: isA ? -120 : 120, y: 20,
+      vx: 0, vy: 0,
+      r: isA ? 34 : 38,
+      hp: 100, maxHp: 100,
+      energy: 1.0,
+      mass: isA ? 1.0 : 1.4,
+      speed: isA ? 480 : 380,
+      hue: isA ? 210 : 350,
+      squash: 1, stretch: 1,
+      hitFlash: 0,
+      state: "idle",
+      stateT: 0,
+      combo: 0,
+      lastHit: 0
+    };
+  }
+
+  let A = makeFighter("a", NAMES_A[Math.floor(Math.random()*NAMES_A.length)]);
+  let B = makeFighter("b", NAMES_B[Math.floor(Math.random()*NAMES_B.length)]);
+  
+  document.getElementById("nameA").textContent = A.name;
+  document.getElementById("nameB").textContent = B.name;
+  document.getElementById("typeA").textContent = "AGILE STRIKER";
+  document.getElementById("typeB").textContent = "HEAVY BRUISER";
+
+  const fx = [], rings = [];
+
+  function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+  function lerp(a,b,t){ return a+(b-a)*t; }
+  function dist(ax,ay,bx,by){ return Math.hypot(ax-bx,ay-by); }
+
+  function showPhase(text, ms = 900) {
+    const el = document.getElementById("phase");
+    el.textContent = text;
+    el.classList.add("show");
+    clearTimeout(showPhase._t);
+    showPhase._t = setTimeout(() => el.classList.remove("show"), ms);
+  }
+
+  function spawnBurst(x, y, hue, n = 16, spd = 240) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const s = spd * (0.3 + Math.random() * 0.9);
+      fx.push({
+        x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s,
+        life: 0.4 + Math.random()*0.4, max: 0.8,
+        r: 2 + Math.random()*3.5, hue: hue + (Math.random()-0.5)*30
+      });
+    }
+  }
+
+  function spawnRing(x, y, hue) {
+    rings.push({ x, y, r: 10, max: 110, life: 1, hue });
+  }
+
+  function startFight() {
+    if (phase !== "prep") return;
+    phase = "fight";
+    document.getElementById("btnFight").disabled = true;
+    document.getElementById("hint").style.opacity = "0";
+    showPhase("FIGHT", 700);
+    A.vx = 120; B.vx = -120;
+  }
+
+  function triggerBoost(f) {
+    if (phase !== "fight" || f.energy < 0.35 || f.state === "dead") return;
+    f.energy -= 0.35;
+    f.state = "windup";
+    f.stateT = 0.08;
+    const other = f === A ? B : A;
+    const dx = other.x - f.x;
+    f.vx = Math.sign(dx) * f.speed * 1.4;
+    f.vy = -60;
+    spawnBurst(f.x, f.y, f.hue, 10, 180);
+    shake = 6;
+  }
+
+  document.getElementById("btnActionA").onclick = () => triggerBoost(A);
+  document.getElementById("btnActionB").onclick = () => triggerBoost(B);
+
+  function resolveHit(attacker, defender) {
+    const d = dist(attacker.x, attacker.y, defender.x, defender.y);
+    const range = attacker.r + defender.r + 20;
+    if (d > range) return;
+
+    const base = 12 + (attacker.mass * 4);
+    const bonus = attacker.combo * 2;
+    const dmg = Math.min(32, base + bonus);
+
+    defender.hp = Math.max(0, defender.hp - dmg);
+    defender.hitFlash = 1;
+    
+    const angle = Math.atan2(defender.y - attacker.y, defender.x - attacker.x);
+    const force = 320 / defender.mass;
+    defender.vx = Math.cos(angle) * force;
+    defender.vy = Math.sin(angle) * force - 40;
+    
+    defender.squash = 0.45;
+    defender.stretch = 1.45;
+    attacker.combo++;
+    attacker.lastHit = time;
+    hitCount++;
+
+    shake = Math.min(20, 8 + dmg * 0.4);
+    flash = 0.4;
+    const midX = (attacker.x + defender.x) / 2;
+    const midY = (attacker.y + defender.y) / 2;
+    spawnBurst(midX, midY, attacker.hue, 14 + Math.floor(dmg/2), 200 + dmg*6);
+    spawnRing(midX, midY, attacker.hue);
+
+    updateBars();
+
+    if (defender.hp <= 0) {
+      defender.state = "dead";
+      finish(attacker);
+    }
+  }
+
+  function finish(winnerF) {
+    phase = "finish";
+    slowmo = 0.2;
+    shake = 18;
+    flash = 0.8;
+    spawnBurst(winnerF.x, winnerF.y, winnerF.hue, 35, 360);
+    showPhase("FINISH", 1500);
+
+    setTimeout(() => {
+      slowmo = 1;
+      const el = document.getElementById("result");
+      document.getElementById("resultTitle").textContent = winnerF.name + " WINS";
+      document.getElementById("resultSub").textContent = "Annihilated in " + hitCount + " strikes";
+      el.classList.add("show");
+    }, 1200);
+  }
+
+  function updateBars() {
+    document.getElementById("hpA").style.width = (A.hp / A.maxHp * 100) + "%";
+    document.getElementById("hpB").style.width = (B.hp / B.maxHp * 100) + "%";
+  }
+
+  function updateFighter(f, other, dt) {
+    if (f.state === "dead") {
+      f.squash = lerp(f.squash, 0.25, dt * 4);
+      f.stretch = lerp(f.stretch, 1.5, dt * 4);
+      f.vy += 60 * dt;
+      f.y += f.vy * dt;
+      return;
+    }
+
+    f.energy = clamp(f.energy + dt * 0.25, 0, 1);
+
+    f.stateT -= dt;
+    if (f.state === "windup") {
+      f.squash = lerp(f.squash, 0.7, dt * 14);
+      f.stretch = lerp(f.stretch, 1.25, dt * 14);
+      if (f.stateT <= 0) {
+        f.state = "lunge";
+        f.stateT = 0.16;
+        const dx = other.x - f.x;
+        const dy = other.y - f.y;
+        const d = Math.hypot(dx, dy) || 1;
+        f.vx = (dx / d) * f.speed;
+        f.vy = (dy / d) * f.speed * 0.5 - 25;
+      }
+    } else if (f.state === "lunge") {
+      f.squash = 1.2;
+      f.stretch = 0.75;
+      resolveHit(f, other);
+      if (f.stateT <= 0) {
+        f.state = "recover";
+        f.stateT = 0.3;
+      }
+    } else if (f.state === "recover") {
+      f.squash = lerp(f.squash, 1, dt * 8);
+      f.stretch = lerp(f.stretch, 1, dt * 8);
+      if (f.stateT <= 0) {
+        f.state = "idle";
+        f.combo = Math.max(0, f.combo - 1);
+      }
+    } else {
+      f.squash = lerp(f.squash, 1 + Math.sin(time * 4 + f.x) * 0.03, dt * 6);
+      f.stretch = lerp(f.stretch, 1, dt * 6);
+      if (phase === "fight") {
+        const dx = other.x - f.x;
+        f.vx += Math.sign(dx) * (40 + f.mass * 20) * dt;
+        
+        const d = dist(f.x, f.y, other.x, other.y);
+        if (d < f.r + other.r + 50 && time - f.lastHit > 0.5 && Math.random() < 0.08) {
+          f.state = "windup";
+          f.stateT = 0.12;
+        }
+      }
+    }
+
+    f.x += f.vx * dt;
+    f.y += f.vy * dt;
+    f.vx *= 0.88;
+    f.vy *= 0.88;
+    f.vy += 22 * dt;
+
+    if (f.y > 90) { f.y = 90; f.vy *= -0.4; }
+    
+    const wall = W * 0.36;
+    if (f.x < -wall) {
+      f.x = -wall;
+      if (Math.abs(f.vx) > 150) {
+        f.hp = Math.max(0, f.hp - 6);
+        shake = 12; spawnBurst(f.x, f.y, f.hue, 8, 150);
+        updateBars();
+        if (f.hp <= 0) { f.state = "dead"; finish(other); }
+      }
+      f.vx *= -0.6;
+    }
+    if (f.x > wall) {
+      f.x = wall;
+      if (Math.abs(f.vx) > 150) {
+        f.hp = Math.max(0, f.hp - 6);
+        shake = 12; spawnBurst(f.x, f.y, f.hue, 8, 150);
+        updateBars();
+        if (f.hp <= 0) { f.state = "dead"; finish(other); }
+      }
+      f.vx *= -0.6;
+    }
+
+    f.hitFlash = Math.max(0, f.hitFlash - dt * 5);
+  }
+
+  function update(dt) {
+    const sdt = dt * slowmo;
+    time += sdt;
+
+    if (phase === "fight" || phase === "finish") {
+      updateFighter(A, B, sdt);
+      updateFighter(B, A, sdt);
+    }
+
+    for (let i = fx.length - 1; i >= 0; i--) {
+      const p = fx[i];
+      p.x += p.vx * sdt; p.y += p.vy * sdt; p.vy += 140 * sdt; p.life -= sdt;
+      if (p.life <= 0) fx.splice(i, 1);
+    }
+    for (let i = rings.length - 1; i >= 0; i--) {
+      const r = rings[i];
+      r.r += 200 * sdt; r.life -= sdt * 2;
+      if (r.life <= 0) rings.splice(i, 1);
+    }
+
+    shake = Math.max(0, shake - dt * 30);
+    flash = Math.max(0, flash - dt * 2.5);
+  }
+
+  function resize() {
+    dpr = Math.min(devicePixelRatio || 1, 2);
+    W = canvas.clientWidth; H = canvas.clientHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function draw() {
+    const g = ctx.createRadialGradient(W/2, H*0.45, 0, W/2, H*0.5, Math.max(W,H)*0.75);
+    g.addColorStop(0, "#0e1420");
+    g.addColorStop(1, "#05060a");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = "rgba(255,255,255,0.07)";
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(W/2, H*0.64, W*0.38, 32, 0, 0, Math.PI*2); ctx.stroke();
+
+    ctx.save();
+    if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+    ctx.translate(W/2, H*0.48);
+
+    for (const r of rings) {
+      ctx.strokeStyle = "hsla(" + r.hue + ", 85%, 70%, " + (r.life * 0.6) + ")";
+      ctx.lineWidth = 3.5 * r.life;
+      ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, Math.PI*2); ctx.stroke();
+    }
+
+    for (const p of fx) {
+      const a = p.life / p.max;
+      ctx.fillStyle = "hsla(" + p.hue + ", 90%, 65%, " + a + ")";
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r * a, 0, Math.PI*2); ctx.fill();
+    }
+
+    drawFighter(A);
+    drawFighter(B);
+    ctx.restore();
+
+    if (flash > 0) {
+      ctx.fillStyle = "rgba(255,255,255," + (flash * 0.3) + ")";
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    const vig = ctx.createRadialGradient(W/2, H/2, H*0.2, W/2, H/2, H*0.85);
+    vig.addColorStop(0, "transparent");
+    vig.addColorStop(1, "rgba(0,0,0,0.6)");
+    ctx.fillStyle = vig; ctx.fillRect(0, 0, W, H);
+  }
+
+  function drawFighter(f) {
+    ctx.save();
+    ctx.translate(f.x, f.y);
+    const facing = f.vx >= 0 ? 1 : -1;
+    ctx.scale(f.stretch * facing, f.squash);
+
+    const glow = ctx.createRadialGradient(0, 0, f.r*0.2, 0, 0, f.r*1.9);
+    glow.addColorStop(0, "hsla(" + f.hue + ", 85%, 60%, " + (0.25 + f.energy*0.2 + f.hitFlash*0.4) + ")");
+    glow.addColorStop(1, "transparent");
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(0, 0, f.r * 1.9, 0, Math.PI*2); ctx.fill();
+
+    const body = ctx.createRadialGradient(-f.r*0.2, -f.r*0.3, 0, 0, 0, f.r*1.15);
+    const fa = f.hitFlash * 45;
+    body.addColorStop(0, "hsla(" + f.hue + ", 75%, " + (58 + fa) + "%, 0.96)");
+    body.addColorStop(0.7, "hsla(" + f.hue + ", 65%, " + (34 + fa*0.5) + "%, 0.98)");
+    body.addColorStop(1, "hsla(" + f.hue + ", 55%, 16%, 0.99)");
+    ctx.fillStyle = body;
+
+    ctx.beginPath();
+    const r = f.r;
+    ctx.moveTo(0, -r);
+    ctx.lineTo(r*0.8, -r*0.45);
+    ctx.lineTo(r*0.95, r*0.35);
+    ctx.lineTo(r*0.4, r*0.88);
+    ctx.lineTo(-r*0.4, r*0.88);
+    ctx.lineTo(-r*0.95, r*0.35);
+    ctx.lineTo(-r*0.8, -r*0.45);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "#fff";
+    ctx.beginPath(); ctx.arc(r*0.18, -r*0.12, r*0.13, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = "#06080d";
+    ctx.beginPath(); ctx.arc(r*0.18 + 2, -r*0.12, r*0.06, 0, Math.PI*2); ctx.fill();
+
+    if (f.energy > 0.35) {
+      ctx.strokeStyle = "hsla(" + f.hue + ", 90%, 75%, " + f.energy + ")";
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(0, 0, r * 1.25, 0, Math.PI * 2 * f.energy); ctx.stroke();
+    }
+
+    ctx.restore();
+
+    ctx.fillStyle = "rgba(0,0,0,0.3)";
+    ctx.beginPath(); ctx.ellipse(f.x, 90 + 6, f.r * 0.6 * f.stretch, 7, 0, 0, Math.PI*2); ctx.fill();
+  }
+
+  let drag = null;
+  canvas.addEventListener("pointerdown", e => {
+    if (phase !== "prep" && phase !== "fight") return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left - W/2;
+    const y = e.clientY - rect.top - H*0.48;
+    if (dist(x, y, A.x, A.y) < 60) drag = A;
+    else if (dist(x, y, B.x, B.y) < 60) drag = B;
+    if (drag) canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener("pointermove", e => {
+    if (!drag) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left - W/2;
+    drag.vx += (x - drag.x) * 0.5;
+  });
+  canvas.addEventListener("pointerup", () => { drag = null; });
+
+  document.getElementById("btnFight").onclick = startFight;
+  document.getElementById("btnRematch").onclick = () => {
+    document.getElementById("result").classList.remove("show");
+    A.hp = A.maxHp; B.hp = B.maxHp; A.energy = 1; B.energy = 1;
+    A.x = -120; B.x = 120; A.y = 20; B.y = 20;
+    A.vx = 0; A.vy = 0; B.vx = 0; B.vy = 0;
+    A.state = "idle"; B.state = "idle";
+    hitCount = 0; phase = "prep";
+    document.getElementById("btnFight").disabled = false;
+    document.getElementById("hint").style.opacity = "0.6";
+    updateBars();
+  };
+  document.getElementById("btnNew").onclick = () => {
+    document.getElementById("result").classList.remove("show");
+    A = makeFighter("a", NAMES_A[Math.floor(Math.random()*NAMES_A.length)]);
+    B = makeFighter("b", NAMES_B[Math.floor(Math.random()*NAMES_B.length)]);
+    document.getElementById("nameA").textContent = A.name;
+    document.getElementById("nameB").textContent = B.name;
+    hitCount = 0; phase = "prep";
+    document.getElementById("btnFight").disabled = false;
+    document.getElementById("hint").style.opacity = "0.6";
+    updateBars();
+  };
+
+  let last = 0;
+  function loop(ts) {
+    if (!last) last = ts;
+    const dt = Math.min(0.033, (ts - last) / 1000);
+    last = ts;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener("resize", resize);
+  resize();
+  updateBars();
+  requestAnimationFrame(loop);
+  setTimeout(() => showPhase("READY", 800), 300);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+// Attractor-graph HAL example — V is the map
+// Programmer declares structure; discovery earns V-loci; gates bind edges.
+// Materialize: python materializer_v0_1.py --attractor
+// (or run_arena_v0_1.py --profile attractor_graph --no-open)
+
+node Alpha
+node basin_center
+
+Alpha -> basin_center [kappa: 0.50, phi: pi/4, T: 1.0]
+
+vocab V = register(basin_center, theta: auto, features: 7D)
+run discovery for 20s seed: "attractor-graph-v0.1-demo"
+
+after resolve V {
+  send Alpha[S1] -> basin_center
+  expect basin_center[S1] within 500ms, fidelity: 0.85
+
+  branch on T(Alpha, basin_center) {
+    > 1.02 : reverse Alpha;
+    ~ 1.0  : proceed Alpha[S1];
+    < 0.98 : hold;
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "compile_passed": true,
+  "compile_error": "",
+  "unittest_passed": true,
+  "unittest_output": "test_blank (test_strict_manifest.T.test_blank) ... ok\ntest_dependencies (test_strict_manifest.T.test_dependencies) ... ok\ntest_duplicate_begin (test_strict_manifest.T.test_duplicate_begin) ... ok\ntest_duplicate_end (test_strict_manifest.T.test_duplicate_end) ... ok\ntest_duplicate_field (test_strict_manifest.T.test_duplicate_field) ... ok\ntest_empty_value (test_strict_manifest.T.test_empty_value) ... ok\ntest_malformed (test_strict_manifest.T.test_malformed) ... ok\ntest_missing (test_strict_manifest.T.test_missing) ... ok\ntest_missing_field (test_strict_manifest.T.test_missing_field) ... ok\ntest_uncommented (test_strict_manifest.T.test_uncommented) ... ok\ntest_unknown_field (test_strict_manifest.T.test_unknown_field) ... ok\ntest_valid (test_strict_manifest.T.test_valid) ... ok\ntest_version (test_strict_manifest.T.test_version) ... ok\n\n----------------------------------------------------------------------\nRan 13 tests in 16.330s\n\nOK\n",
+  "samples": [
+    {
+      "file": "clean.py",
+      "expected": 0,
+      "actual": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "file": "hold_file_write.py",
+      "expected": 2,
+      "actual": 2,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "file": "reject_unsafe.py",
+      "expected": 3,
+      "actual": 3,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "file": "missing_manifest.py",
+      "expected": 2,
+      "actual": 2,
+      "passed": true,
+      "stderr": ""
+    }
+  ],
+  "replay_passed": true,
+  "replay_output": "Ledger replay passed. Chain integrity confirmed.",
+  "stage_passed": true
+}

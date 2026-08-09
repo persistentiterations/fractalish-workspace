@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>eracii Arena — Deterministic Prototype</title>
+<style>
+:root{
+  --bg:#090b10;--panel:#111621;--panel2:#171e2b;--line:#293247;
+  --text:#f2ead8;--muted:#9aa6ba;--gold:#d2ad62;--blue:#76a7ff;
+  --red:#f18484;--green:#82d6a2;--shadow:0 18px 50px rgba(0,0,0,.34)
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+radial-gradient(circle at 15% 0%,#192239 0,transparent 32rem),
+radial-gradient(circle at 90% 20%,#281b22 0,transparent 30rem),var(--bg);
+color:var(--text);font:15px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
+button,select{font:inherit}
+header{padding:24px clamp(16px,4vw,48px);border-bottom:1px solid var(--line);
+display:flex;align-items:center;justify-content:space-between;gap:16px;background:rgba(9,11,16,.78);backdrop-filter:blur(12px);position:sticky;top:0;z-index:5}
+.brand{letter-spacing:.26em;text-transform:lowercase;font-size:22px}
+.brand b{color:var(--gold)}
+.status{color:var(--muted);font-size:13px}
+main{max-width:1440px;margin:auto;padding:28px clamp(14px,3vw,38px) 60px}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:20px;align-items:end;margin-bottom:24px}
+h1{font:700 clamp(34px,6vw,74px)/.95 Georgia,serif;margin:0 0 12px;max-width:900px}
+.hero p{color:var(--muted);max-width:780px;margin:0}
+.control-panel{background:linear-gradient(135deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow)}
+label{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px}
+select{width:100%;background:#0c111a;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px}
+.scenario-note{margin-top:10px;color:var(--muted);font-size:13px}
+.layout{display:grid;grid-template-columns:minmax(240px,320px) 1fr minmax(240px,320px);gap:16px}
+.side,.center{background:rgba(17,22,33,.9);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+.side{padding:15px}
+.side h2,.center h2{font:600 18px Georgia,serif;margin:0}
+.sub{color:var(--muted);font-size:12px;margin:3px 0 13px}
+.card-list{display:grid;gap:10px}
+.card{position:relative;border:1px solid var(--line);background:linear-gradient(145deg,#1c2331,#10151f);border-radius:14px;padding:12px;cursor:pointer;transition:.16s}
+.card:hover{transform:translateY(-2px);border-color:#4c5d7a}
+.card.selected{outline:2px solid var(--gold);border-color:transparent}
+.card.active{box-shadow:0 0 0 2px var(--blue) inset}
+.right .card.active{box-shadow:0 0 0 2px var(--red) inset}
+.kicker{color:var(--gold);font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+.name{font:600 20px Georgia,serif;margin:3px 0}
+.role{font-size:12px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:10px}
+.stat{background:#0c1119;border-radius:7px;padding:6px 3px;text-align:center}
+.stat b{display:block;font-size:13px}.stat span{font-size:9px;color:var(--muted);text-transform:uppercase}
+.center{padding:16px;min-width:0}
+.scorebar{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin:13px 0}
+.score{text-align:center;font:700 42px Georgia,serif}
+.score.leftScore{color:var(--blue)}.score.rightScore{color:var(--red)}
+.turn{text-align:center}.turn b{display:block;color:var(--gold)}
+.arena{display:grid;grid-template-columns:repeat(7,1fr);aspect-ratio:1.35;gap:4px;background:#090d14;border:1px solid var(--line);border-radius:15px;padding:7px}
+.cell{border-radius:7px;background:#141b27;border:1px solid #202a3b;display:flex;align-items:center;justify-content:center;position:relative;min-width:0}
+.cell.objective:after{content:"◆";color:var(--gold);font-size:16px;opacity:.8}
+.cell.left-owned{background:#16284c}.cell.right-owned{background:#401f29}
+.unit{width:72%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-weight:800;border:2px solid #fff8;box-shadow:0 5px 14px #0008}
+.unit.left-unit{background:#477edb}.unit.right-unit{background:#bd5867}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+button{border:1px solid var(--line);border-radius:10px;background:#182131;color:var(--text);padding:11px;cursor:pointer;font-weight:700}
+button:hover:not(:disabled){border-color:var(--gold)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.primary{background:var(--gold);color:#17120b;border-color:var(--gold)}
+.utility{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.explain{margin-top:13px;padding:11px;border-left:3px solid var(--gold);background:#0d121b;color:#c7d0df;min-height:68px}
+.receipts{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+.receipt-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.hash{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;color:var(--green);word-break:break-all}
+.log{max-height:180px;overflow:auto;background:#090d14;border-radius:10px;padding:8px;margin-top:8px;font:11px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;color:#b9c3d4}
+.result{display:none;margin-top:14px;padding:16px;border:1px solid var(--gold);border-radius:13px;background:#17150f;text-align:center}
+.result.show{display:block}
+.result strong{font:700 26px Georgia,serif;display:block}
+@media(max-width:980px){.hero,.layout{grid-template-columns:1fr}.center{order:-1}.card-list{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:620px){header{position:static}.card-list{grid-template-columns:1fr}.arena{aspect-ratio:1}.stats{grid-template-columns:repeat(2,1fr)}.actions{grid-template-columns:1fr}.hero{display:block}.control-panel{margin-top:18px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">era<b>cii</b> / arena laboratory</div>
+  <div class="status">Exact integer engine · no dice · no RNG · deterministic replay</div>
+</header>
+<main>
+<section class="hero">
+  <div>
+    <h1>History becomes a battlefield of pressure, position, and consequence.</h1>
+    <p>Choose three figures per side. Every move is resolved from card attributes, terrain, adjacency, fatigue, and prior receipts. The same initial state and choices always produce the same result.</p>
+  </div>
+  <div class="control-panel">
+    <label for="scenario">Arena Shift</label>
+    <select id="scenario"></select>
+    <div id="scenarioNote" class="scenario-note"></div>
+  </div>
+</section>
+
+<section class="layout">
+  <aside class="side left">
+    <h2>Left Roster</h2><div class="sub">Select exactly three cards.</div>
+    <div id="leftCards" class="card-list"></div>
+  </aside>
+
+  <section class="center">
+    <h2>Deterministic Conquest</h2>
+    <div class="sub">Capture the center objective and hold territorial pressure through eight rounds.</div>
+    <div class="scorebar">
+      <div class="score leftScore" id="leftScore">0</div>
+      <div class="turn"><span>ROUND</span><b id="round">1 / 8</b><small id="turnText">Build both rosters</small></div>
+      <div class="score rightScore" id="rightScore">0</div>
+    </div>
+    <div id="arena" class="arena"></div>
+    <div class="actions">
+      <button data-action="EXTEND" disabled>EXTEND +1<br><small>Advance pressure</small></button>
+      <button data-action="SENSE" disabled>SENSE 0<br><small>Read and fortify</small></button>
+      <button data-action="RESTRICT" disabled>RESTRICT −1<br><small>Contest adjacent control</small></button>
+    </div>
+    <div class="utility">
+      <button id="start" class="primary">Start Match</button>
+      <button id="reset">Reset</button>
+    </div>
+    <div class="explain" id="explain">Select three figures on each side. The engine will expose every consequential calculation.</div>
+    <div class="result" id="result"></div>
+    <div class="receipts">
+      <div class="receipt-head"><b>Decision Receipts</b><span id="hash" class="hash">GENESIS</span></div>
+      <div id="log" class="log">No receipts yet.</div>
+    </div>
+  </section>
+
+  <aside class="side right">
+    <h2>Right Roster</h2><div class="sub">Counter with three cards.</div>
+    <div id="rightCards" class="card-list"></div>
+  </aside>
+</section>
+</main>
+<script>
+const CARDS=[
+{id:"FND-001",name:"George Washington",role:"Founder",soft:80,hard:66,reach:74,legacy:81},
+{id:"FND-002",name:"Abraham Lincoln",role:"Union Reformer",soft:66,hard:42,reach:66,legacy:74},
+{id:"FND-005",name:"Julius Caesar",role:"Republic Breaker",soft:72,hard:34,reach:62,legacy:64},
+{id:"FND-006",name:"Augustus",role:"System Builder",soft:78,hard:65,reach:90,legacy:88},
+{id:"THR-001",name:"Socrates",role:"Foundational Questioner",soft:67,hard:11,reach:76,legacy:69},
+{id:"INV-002",name:"Alan Turing",role:"Codebreaker Architect",soft:65,hard:19,reach:82,legacy:86},
+{id:"POP-001",name:"Taylor Swift",role:"Fan-Network Sovereign",soft:89,hard:8,reach:80,legacy:54},
+{id:"POP-008",name:"Freddie Mercury",role:"Stage Mythmaker",soft:92,hard:22,reach:92,legacy:63}
+];
+const SCENARIOS={
+"default":{name:"Present Day",note:"Balanced comparison across all four visible card statistics.",w:[1,1,1,1]},
+"council":{name:"Council of Nations",note:"Soft power and institutional legacy dominate.",w:[3,1,2,3]},
+"uprising":{name:"Popular Uprising",note:"Reach and cultural momentum can overwhelm conventional force.",w:[2,2,4,1]},
+"siege":{name:"Fortified Siege",note:"Hard power and endurance receive the strongest pressure weight.",w:[1,4,1,3]},
+"archive":{name:"War of Memory",note:"Legacy and durable summoned networks determine staying power.",w:[2,1,2,5]}
+};
+let state;
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+function fresh(){
+ state={left:[],right:[],started:false,turn:"left",round:1,maxRounds:8,
+ units:{},owned:{},fatigue:{},receipts:[],score:{left:0,right:0},active:{left:0,right:0}};
+}
+fresh();
+const scenario=$("#scenario");
+Object.entries(SCENARIOS).forEach(([k,v])=>scenario.add(new Option(v.name,k)));
+scenario.onchange=()=>{$("#scenarioNote").textContent=SCENARIOS[scenario.value].note;if(!state.started) explain("Scenario weights loaded. Identical rosters may behave differently under a different declared battlefield.");};
+$("#scenarioNote").textContent=SCENARIOS.default.note;
+
+function cardHTML(c,side){
+ return `<article class="card" data-side="${side}" data-id="${c.id}">
+ <div class="kicker">${c.id}</div><div class="name">${c.name}</div><div class="role">${c.role}</div>
+ <div class="stats">${["soft","hard","reach","legacy"].map(k=>`<div class="stat"><b>${c[k]}</b><span>${k}</span></div>`).join("")}</div></article>`;
+}
+function renderCards(){
+ $("#leftCards").innerHTML=CARDS.map(c=>cardHTML(c,"left")).join("");
+ $("#rightCards").innerHTML=CARDS.map(c=>cardHTML(c,"right")).join("");
+ $$(".card").forEach(el=>el.onclick=()=>toggleCard(el.dataset.side,el.dataset.id));
+}
+function toggleCard(side,id){
+ if(state.started)return;
+ const arr=state[side], i=arr.indexOf(id);
+ if(i>=0)arr.splice(i,1); else if(arr.length<3)arr.push(id);
+ document.querySelectorAll(`[data-side="${side}"]`).forEach(e=>e.classList.toggle("selected",arr.includes(e.dataset.id)));
+ explain(`${side==="left"?"Left":"Right"} roster: ${arr.length}/3 selected.`);
+}
+function makeArena(){
+ const a=$("#arena");a.innerHTML="";
+ for(let y=0;y<5;y++)for(let x=0;x<7;x++){
+  const d=document.createElement("div");d.className="cell"+(x===3&&y===2?" objective":"");
+  d.dataset.p=`${x},${y}`;a.appendChild(d);
+ }
+}
+makeArena();renderCards();
+
+function getCard(side){return CARDS.find(c=>c.id===state[side][state.active[side]]);}
+function basePower(c){
+ const w=SCENARIOS[scenario.value].w;
+ return c.soft*w[0]+c.hard*w[1]+c.reach*w[2]+c.legacy*w[3];
+}
+function hashString(str){
+ let h=2166136261;
+ for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}
+ return ("00000000"+(h>>>0).toString(16)).slice(-8);
+}
+function receipt(type,data){
+ const prev=state.receipts.length?state.receipts.at(-1).hash:"GENESIS";
+ const payload=JSON.stringify({n:state.receipts.length+1,type,data,prev});
+ const r={n:state.receipts.length+1,type,data,prev,hash:hashString(payload)};
+ state.receipts.push(r);renderLog();
+}
+function renderLog(){
+ $("#hash").textContent=state.receipts.length?state.receipts.at(-1).hash:"GENESIS";
+ $("#log").innerHTML=state.receipts.slice().reverse().map(r=>`#${r.n} ${r.type} ${JSON.stringify(r.data)} → ${r.hash}`).join("<br>");
+}
+function explain(t){$("#explain").textContent=t}
+function start(){
+ if(state.left.length!==3||state.right.length!==3){explain("Both sides need exactly three cards.");return}
+ state.started=true;scenario.disabled=true;
+ state.units.left={x:0,y:2};state.units.right={x:6,y:2};
+ state.owned["0,2"]="left";state.owned["6,2"]="right";
+ state.fatigue.left=0;state.fatigue.right=0;
+ receipt("MATCH_OPEN",{scenario:scenario.value,left:state.left,right:state.right,rule_version:"ERA-LOCAL-0.1"});
+ $$(".actions button").forEach(b=>b.disabled=false);$("#start").disabled=true;
+ render();explain("Left acts first. Choose EXTEND, SENSE, or RESTRICT. Each action emits an exact receipt.");
+}
+function distanceToCenter(u){return Math.abs(3-u.x)+Math.abs(2-u.y)}
+function adjacent(a,b){return Math.abs(a.x-b.x)+Math.abs(a.y-b.y)===1}
+function act(kind){
+ if(!state.started||state.round>state.maxRounds)return;
+ const side=state.turn, enemy=side==="left"?"right":"left";
+ const c=getCard(side), u=state.units[side], e=state.units[enemy];
+ const before={...u}, power=basePower(c)-state.fatigue[side]*7;
+ let outcome="",delta=0;
+ if(kind==="EXTEND"){
+   const nx=u.x+(side==="left"?1:-1), key=`${nx},${u.y}`;
+   if(nx>=0&&nx<7){
+     if(e.x===nx&&e.y===u.y){
+       const ep=basePower(getCard(enemy))-state.fatigue[enemy]*7;
+       if(power>ep){state.units[enemy].x+=(side==="left"?1:-1);u.x=nx;outcome="displaced opponent";delta=2}
+       else{outcome="advance blocked";delta=0}
+     }else{u.x=nx;outcome="advanced";delta=1}
+     state.owned[key]=side;
+   } else outcome="boundary hold";
+   state.fatigue[side]+=2;
+ }else if(kind==="SENSE"){
+   const recovery=Math.min(3,state.fatigue[side]);state.fatigue[side]-=recovery;
+   const key=`${u.x},${u.y}`;state.owned[key]=side;outcome=`fortified; fatigue recovered ${recovery}`;delta=1;
+ }else{
+   const targets=Object.keys(state.owned).filter(k=>{
+     const [x,y]=k.split(",").map(Number);return state.owned[k]===enemy&&Math.abs(x-u.x)+Math.abs(y-u.y)===1;
+   }).sort();
+   if(targets.length){
+     const target=targets[0], ep=basePower(getCard(enemy))-state.fatigue[enemy]*7;
+     if(power+c.hard*2>=ep){delete state.owned[target];outcome=`restricted ${target}`;delta=2}else outcome="restriction resisted";
+   }else outcome="no adjacent hostile territory";
+   state.fatigue[side]+=1;
+ }
+ state.score[side]+=delta;
+ if(state.owned["3,2"]===side)state.score[side]+=2;
+ receipt("ACTION",{round:state.round,side,card:c.id,operator:kind,ternary:kind==="EXTEND"?1:kind==="SENSE"?0:-1,before,after:{...u},power,fatigue:state.fatigue[side],outcome,score_delta:delta});
+ explain(`${c.name}: ${kind}. ${outcome}. Declared power ${power}; fatigue ${state.fatigue[side]}.`);
+ state.active[side]=(state.active[side]+1)%3;
+ if(side==="left")state.turn="right";else{state.turn="left";state.round++}
+ if(state.round>state.maxRounds)finish(); else render();
+}
+function territorialScore(side){
+ return Object.values(state.owned).filter(v=>v===side).length + (state.owned["3,2"]===side?5:0);
+}
+function finish(){
+ const lt=territorialScore("left"),rt=territorialScore("right");
+ state.score.left+=lt;state.score.right+=rt;
+ const winner=state.score.left===state.score.right?"Draw":state.score.left>state.score.right?"Left roster wins":"Right roster wins";
+ receipt("MATCH_CLOSE",{left:state.score.left,right:state.score.right,left_territory:lt,right_territory:rt,winner});
+ $$(".actions button").forEach(b=>b.disabled=true);
+ $("#result").classList.add("show");$("#result").innerHTML=`<strong>${winner}</strong>Final pressure ${state.score.left}–${state.score.right}<br><small>Terminal receipt ${state.receipts.at(-1).hash}</small>`;
+ render();
+}
+function render(){
+ document.querySelectorAll(".cell").forEach(c=>{
+   c.className="cell"+(c.dataset.p==="3,2"?" objective":"");
+   if(state.owned[c.dataset.p])c.classList.add(state.owned[c.dataset.p]+"-owned");
+   c.innerHTML="";
+ });
+ if(state.started){
+  ["left","right"].forEach(side=>{
+   const u=state.units[side], cell=document.querySelector(`[data-p="${u.x},${u.y}"]`);
+   const token=document.createElement("div");token.className=`unit ${side}-unit`;token.textContent=getCard(side).name.split(" ").map(x=>x[0]).join("").slice(0,2);cell.appendChild(token);
+  });
+ }
+ $("#leftScore").textContent=state.score.left;$("#rightScore").textContent=state.score.right;
+ $("#round").textContent=`${Math.min(state.round,state.maxRounds)} / ${state.maxRounds}`;
+ $("#turnText").textContent=state.started?(state.round>state.maxRounds?"Complete":`${state.turn.toUpperCase()} TO ACT`):"Build both rosters";
+ document.querySelectorAll(".card").forEach(e=>{
+   e.classList.toggle("selected",state[e.dataset.side].includes(e.dataset.id));
+   const c=getCard(e.dataset.side);e.classList.toggle("active",state.started&&c&&c.id===e.dataset.id&&state.turn===e.dataset.side);
+ });
+}
+$("#start").onclick=start;
+$("#reset").onclick=()=>{fresh();scenario.disabled=false;scenario.value="default";$("#scenarioNote").textContent=SCENARIOS.default.note;$("#result").classList.remove("show");$("#result").innerHTML="";$("#start").disabled=false;$$(".actions button").forEach(b=>b.disabled=true);makeArena();renderCards();render();renderLog();explain("Select three figures on each side. The engine will expose every consequential calculation.");};
+$$("[data-action]").forEach(b=>b.onclick=()=>act(b.dataset.action));
+render();
+</script>
+</body>
+</html>

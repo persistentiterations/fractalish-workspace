@@ -1,0 +1,45 @@
+{
+  "stage": "Stage 02C Verification Freeze",
+  "engine_version": "0.4.1",
+  "analyzer_code_changed": false,
+  "compile_passed": true,
+  "inherited_tests_run": 54,
+  "inherited_tests_passed": true,
+  "new_executable_cases": 65,
+  "new_adversarial_cases": 46,
+  "new_benign_cases": 19,
+  "matched_expected": 46,
+  "confirmed_mismatches": 19,
+  "confirmed_adversarial_mismatches": 14,
+  "confirmed_benign_false_positives": 5,
+  "untested_out_of_scope": 8,
+  "idempotence_failures": 0,
+  "sample_results": [
+    {
+      "file": "clean.py",
+      "expected": "Let In",
+      "actual": "Let In",
+      "passed": true
+    },
+    {
+      "file": "hold_file_write.py",
+      "expected": "Hold",
+      "actual": "Hold",
+      "passed": true
+    },
+    {
+      "file": "reject_unsafe.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "missing_manifest.py",
+      "expected": "Hold",
+      "actual": "Hold",
+      "passed": true
+    }
+  ],
+  "ledger_replay_passed": true,
+  "verification_freeze_complete": true
+}

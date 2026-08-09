@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pressure Field — A Living Decision Game</title>
+<style>
+:root{
+  --bg:#071018;--panel:#0d1924ee;--panel-solid:#0d1924;--line:#243849;--text:#edf5f7;--muted:#8ea1ae;
+  --accent:#e1bd68;--blue:#69aee6;--green:#6ec99a;--red:#eb6875;--amber:#e3a64e;--violet:#ae8be0;
+  --cyan:#70ced0;--shadow:0 24px 80px #000b;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font:14px/1.4 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #fff;outline-offset:2px}
+canvas{display:block}
+#world{position:fixed;inset:0;width:100%;height:100%;z-index:0;background:#061019}
+.world-wash{position:fixed;inset:0;z-index:1;pointer-events:none;background:
+  radial-gradient(circle at 50% 48%,transparent 0 30%,#06101822 55%,#03070cbb 100%),
+  linear-gradient(180deg,#06101988,transparent 16%,transparent 78%,#061019cc)}
+.hud{position:fixed;inset:0;z-index:5;display:flex;flex-direction:column;pointer-events:none}
+.hud>*{pointer-events:auto}
+.topbar{min-height:62px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;padding:8px 14px;background:linear-gradient(180deg,#061019f5,#06101980 72%,transparent);backdrop-filter:blur(8px)}
+.brand{display:flex;align-items:center;gap:9px;font-weight:950;letter-spacing:.14em;font-size:11px;text-transform:uppercase;white-space:nowrap}
+.brand-mark{width:25px;height:25px;border-radius:50%;border:1px solid #dfbd6a88;display:grid;place-items:center;background:radial-gradient(circle,#dfbd6a55,transparent 65%);color:var(--accent)}
+.brand small{display:block;color:var(--muted);font-size:8px;letter-spacing:.08em;font-weight:700;margin-top:2px}
+.stats{display:flex;gap:7px;justify-content:center;min-width:0;flex-wrap:wrap}
+.stat{min-width:76px;padding:5px 8px;border:1px solid #213747aa;border-radius:9px;background:#09141dcc;backdrop-filter:blur(7px)}
+.stat label{display:block;font-size:7px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap}.stat b{font:750 14px Georgia,serif}.stat .mini{height:3px;margin-top:3px;background:#1d2e3b;border-radius:99px;overflow:hidden}.stat .mini i{display:block;height:100%;width:0;background:var(--blue);transition:width .7s ease}
+.top-actions{display:flex;gap:6px;justify-content:flex-end}.icon-btn,.btn{border:1px solid var(--line);border-radius:9px;background:#101e2aee;padding:7px 10px;font-weight:800;transition:.18s transform,.18s background,.18s border-color}.icon-btn{width:35px;height:35px;padding:0;display:grid;place-items:center}.icon-btn:hover,.btn:hover:not(:disabled){transform:translateY(-1px);border-color:#658096;background:#172838}.btn:disabled{opacity:.35;cursor:not-allowed}.btn.primary{background:linear-gradient(180deg,#efd78d,#c99940);color:#171107;border-color:#f5dfa0}.btn.soft{background:#162738}.btn.danger{background:#32161e;border-color:#71313c}.btn.good{background:#11291e;border-color:#2e6a4c}.btn.ghost{background:#09141d99}
+.center-message{align-self:center;margin-top:4px;max-width:min(650px,88vw);text-align:center;padding:7px 14px;border:1px solid #284155aa;border-radius:999px;background:#08141ed9;backdrop-filter:blur(8px);font-size:11px;color:#cbd7dd;opacity:0;transform:translateY(-6px);transition:.3s}.center-message.show{opacity:1;transform:translateY(0)}.center-message b{color:var(--accent)}
+.bottom{margin-top:auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:10px;padding:10px 14px 14px;background:linear-gradient(0deg,#061019f4,#06101988 72%,transparent)}
+.doctrine-chip{justify-self:start;max-width:360px;padding:8px 10px;border:1px solid #2c4354;border-radius:10px;background:#08141dde;backdrop-filter:blur(8px)}.doctrine-chip small{display:block;color:var(--muted);font-size:7px;letter-spacing:.1em;text-transform:uppercase}.doctrine-chip b{font:700 13px Georgia,serif}.doctrine-traits{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}.trait-pill{font-size:7px;padding:2px 5px;border-radius:99px;background:#132331;border:1px solid #2a4455;color:#b7c5ce}.trait-pill.top{border-color:#8a7037;color:#f0ce80;background:#261f11}
+.turn-status{justify-self:center;text-align:center}.turn-ring{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;border:1px solid #3b5364;background:conic-gradient(var(--accent) var(--progress,0%),#142533 0);position:relative}.turn-ring:after{content:"";position:absolute;inset:5px;border-radius:50%;background:#08141d}.turn-ring div{position:relative;z-index:1}.turn-ring b{display:block;font:800 17px Georgia,serif;line-height:1}.turn-ring small{font-size:7px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.alert-box{justify-self:end;text-align:right;max-width:360px}.alert-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid #2c4759;border-radius:99px;background:#091721;font-size:8px;letter-spacing:.09em;text-transform:uppercase;font-weight:900}.alert-badge.stable{color:var(--green);border-color:#285642}.alert-badge.strained{color:var(--amber);border-color:#6c4b25}.alert-badge.critical{color:var(--red);border-color:#70303a;animation:pulse 1s ease-in-out infinite}.alert-copy{margin-top:4px;color:var(--muted);font-size:9px}
+@keyframes pulse{50%{opacity:.55}}
+
+/* Overlays */
+.overlay{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:14px;background:#03080ddd;backdrop-filter:blur(12px);opacity:0;pointer-events:none;transition:.35s opacity}.overlay.show{opacity:1;pointer-events:auto}.panel{width:min(1040px,96vw);max-height:92vh;overflow:auto;border:1px solid #2b4253;border-radius:17px;background:linear-gradient(145deg,#0a1620,#0f1d28);box-shadow:var(--shadow)}
+.setup{display:grid;grid-template-columns:1.05fr .95fr}.setup-intro{padding:26px;border-right:1px solid var(--line);background:radial-gradient(circle at 25% 10%,#dfbd6822,transparent 38rem)}.eyebrow{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:950}.setup h1{font:700 clamp(32px,5vw,60px)/.96 Georgia,serif;margin:7px 0 12px}.lead{font-size:14px;color:#b7c5ce;max-width:650px}.setup-principle{margin-top:20px;padding:13px 14px;border-left:3px solid var(--accent);background:#08131caa;border-radius:0 10px 10px 0;font:700 14px/1.5 Georgia,serif}.how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:18px}.how{padding:10px;border:1px solid #284152;border-radius:10px;background:#09151e}.how b{display:block;color:var(--accent);font-size:11px}.how small{color:var(--muted);font-size:9px}
+.setup-controls{padding:22px}.section-title{margin:0 0 8px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}.preset-grid,.env-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.preset,.env{padding:10px;text-align:left;border:1px solid #2a4050;border-radius:10px;background:#09151e;transition:.18s}.preset:hover,.env:hover{border-color:#60788a;background:#112230}.preset.active,.env.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px #dfbd6844;background:#211c11}.preset b,.env b{display:block;font:700 13px Georgia,serif}.preset small,.env small{display:block;color:var(--muted);font-size:8px;margin-top:2px}.env.active{border-color:var(--blue);box-shadow:inset 0 0 0 1px #69aee644;background:#0d1d2b}.control-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.control label{display:block;color:var(--muted);font-size:8px;margin-bottom:3px}.control input,.control select{width:100%;padding:8px;border-radius:8px;border:1px solid #2b4252;background:#07131c}.start-row{display:flex;align-items:center;gap:8px;margin-top:14px}.start-row .btn{flex:1;padding:11px}.micro{font-size:8px;color:var(--muted)}
+
+/* Decision panel */
+.decision-panel{width:min(920px,96vw);overflow:hidden}.decision-head{padding:17px 18px 12px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start}.decision-head h2{font:700 clamp(24px,4vw,38px)/1.05 Georgia,serif;margin:3px 0 5px}.decision-head p{margin:0;color:#afbec8;max-width:680px}.pressure-meter{min-width:120px;text-align:right}.pressure-meter small{font-size:8px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}.pressure-meter b{display:block;font:800 25px Georgia,serif;color:var(--red)}.pressure-track{height:5px;background:#253746;border-radius:99px;overflow:hidden;margin-top:3px}.pressure-track i{display:block;height:100%;background:linear-gradient(90deg,var(--amber),var(--red));width:50%}
+.current-state{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;padding:9px 18px;background:#08131c}.state-chip{padding:6px;border:1px solid #243b4b;border-radius:8px;text-align:center;background:#0c1a24}.state-chip small{display:block;color:var(--muted);font-size:7px;text-transform:uppercase}.state-chip b{font:700 13px Georgia,serif}.state-chip.danger b{color:var(--red)}
+.choice-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px 18px 18px}.choice{position:relative;min-height:145px;text-align:left;padding:11px;border:1px solid #2a4152;border-radius:11px;background:#09151e;transition:.18s transform,.18s border-color,.18s background}.choice:hover:not(:disabled){transform:translateY(-2px);border-color:#70889a;background:#102432}.choice.best-fit{border-color:#8c7139}.choice:disabled{opacity:.38;cursor:not-allowed}.choice-code{font-size:7px;letter-spacing:.12em;color:#7f92a0}.choice h3{font:700 15px Georgia,serif;margin:3px 0 4px}.choice p{margin:0;color:#9eb0bb;font-size:9px}.fit{position:absolute;right:8px;top:8px;padding:2px 5px;border-radius:99px;border:1px solid #355065;font-size:7px;color:#9eb4c3}.fit.high{color:#f0cf82;border-color:#775f31;background:#211b10}.delta-list{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-top:8px}.delta{font-size:8px;color:#aebdc6}.delta b{font-size:8px}.delta .up{color:var(--green)}.delta .down{color:var(--red)}.locked{margin-top:7px;color:#ed8790;font-size:8px;font-weight:800}
+
+/* Consequence */
+.consequence-panel{width:min(700px,94vw);padding:22px}.consequence-panel h2{font:700 30px Georgia,serif;margin:4px 0 8px}.consequence-copy{color:#b4c2cb}.delta-hero{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:15px 0}.delta-card{padding:10px;border:1px solid #294153;border-radius:10px;background:#09151e;text-align:center}.delta-card small{display:block;font-size:7px;color:var(--muted);text-transform:uppercase}.delta-card b{font:800 20px Georgia,serif}.delta-card.good b{color:var(--green)}.delta-card.bad b{color:var(--red)}.receipt-line{padding:9px;border-left:3px solid var(--accent);background:#08131c;border-radius:0 8px 8px 0;font:9px ui-monospace,Consolas,monospace;color:#93a5b1;word-break:break-all}.continue-row{display:flex;justify-content:flex-end;margin-top:14px}
+
+/* End */
+.end-panel{width:min(980px,96vw);padding:0;overflow:hidden}.end-hero{padding:24px;background:radial-gradient(circle at 15% 0,#dfbd6828,transparent 36rem);border-bottom:1px solid var(--line)}.end-tag{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:950}.end-hero h2{font:700 clamp(32px,5vw,54px)/1 Georgia,serif;margin:6px 0}.end-hero p{max-width:760px;color:#b8c5cd;margin:0}.end-grid{display:grid;grid-template-columns:1.15fr .85fr}.end-main,.end-side{padding:18px}.end-main{border-right:1px solid var(--line)}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.metric{padding:10px;border:1px solid #294253;border-radius:9px;background:#09151e}.metric small{display:block;color:var(--muted);font-size:7px;text-transform:uppercase}.metric b{font:800 22px Georgia,serif}.metric .bar{height:5px;margin-top:5px;border-radius:99px;background:#223543;overflow:hidden}.metric .bar i{display:block;height:100%;background:var(--blue)}.compare{margin-top:14px}.compare h3,.end-side h3{font:700 15px Georgia,serif;margin:0 0 7px}.compare-row{display:grid;grid-template-columns:110px 1fr 34px;gap:7px;align-items:center;margin:6px 0;font-size:8px}.dual-bars{display:grid;gap:2px}.barline{height:6px;background:#223441;border-radius:99px;overflow:hidden}.barline i{display:block;height:100%}.barline .declared{background:var(--accent)}.barline .enacted{background:var(--blue)}.path-list{display:grid;gap:6px;max-height:300px;overflow:auto}.path-item{padding:8px;border-left:2px solid #395267;background:#09151e;border-radius:0 8px 8px 0;font-size:9px}.path-item b{display:block;color:#d6e1e6}.path-item small{color:var(--muted)}.end-actions{display:flex;gap:7px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid var(--line);justify-content:center}
+
+/* Drawers */
+.drawer{position:fixed;z-index:40;top:0;right:0;width:min(430px,94vw);height:100%;padding:16px;background:#07131cf5;border-left:1px solid #2a4354;box-shadow:-30px 0 80px #000a;transform:translateX(102%);transition:.28s;overflow:auto}.drawer.show{transform:translateX(0)}.drawer-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.drawer h2{font:700 24px Georgia,serif;margin:0}.receipt-list{display:grid;gap:6px}.receipt{padding:8px;border-left:2px solid #3c566a;background:#0a1822;border-radius:0 8px 8px 0;font-size:9px}.receipt b{display:block}.receipt small{color:var(--muted)}.receipt code{display:block;color:#6f8492;font-size:7px;word-break:break-all;margin-top:4px}.about-copy{color:#afbdc6}.about-copy b{color:#e7eff2}.about-copy h3{font:700 15px Georgia,serif;color:#edf5f7;margin:16px 0 5px}
+.toast{position:fixed;z-index:100;left:50%;top:72px;transform:translate(-50%,-8px);padding:8px 13px;border:1px solid var(--accent);border-radius:99px;background:#0b1923;color:#edf5f7;font-weight:800;opacity:0;pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media(max-width:900px){
+  .topbar{grid-template-columns:auto 1fr}.stats{grid-column:1/-1;order:3}.top-actions{grid-column:2;grid-row:1}.stat{min-width:68px;flex:1}.bottom{grid-template-columns:1fr auto}.alert-box{display:none}.setup{grid-template-columns:1fr}.setup-intro{border-right:0;border-bottom:1px solid var(--line);padding:20px}.setup-controls{padding:18px}.choice-grid{grid-template-columns:1fr 1fr}.end-grid{grid-template-columns:1fr}.end-main{border-right:0;border-bottom:1px solid var(--line)}
+}
+@media(max-width:580px){
+  .topbar{padding:5px 8px;gap:6px}.brand small{display:none}.stats{gap:3px}.stat{padding:4px 5px;min-width:58px}.stat label{font-size:6px}.stat b{font-size:11px}.top-actions .icon-btn:nth-child(1){display:none}.bottom{padding:7px 8px 10px}.doctrine-chip{max-width:230px;padding:6px 8px}.turn-ring{width:54px;height:54px}.trait-pill{display:none}.how-grid{grid-template-columns:1fr}.preset-grid,.env-grid{grid-template-columns:1fr 1fr}.choice-grid{grid-template-columns:1fr;padding:10px 12px 14px}.choice{min-height:116px}.decision-head{padding:13px}.current-state{grid-template-columns:repeat(3,1fr);padding:7px 12px}.pressure-meter{min-width:80px}.delta-hero,.metrics{grid-template-columns:1fr 1fr}.end-main,.end-side{padding:13px}.compare-row{grid-template-columns:86px 1fr 27px}.center-message{font-size:9px}.panel{max-height:96vh}.setup h1{font-size:35px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="world" aria-label="A living network whose population, resources, territory, and behavior change after each decision."></canvas>
+<div class="world-wash"></div>
+
+<div class="hud" id="hud">
+  <div class="topbar">
+    <div class="brand"><span class="brand-mark">◉</span><span>Pressure Field<small>A living decision game</small></span></div>
+    <div class="stats" id="stats"></div>
+    <div class="top-actions">
+      <button class="icon-btn" id="pauseBtn" aria-label="Pause or resume the living world">Ⅱ</button>
+      <button class="icon-btn" id="receiptsBtn" aria-label="Open decision receipts">≡</button>
+      <button class="icon-btn" id="aboutBtn" aria-label="About this game">?</button>
+    </div>
+  </div>
+  <div class="center-message" id="centerMessage" aria-live="polite"></div>
+  <div class="bottom">
+    <div class="doctrine-chip" id="doctrineChip"></div>
+    <div class="turn-status"><div class="turn-ring" id="turnRing"><div><b id="turnNumber">0</b><small>of 8</small></div></div></div>
+    <div class="alert-box"><span class="alert-badge stable" id="alertBadge">Stable</span><div class="alert-copy" id="alertCopy">The system has room to absorb mistakes.</div></div>
+  </div>
+</div>
+
+<div class="overlay show" id="setupOverlay">
+  <div class="panel setup">
+    <section class="setup-intro">
+      <div class="eyebrow">A playable system, not a predetermined lesson</div>
+      <h1>State your values.<br>Then live with your choices.</h1>
+      <p class="lead">A living network grows, strains, and changes around you. At each threshold, you decide what to protect, what to learn, what to release, and what to rebuild. Every choice changes the next problem.</p>
+      <div class="setup-principle">The world does not grade your intentions. It carries forward what your decisions actually changed.</div>
+      <div class="how-grid">
+        <div class="how"><b>1 · Declare</b><small>Choose the priorities you claim should guide the system.</small></div>
+        <div class="how"><b>2 · Decide</b><small>Respond to eight escalating pressures with limited options.</small></div>
+        <div class="how"><b>3 · Inherit</b><small>Later choices depend on the capacity, trust, evidence, and damage left behind.</small></div>
+      </div>
+    </section>
+    <section class="setup-controls">
+      <h2 class="section-title">What should matter most?</h2>
+      <div class="preset-grid" id="presetGrid"></div>
+      <h2 class="section-title" style="margin-top:13px">What kind of world will test it?</h2>
+      <div class="env-grid" id="envGrid"></div>
+      <div class="control-row">
+        <div class="control"><label for="seedInput">Deterministic world seed</label><input id="seedInput" type="number" min="1" max="999999" value="7317"></div>
+        <div class="control"><label for="paceSelect">Living-world pace</label><select id="paceSelect"><option value="0.75">Measured</option><option value="1" selected>Normal</option><option value="1.35">Fast</option></select></div>
+      </div>
+      <div class="start-row"><button class="btn primary" id="startBtn">Enter the Pressure Field</button></div>
+      <p class="micro">The same doctrine, world, choices, and seed reproduce the same state changes and receipt chain.</p>
+    </section>
+  </div>
+</div>
+
+<div class="overlay" id="decisionOverlay">
+  <div class="panel decision-panel">
+    <div class="decision-head">
+      <div><div class="eyebrow" id="decisionPhase">Threshold 1</div><h2 id="decisionTitle"></h2><p id="decisionBody"></p></div>
+      <div class="pressure-meter"><small>Pressure</small><b id="pressureValue">0%</b><div class="pressure-track"><i id="pressureFill"></i></div></div>
+    </div>
+    <div class="current-state" id="decisionState"></div>
+    <div class="choice-grid" id="choiceGrid"></div>
+  </div>
+</div>
+
+<div class="overlay" id="consequenceOverlay">
+  <div class="panel consequence-panel">
+    <div class="eyebrow">The field carries it forward</div>
+    <h2 id="consequenceTitle"></h2>
+    <p class="consequence-copy" id="consequenceCopy"></p>
+    <div class="delta-hero" id="deltaHero"></div>
+    <div class="receipt-line" id="consequenceReceipt"></div>
+    <div class="continue-row"><button class="btn primary" id="continueBtn">Return to the living world</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="endOverlay">
+  <div class="panel end-panel">
+    <div class="end-hero"><div class="end-tag" id="endTag"></div><h2 id="endTitle"></h2><p id="endBody"></p></div>
+    <div class="end-grid">
+      <section class="end-main">
+        <div class="metrics" id="endMetrics"></div>
+        <div class="compare"><h3>What you declared vs. what you repeatedly chose</h3><div id="comparison"></div></div>
+      </section>
+      <aside class="end-side"><h3>Your decision path</h3><div class="path-list" id="pathList"></div></aside>
+    </div>
+    <div class="end-actions"><button class="btn" id="sameSeedBtn">Replay same world</button><button class="btn" id="changeDoctrineBtn">Change declared values</button><button class="btn primary" id="downloadBtn">Download decision record</button></div>
+  </div>
+</div>
+
+<aside class="drawer" id="receiptDrawer">
+  <div class="drawer-head"><h2>Decision receipts</h2><button class="icon-btn" data-close-drawer="receiptDrawer">×</button></div>
+  <p class="about-copy">Each receipt stores the pressure, available choices, selected response, state before and after, and the preceding hash.</p>
+  <div class="receipt-list" id="receiptList"></div>
+</aside>
+<aside class="drawer" id="aboutDrawer">
+  <div class="drawer-head"><h2>How this works</h2><button class="icon-btn" data-close-drawer="aboutDrawer">×</button></div>
+  <div class="about-copy">
+    <p><b>Pressure Field</b> is an interactive deterministic decision game. The moving world is not decoration: its population, resource field, clusters, scouts, boundaries, and damage respond to the state produced by your decisions.</p>
+    <h3>Declared values</h3><p>You begin by stating what the system should prioritize. Those values do not select actions for you. They are used later to compare your declared priorities with your enacted choices.</p>
+    <h3>Consequences</h3><p>Every response changes reserve, evidence, obligations, integrity, flexibility, irreversible harm, and population. Those changes alter later pressure and can make some responses inaccessible.</p>
+    <h3>Receipts</h3><p>The game records a deterministic paper trail. It is a game engine and research prototype—not a validated measure of a person or organization.</p>
+  </div>
+</aside>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const canvas=$("world"),ctx=canvas.getContext("2d");
+let W=innerWidth,H=innerHeight,dpr=1,lastFrame=0,visualPaused=false,decisionTimer=null;
+
+const TRAITS=[
+ {id:"preserve",name:"Continuity",long:"Preserve continuity",color:"#e1bd68"},
+ {id:"evidence",name:"Inquiry",long:"Gather evidence",color:"#69aee6"},
+ {id:"territory",name:"Protection",long:"Protect obligations",color:"#e3a64e"},
+ {id:"adapt",name:"Agility",long:"Adapt structure",color:"#ae8be0"},
+ {id:"harm",name:"Restraint",long:"Avoid irreversible harm",color:"#6ec99a"}
+];
+const PRESETS={
+ care:{name:"Care Before Growth",desc:"Protects continuity, obligations, and avoids costs that cannot be reversed.",weights:{preserve:8,evidence:5,territory:8,adapt:4,harm:10}},
+ inquiry:{name:"Learn Before Acting",desc:"Gathers evidence and preserves options before committing.",weights:{preserve:5,evidence:10,territory:4,adapt:7,harm:8}},
+ guardian:{name:"Hold the Line",desc:"Protects existing responsibilities and resists loss of control.",weights:{preserve:8,evidence:4,territory:10,adapt:3,harm:6}},
+ adaptive:{name:"Change to Survive",desc:"Reorganizes quickly when old structures stop working.",weights:{preserve:5,evidence:7,territory:5,adapt:10,harm:6}}
+};
+const ENVIRONMENTS={
+ scarcity:{name:"Scarcity",desc:"Resources tighten while several communities need protection.",base:{reserve:72,evidence:54,territory:70,integrity:78,flexibility:48,harm:7,population:46},accent:"#e3a64e"},
+ evidence:{name:"Conflicting Signals",desc:"Immediate warnings and accumulated history disagree.",base:{reserve:78,evidence:38,territory:60,integrity:75,flexibility:58,harm:6,population:44},accent:"#69aee6"},
+ intrusion:{name:"Boundary Pressure",desc:"An unknown outside process enters protected space.",base:{reserve:74,evidence:48,territory:82,integrity:80,flexibility:45,harm:8,population:48},accent:"#eb6875"},
+ continuity:{name:"Route Failure",desc:"A trusted pathway collapses and the old structure stops carrying the load.",base:{reserve:70,evidence:60,territory:63,integrity:62,flexibility:42,harm:5,population:45},accent:"#ae8be0"}
+};
+const ACTIONS={
+ HOLD:{label:"Hold the structure",short:"Hold",desc:"Conserve capacity and keep the current arrangement intact.",traits:{preserve:1.25,evidence:.15,territory:.15,adapt:-.4,harm:.45},base:{reserve:5,evidence:1,territory:-2,integrity:8,flexibility:-5,harm:1,population:0}},
+ OBSERVE:{label:"Investigate first",short:"Investigate",desc:"Spend capacity to gather evidence before making a larger commitment.",traits:{preserve:.15,evidence:1.35,territory:-.1,adapt:.3,harm:.55},base:{reserve:-7,evidence:17,territory:-2,integrity:1,flexibility:4,harm:-1,population:-1}},
+ DEFEND:{label:"Defend the obligation",short:"Defend",desc:"Commit resources to protect threatened communities and boundaries.",traits:{preserve:.65,evidence:-.2,territory:1.35,adapt:-.25,harm:-.35},base:{reserve:-11,evidence:-1,territory:15,integrity:4,flexibility:-5,harm:7,population:2}},
+ WITHDRAW:{label:"Release part of the field",short:"Release",desc:"Give up an obligation to preserve capacity and reduce irreversible damage.",traits:{preserve:.45,evidence:.1,territory:-1.0,adapt:.25,harm:1.3},base:{reserve:15,evidence:0,territory:-14,integrity:-2,flexibility:6,harm:-9,population:-4}},
+ REORGANIZE:{label:"Rebuild the structure",short:"Rebuild",desc:"Spend capacity to create a different arrangement when the old one fails.",traits:{preserve:-.35,evidence:.25,territory:.1,adapt:1.4,harm:.05},base:{reserve:-9,evidence:4,territory:-4,integrity:12,flexibility:15,harm:2,population:-1}},
+ SHARE:{label:"Open controlled access",short:"Share",desc:"Share limited resources and information to reduce conflict and learn.",traits:{preserve:.05,evidence:.75,territory:-.45,adapt:.8,harm:.65},base:{reserve:-5,evidence:10,territory:-5,integrity:2,flexibility:9,harm:-4,population:1}}
+};
+const EVENTS={
+ scarcity:[
+  ["The first shortage","Two communities request the same reserve. Supplying both will leave no buffer.",48],
+  ["The reserve begins to vanish","A failed harvest removes the easy surplus. Every protected branch now draws from the same store.",56],
+  ["A distant branch calls for help","Aid can reach it, but only by weakening the center.",63],
+  ["Hoarding appears","Some clusters begin guarding more than they can use while others weaken.",70],
+  ["The repair fund is needed twice","A route and a shelter fail in the same cycle.",76],
+  ["The buffer is gone","The next mistake will not be absorbed quietly.",82],
+  ["A final protected branch weakens","Saving it could endanger everything else. Releasing it will change what the system claims to protect.",88],
+  ["The carrying limit arrives","The field must become smaller, smarter, harsher, or more open.",94]
+ ],
+ evidence:[
+  ["The warnings disagree","Local scouts report danger. The historical record predicts stability.",46],
+  ["A confident signal fails","The strongest immediate prediction produces the wrong result.",54],
+  ["Missing context spreads","Communities act on different fragments of the same event.",61],
+  ["Urgency becomes contagious","Fast action now feels safer than careful action, even though evidence remains weak.",69],
+  ["A trusted source contradicts itself","The system can preserve authority or reopen the question.",75],
+  ["Observation has a cost","More evidence is available, but collecting it will consume the reserve needed for action.",82],
+  ["The record can no longer settle the dispute","Past success and present conditions point in opposite directions.",89],
+  ["A decision cannot be delayed","The system must act without certainty and inherit the consequences.",95]
+ ],
+ intrusion:[
+  ["Something crosses the boundary","Its intent is unknown. It touches a protected route but causes no immediate damage.",47],
+  ["The newcomer copies a local pattern","It may be learning, imitating, or preparing to take control.",55],
+  ["A boundary cluster panics","Defensive behavior spreads faster than verified information.",63],
+  ["Contact becomes dependency","One community now benefits from the outsider's presence.",70],
+  ["The outsider reaches the center","Closing access now would also sever a useful route.",77],
+  ["A defensive strike causes damage","Protection has preserved territory but increased irreversible cost.",83],
+  ["The field divides over trust","Some clusters demand exclusion. Others depend on exchange.",89],
+  ["The boundary must be redefined","The old distinction between inside and outside no longer matches the living system.",96]
+ ],
+ continuity:[
+  ["A trusted route fails","The main path between two clusters disappears without warning.",48],
+  ["Repairs recreate the same weakness","Restoring the old route returns function but not resilience.",56],
+  ["A second path begins to buckle","The system can reinforce the center or distribute the load.",63],
+  ["Old receipts point to a solution that no longer works","Continuity and memory now pull in different directions.",70],
+  ["A new structure forms at the edge","It is less familiar but carries the load more effectively.",76],
+  ["The center loses authority","Peripheral clusters stop waiting for instructions that arrive too late.",83],
+  ["Identity becomes the constraint","Preserving the old form now consumes more than preserving the function.",90],
+  ["The final route decision","The field must decide whether continuity means keeping the structure or keeping the life moving through it.",96]
+ ]
+};
+const ENV_MODS={
+ scarcity:{reserve:-3,territory:-1,harm:1},
+ evidence:{evidence:-4,integrity:-1,harm:1},
+ intrusion:{territory:-4,reserve:-1,harm:2},
+ continuity:{integrity:-4,flexibility:-1,reserve:-1}
+};
+const STATE_NAMES={reserve:"Reserve",evidence:"Evidence",territory:"Obligations",integrity:"Integrity",flexibility:"Options",harm:"Harm",population:"Population"};
+const STATE_ICONS={reserve:"◆",evidence:"◌",territory:"⬡",integrity:"◎",flexibility:"↻",harm:"!",population:"●"};
+let selection={preset:"care",environment:"scarcity"};
+let g=null;
+let agents=[],resources=[],signals=[],links=[],shockwaves=[];
+let visualRng=Math.random;
+
+function clamp(n,min=0,max=100){return Math.max(min,Math.min(max,n))}
+function round(n){return Math.round(n)}
+function hash(text){let h=2166136261;for(const c of String(text)){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return("00000000"+(h>>>0).toString(16)).slice(-8)}
+function mulberry32(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function deterministic(seed,index,salt=0){const r=mulberry32((seed+index*374761393+salt*668265263)>>>0);return r()}
+function deep(x){return JSON.parse(JSON.stringify(x))}
+function signed(n){return`${n>0?"+":""}${round(n)}`}
+function normalized(weights){const total=Object.values(weights).reduce((a,b)=>a+b,0);return Object.fromEntries(Object.entries(weights).map(([k,v])=>[k,v/total*100]))}
+
+function resize(){dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+"px";canvas.style.height=H+"px";ctx.setTransform(dpr,0,0,dpr,0,0);if(g)reseedVisualWorld(true)}
+addEventListener("resize",resize);resize();
+
+function renderSetup(){
+ $("presetGrid").innerHTML=Object.entries(PRESETS).map(([id,p])=>`<button class="preset ${selection.preset===id?"active":""}" data-preset="${id}"><b>${p.name}</b><small>${p.desc}</small></button>`).join("");
+ document.querySelectorAll(".preset").forEach(b=>b.addEventListener("click",()=>{selection.preset=b.dataset.preset;renderSetup()}));
+ $("envGrid").innerHTML=Object.entries(ENVIRONMENTS).map(([id,e])=>`<button class="env ${selection.environment===id?"active":""}" data-env="${id}"><b>${e.name}</b><small>${e.desc}</small></button>`).join("");
+ document.querySelectorAll(".env").forEach(b=>b.addEventListener("click",()=>{selection.environment=b.dataset.env;renderSetup()}));
+}
+renderSetup();
+
+function startGame(){
+ clearTimeout(decisionTimer);
+ const seed=Number($("seedInput").value)||7317,pace=Number($("paceSelect").value)||1;
+ const doctrine=deep(PRESETS[selection.preset]),env=deep(ENVIRONMENTS[selection.environment]);
+ g={seed,pace,doctrine,environment:selection.environment,env,state:deep(env.base),initial:deep(env.base),turn:0,maxTurns:8,status:"living",history:[],receipts:[],enacted:Object.fromEntries(TRAITS.map(t=>[t.id,0])),contradictions:0,runCode:hash(JSON.stringify({seed,doctrine:doctrine.weights,environment:selection.environment})),worldTime:0,nextDecisionAt:5.5,lastAction:null,lastOutcome:null};
+ visualRng=mulberry32(seed);reseedVisualWorld(false);record("WORLD_OPEN",{seed,environment:selection.environment,doctrine},`${doctrine.name} entered ${env.name}.`);
+ $("setupOverlay").classList.remove("show");renderHUD();message(`<b>${doctrine.name}</b> has entered ${env.name}. Watch the field until the first threshold.`,3000);visualPaused=false;
+}
+
+function reseedVisualWorld(preserve){
+ if(!g)return;
+ const oldCount=agents.length;agents=[];resources=[];signals=[];links=[];shockwaves=[];
+ const rng=mulberry32((g.seed+g.turn*97)>>>0);const count=preserve?Math.max(8,round(g.state.population)):round(g.state.population);
+ const clusters=3+Math.round(g.state.flexibility/35);const centers=[];
+ for(let i=0;i<clusters;i++){const a=(Math.PI*2*i/clusters)+rng()*.45;const rad=Math.min(W,H)*(.16+rng()*.12);centers.push({x:W/2+Math.cos(a)*rad,y:H/2+Math.sin(a)*rad})}
+ for(let i=0;i<count;i++){
+  const c=centers[i%centers.length],type=chooseAgentType(rng());
+  agents.push({x:c.x+(rng()-.5)*70,y:c.y+(rng()-.5)*70,vx:(rng()-.5)*.45,vy:(rng()-.5)*.45,size:2.4+rng()*2.3,energy:clamp(g.state.reserve/100+(rng()-.5)*.25,0.08,1.15),type,cluster:i%centers.length,phase:rng()*Math.PI*2,alive:true});
+ }
+ const resourceCount=Math.round(g.state.reserve*.7);for(let i=0;i<resourceCount;i++)resources.push({x:rng()*W,y:80+rng()*(H-160),size:1.5+rng()*3,phase:rng()*6.28});
+ const signalCount=Math.round(g.state.evidence/8);for(let i=0;i<signalCount;i++)signals.push({x:rng()*W,y:70+rng()*(H-140),r:18+rng()*40,phase:rng()*6.28});
+ if(preserve&&oldCount!==count)message(`The visible population has adjusted from ${oldCount} to ${count}.`,1400);
+}
+function chooseAgentType(r){
+ const w=g.doctrine.weights;const total=w.evidence+w.territory+w.adapt+w.harm+w.preserve;const x=r*total;
+ if(x<w.evidence)return"scout";if(x<w.evidence+w.territory)return"guardian";if(x<w.evidence+w.territory+w.adapt)return"adapter";if(x<w.evidence+w.territory+w.adapt+w.harm)return"caretaker";return"keeper";
+}
+
+function renderHUD(){if(!g)return;
+ const map=[["population","Population"],["reserve","Reserve"],["evidence","Evidence"],["integrity","Integrity"],["harm","Harm"]];
+ $("stats").innerHTML=map.map(([k,n])=>{const v=round(g.state[k]);const width=k==="population"?clamp(v/70*100):v;const color=k==="harm"?"var(--red)":k==="integrity"?"var(--accent)":k==="reserve"?"var(--green)":"var(--blue)";return`<div class="stat"><label>${n}</label><b>${v}${k==="population"?"":"%"}</b><div class="mini"><i style="width:${width}%;background:${color}"></i></div></div>`}).join("");
+ const top=TRAITS.slice().sort((a,b)=>g.doctrine.weights[b.id]-g.doctrine.weights[a.id]);
+ $("doctrineChip").innerHTML=`<small>Declared doctrine</small><b>${g.doctrine.name}</b><div class="doctrine-traits">${top.map((t,i)=>`<span class="trait-pill ${i===0?"top":""}">${t.name} ${g.doctrine.weights[t.id]}</span>`).join("")}</div>`;
+ $("turnNumber").textContent=g.turn;$("turnRing").style.setProperty("--progress",`${g.turn/g.maxTurns*100}%`);
+ const stress=systemStress();let cls="stable",label="Stable",copy="The system has room to absorb mistakes.";if(stress>68){cls="critical";label="Critical";copy="One more costly decision may remove future options."}else if(stress>40){cls="strained";label="Strained";copy="Pressure is narrowing what the field can recover from."}$("alertBadge").className=`alert-badge ${cls}`;$("alertBadge").textContent=label;$("alertCopy").textContent=copy;
+}
+function systemStress(){const s=g.state;return clamp((100-s.reserve)*.28+(100-s.integrity)*.25+s.harm*.27+(100-s.flexibility)*.1+(100-s.evidence)*.1)}
+
+function eventForTurn(){const e=EVENTS[g.environment][g.turn];const wobble=Math.round(deterministic(g.seed,g.turn,31)*6-3);return{title:e[0],body:e[1],pressure:clamp(e[2]+wobble,1,100)}}
+function openDecision(){
+ if(!g||g.status!=="living"||g.turn>=g.maxTurns)return;g.status="deciding";visualPaused=true;const ev=eventForTurn();g.currentEvent=ev;
+ $("decisionPhase").textContent=`Threshold ${g.turn+1} of ${g.maxTurns}`;$("decisionTitle").textContent=ev.title;$("decisionBody").textContent=ev.body;$("pressureValue").textContent=`${ev.pressure}%`;$("pressureFill").style.width=`${ev.pressure}%`;
+ renderDecisionState();renderChoices(ev);$("decisionOverlay").classList.add("show");renderHUD();
+}
+function renderDecisionState(){const keys=["reserve","evidence","territory","integrity","flexibility","harm"];$("decisionState").innerHTML=keys.map(k=>`<div class="state-chip ${(k!=="harm"&&g.state[k]<25)||(k==="harm"&&g.state[k]>65)?"danger":""}"><small>${STATE_NAMES[k]}</small><b>${round(g.state[k])}</b></div>`).join("")}
+function accessible(id){const s=g.state;if(id==="DEFEND"&&s.reserve<15)return{ok:false,why:"Too little reserve remains to defend."};if(id==="OBSERVE"&&s.reserve<9)return{ok:false,why:"No capacity remains for investigation."};if(id==="REORGANIZE"&&s.flexibility<14)return{ok:false,why:"Too few alternatives remain to rebuild."};if(id==="WITHDRAW"&&s.territory<15)return{ok:false,why:"There is almost nothing left to release."};if(id==="SHARE"&&g.environment==="intrusion"&&s.evidence<18)return{ok:false,why:"Intent is too uncertain to open access."};return{ok:true,why:"Available"}}
+function actionFit(id){const w=g.doctrine.weights,a=ACTIONS[id].traits;let score=0,max=0;for(const t of TRAITS){score+=w[t.id]*a[t.id];max+=w[t.id]*Math.max(0,a[t.id])}return round(score*3)}
+function projectedDelta(id,ev){
+ const base=deep(ACTIONS[id].base),s=g.state,p=ev.pressure/100;
+ const mods=ENV_MODS[g.environment];for(const [k,v] of Object.entries(mods))base[k]=(base[k]||0)+round(v*(.5+p));
+ if(g.environment==="scarcity"){if(id==="WITHDRAW")base.reserve+=4;if(id==="SHARE")base.harm-=2;if(id==="DEFEND")base.reserve-=3}
+ if(g.environment==="evidence"){if(id==="OBSERVE")base.evidence+=5;if(id==="HOLD")base.integrity-=2;if(id==="SHARE")base.evidence+=3}
+ if(g.environment==="intrusion"){if(id==="DEFEND")base.territory+=4;if(id==="SHARE"&&s.evidence<40)base.harm+=4;if(id==="OBSERVE")base.evidence+=3}
+ if(g.environment==="continuity"){if(id==="REORGANIZE")base.integrity+=5;if(id==="HOLD")base.integrity-=4;if(id==="SHARE")base.flexibility+=3}
+ if(ev.pressure>80&&id==="HOLD"){base.harm+=3;base.territory-=2}
+ if(s.harm>55&&id==="WITHDRAW")base.integrity+=3;
+ if(s.evidence>75&&id==="OBSERVE")base.evidence-=6;
+ if(s.reserve<30&&["DEFEND","REORGANIZE","OBSERVE"].includes(id))base.population-=2;
+ return base;
+}
+function renderChoices(ev){
+ const fits=Object.keys(ACTIONS).map(id=>({id,fit:actionFit(id)})).sort((a,b)=>b.fit-a.fit);const best=fits[0]?.id;const ranks=Object.fromEntries(fits.map((x,i)=>[x.id,i]));
+ $("choiceGrid").innerHTML=Object.entries(ACTIONS).map(([id,a])=>{const acc=accessible(id),d=projectedDelta(id,ev),rank=ranks[id],fitLabel=rank===0?"closest value fit":rank===1?"supports values":rank<4?"mixed fit":"value tension";const shown=["reserve","evidence","territory","integrity","flexibility","harm"].filter(k=>d[k]).sort((x,y)=>Math.abs(d[y])-Math.abs(d[x])).slice(0,4);return`<button class="choice ${id===best?"best-fit":""}" data-action="${id}" ${acc.ok?"":"disabled"}><span class="choice-code">${id}</span><span class="fit ${rank<2?"high":""}">${fitLabel}</span><h3>${a.label}</h3><p>${a.desc}</p><div class="delta-list">${shown.map(k=>`<span class="delta">${STATE_NAMES[k]} <b class="${d[k]>0?(k==="harm"?"down":"up"):(k==="harm"?"up":"down")}">${signed(d[k])}</b></span>`).join("")}</div>${acc.ok?"":`<div class="locked">${acc.why}</div>`}</button>`}).join("");
+ document.querySelectorAll(".choice:not(:disabled)").forEach(b=>b.addEventListener("click",()=>chooseAction(b.dataset.action)));
+}
+function dominantTrait(id){return TRAITS.slice().sort((a,b)=>ACTIONS[id].traits[b.id]-ACTIONS[id].traits[a.id])[0]}
+function declaredTop(){return TRAITS.slice().sort((a,b)=>g.doctrine.weights[b.id]-g.doctrine.weights[a.id])[0]}
+function isContradiction(id){const d=declaredTop(),a=dominantTrait(id);return d.id!==a.id&&g.doctrine.weights[d.id]-g.doctrine.weights[a.id]>=3}
+function chooseAction(id){
+ const before=deep(g.state),ev=g.currentEvent,d=projectedDelta(id,ev);for(const [k,v] of Object.entries(d))g.state[k]=clamp(g.state[k]+v,k==="population"?0:0,k==="population"?100:100);
+ // Secondary systemic effects make choices compound.
+ if(g.state.reserve<22){g.state.population=clamp(g.state.population-3,0,100);g.state.harm=clamp(g.state.harm+3)}
+ if(g.state.integrity<25){g.state.population=clamp(g.state.population-2,0,100);g.state.flexibility=clamp(g.state.flexibility-3)}
+ if(g.state.evidence>70&&id!=="OBSERVE")g.state.integrity=clamp(g.state.integrity+1);
+ if(g.state.territory>85&&g.state.reserve<35)g.state.harm=clamp(g.state.harm+3);
+ if(g.state.flexibility>75&&id==="REORGANIZE")g.state.population=clamp(g.state.population+2,0,100);
+ const contradiction=isContradiction(id);if(contradiction)g.contradictions++;
+ const trait=dominantTrait(id);g.enacted[trait.id]++;g.turn++;g.lastAction=id;const after=deep(g.state);const actualDelta=Object.fromEntries(Object.keys(after).map(k=>[k,after[k]-before[k]]));
+ const receipt=record("DECISION",{turn:g.turn,event:ev,action:id,available:Object.keys(ACTIONS).map(a=>({action:a,accessible:accessible(a).ok})),stateBefore:before,projected:d,stateAfter:after,actualDelta,declaredTop:declaredTop().id,enactedTrait:trait.id,contradiction},`${ACTIONS[id].label} answered ${ev.title}.`);
+ g.history.push({turn:g.turn,event:ev.title,action:id,trait:trait.id,contradiction,before,after,delta:actualDelta,hash:receipt.hash});
+ g.status="consequence";$("decisionOverlay").classList.remove("show");applyVisualAction(id,actualDelta);showConsequence(id,actualDelta,receipt,contradiction);renderHUD();
+}
+function record(type,data,summary){const prev=g.receipts.length?g.receipts.at(-1).hash:"GENESIS";const n=g.receipts.length+1;const h=hash(JSON.stringify({n,type,data,prev}));const r={n,type,data,summary,prev,hash:h};g.receipts.push(r);renderReceipts();return r}
+function applyVisualAction(id,delta){
+ const rng=mulberry32((g.seed+g.turn*1187)>>>0);shockwaves.push({x:W/2,y:H/2,r:10,max:Math.max(W,H)*.7,life:1,color:actionColor(id)});
+ if(id==="WITHDRAW"){agents.sort((a,b)=>a.cluster-b.cluster);agents.splice(0,Math.min(agents.length,Math.max(2,Math.abs(delta.population||3))))}
+ if(id==="DEFEND")agents.forEach(a=>{if(a.type==="guardian")a.energy=Math.min(1.2,a.energy+.25)});
+ if(id==="OBSERVE")for(let i=0;i<5;i++)signals.push({x:rng()*W,y:70+rng()*(H-140),r:30+rng()*50,phase:rng()*6.28});
+ if(id==="SHARE")buildLinks(true);
+ if(id==="REORGANIZE")agents.forEach((a,i)=>{a.cluster=(a.cluster+1+i%2)%Math.max(2,3+Math.round(g.state.flexibility/35));a.vx+=(rng()-.5)*1.2;a.vy+=(rng()-.5)*1.2});
+ if(id==="HOLD")agents.forEach(a=>{a.vx*=.45;a.vy*=.45});
+ syncVisualCounts(rng);
+}
+function actionColor(id){return({HOLD:"#e1bd68",OBSERVE:"#69aee6",DEFEND:"#eb6875",WITHDRAW:"#6ec99a",REORGANIZE:"#ae8be0",SHARE:"#70ced0"})[id]}
+function syncVisualCounts(rng){
+ const target=Math.max(0,round(g.state.population));while(agents.length<target){const a=(rng()*Math.PI*2),rad=Math.min(W,H)*(.12+rng()*.2);agents.push({x:W/2+Math.cos(a)*rad,y:H/2+Math.sin(a)*rad,vx:(rng()-.5)*.8,vy:(rng()-.5)*.8,size:2.5+rng()*2,type:chooseAgentType(rng()),cluster:Math.floor(rng()*4),phase:rng()*6.28,energy:g.state.reserve/100,alive:true})}while(agents.length>target)agents.splice(Math.floor(rng()*agents.length),1);
+ const rt=Math.round(g.state.reserve*.7);while(resources.length<rt)resources.push({x:rng()*W,y:70+rng()*(H-140),size:1.5+rng()*3,phase:rng()*6.28});while(resources.length>rt)resources.pop();
+}
+function buildLinks(force=false){links=[];if(!g)return;const count=Math.min(22,Math.floor(g.state.flexibility/5)+(force?7:0));for(let i=0;i<count;i++){if(!agents.length)break;const a=agents[(i*7)%agents.length],b=agents[(i*13+3)%agents.length];if(a!==b)links.push({a,b,life:1})}}
+function showConsequence(id,delta,receipt,contradiction){
+ const a=ACTIONS[id],trait=dominantTrait(id);$("consequenceTitle").textContent=a.label;let sentence=consequenceSentence(id,delta);if(contradiction)sentence+=` This choice was led by ${trait.name.toLowerCase()}, not your strongest declared priority, ${declaredTop().name.toLowerCase()}.`;else sentence+=` This choice remained close to your declared priorities.`;$("consequenceCopy").textContent=sentence;
+ const keys=Object.keys(delta).filter(k=>delta[k]).sort((x,y)=>Math.abs(delta[y])-Math.abs(delta[x])).slice(0,3);$("deltaHero").innerHTML=keys.map(k=>{const good=k==="harm"?delta[k]<0:delta[k]>0;return`<div class="delta-card ${good?"good":"bad"}"><small>${STATE_NAMES[k]}</small><b>${signed(delta[k])}</b></div>`}).join("");
+ $("consequenceReceipt").textContent=`receipt ${receipt.n} · ${receipt.prev} → ${receipt.hash}`;$("consequenceOverlay").classList.add("show");
+}
+function consequenceSentence(id,d){const map={HOLD:"The center became more coherent and spent less reserve, but the field lost alternatives and some obligations continued to weaken.",OBSERVE:"The system bought information with capacity. The next decision will be better informed, but there is less reserve available to act on it.",DEFEND:"The threatened area strengthened immediately. The cost was paid in reserve, flexibility, and accumulated harm.",WITHDRAW:"The system released part of what it had promised to protect. Capacity returned and harm fell, but the field became smaller.",REORGANIZE:"The old arrangement was disrupted to create new routes. Integrity and options improved, but the transition consumed reserve.",SHARE:"Controlled exchange produced evidence and flexibility while lowering conflict. It also loosened exclusive control of the field."};return map[id]}
+function continueWorld(){
+ $("consequenceOverlay").classList.remove("show");if(isTerminal()){finishGame();return}if(g.turn>=g.maxTurns){finishGame();return}g.status="living";visualPaused=false;g.nextDecisionAt=g.worldTime+4.4/Math.max(.6,g.pace);message(`Decision ${g.turn} is now part of the world. The next threshold is forming.`,1800);renderHUD();
+}
+function isTerminal(){return g.state.population<=4||g.state.reserve<=5||g.state.integrity<=4||g.state.harm>=98}
+function finishGame(){
+ g.status="complete";visualPaused=true;const outcome=classifyOutcome();g.outcome=outcome;record("WORLD_CLOSED",{outcome:outcome.id,finalState:g.state,history:g.history,contradictions:g.contradictions},outcome.title);renderEnd(outcome);$("endOverlay").classList.add("show");
+}
+function classifyOutcome(){const s=g.state;
+ if(s.population<=4||s.reserve<=5||s.integrity<=4||s.harm>=98)return{id:"collapse",tag:"System collapse",title:"The field could no longer carry its own consequences.",body:"Capacity, coherence, or population fell below the point where later decisions could repair the system. The ending was not caused by one choice alone; it was inherited from the path."};
+ if(s.territory>=78&&s.harm>=48)return{id:"fortress",tag:"Fortress survival",title:"The field survived behind stronger boundaries.",body:"Obligations and territory remained protected, but the cost accumulated as harm, reduced flexibility, and a narrower future."};
+ if(s.integrity>=72&&s.flexibility<28)return{id:"brittle",tag:"Brittle continuity",title:"The structure remained recognizable—and increasingly unable to change.",body:"You preserved coherence and identity, but later options narrowed. The field survives as long as the next pressure resembles the last one."};
+ if(s.reserve>=48&&s.territory<35&&s.harm<38)return{id:"retreat",tag:"Managed retreat",title:"The system survived by becoming smaller.",body:"You released obligations before they consumed the remaining reserve. The result is safer and more stable, but it protects less than it once promised."};
+ if(s.integrity>=65&&s.reserve>=35&&s.harm<42&&s.evidence>=45)return{id:"resilient",tag:"Resilient balance",title:"The field learned how to bend without breaking.",body:"Enough reserve, evidence, and coherence survived together. The world remains imperfect, but no single pressure controls the entire system."};
+ if(s.flexibility>=72&&s.integrity>=50&&s.evidence>=48)return{id:"adaptive",tag:"Adaptive network",title:"The structure changed faster than the pressure could trap it.",body:"You repeatedly preserved function by changing form. The final field is less centralized, more connected, and better able to reroute future shocks."};
+ return{id:"compromise",tag:"Compromised survival",title:"The field survived, but no value remained untouched.",body:"The final system carries visible tradeoffs: some promises held, some options vanished, and some damage became part of the operating structure."};
+}
+function fidelityScore(){const dec=normalized(g.doctrine.weights),total=Math.max(1,Object.values(g.enacted).reduce((a,b)=>a+b,0)),act=Object.fromEntries(TRAITS.map(t=>[t.id,g.enacted[t.id]/total*100]));let distance=0;for(const t of TRAITS)distance+=Math.abs(dec[t.id]-act[t.id]);return{score:round(100-distance/2),declared:dec,enacted:act}}
+function renderEnd(outcome){const f=fidelityScore(),survival=round((g.state.population/Math.max(1,g.initial.population))*100),resilience=round((g.state.reserve+g.state.integrity+g.state.flexibility+(100-g.state.harm))/4),damage=round(g.state.harm);
+ $("endTag").textContent=outcome.tag;$("endTitle").textContent=outcome.title;$("endBody").textContent=outcome.body;
+ const metrics=[["Population retained",`${survival}%`,survival],["Value fidelity",`${f.score}%`,f.score],["System resilience",`${resilience}%`,resilience],["Irreversible harm",`${damage}%`,damage]];$("endMetrics").innerHTML=metrics.map(([n,v,p],i)=>`<div class="metric"><small>${n}</small><b>${v}</b><div class="bar"><i style="width:${p}%;background:${i===3?"var(--red)":i===1?"var(--accent)":"var(--blue)"}"></i></div></div>`).join("");
+ $("comparison").innerHTML=TRAITS.map(t=>`<div class="compare-row"><b>${t.name}</b><div class="dual-bars"><div class="barline"><i class="declared" style="width:${f.declared[t.id]}%"></i></div><div class="barline"><i class="enacted" style="width:${f.enacted[t.id]}%"></i></div></div><span>${round(f.enacted[t.id])}%</span></div>`).join("");
+ $("pathList").innerHTML=g.history.map(h=>{const primary=Object.entries(h.delta).filter(([,v])=>v).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]))[0];return`<div class="path-item"><b>${h.turn}. ${ACTIONS[h.action].label}</b><small>${h.event}${primary?` · ${STATE_NAMES[primary[0]]} ${signed(primary[1])}`:""}${h.contradiction?" · value tension":""}</small></div>`}).join("");
+}
+function replaySame(){const cfg={seed:g.seed,pace:g.pace,preset:selection.preset,environment:g.environment};$("endOverlay").classList.remove("show");$("seedInput").value=cfg.seed;$("paceSelect").value=cfg.pace;selection.preset=cfg.preset;selection.environment=cfg.environment;startGame()}
+function changeDoctrine(){$("endOverlay").classList.remove("show");$("setupOverlay").classList.add("show");renderSetup()}
+function downloadRecord(){const blob=new Blob([JSON.stringify({game:"Pressure Field",version:"1.0",runCode:g.runCode,seed:g.seed,doctrine:g.doctrine,environment:g.environment,initialState:g.initial,finalState:g.state,outcome:g.outcome,history:g.history,receipts:g.receipts},null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`pressure-field-${g.runCode}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function renderReceipts(){if(!g)return;$("receiptList").innerHTML=g.receipts.slice().reverse().map(r=>`<div class="receipt"><b>${r.n}. ${r.type}</b><small>${r.summary}</small><code>${r.prev} → ${r.hash}</code></div>`).join("")}
+
+function message(html,ms=2000){const el=$("centerMessage");el.innerHTML=html;el.classList.add("show");clearTimeout(message.t);message.t=setTimeout(()=>el.classList.remove("show"),ms)}
+function toast(text){const el=$("toast");el.textContent=text;el.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove("show"),1600)}
+function toggleDrawer(id){document.querySelectorAll(".drawer").forEach(d=>{if(d.id!==id)d.classList.remove("show")});$(id).classList.toggle("show")}
+
+// Living visual engine
+function updateVisual(dt){if(!g||visualPaused||g.status!=="living")return;g.worldTime+=dt*g.pace;
+ const s=g.state;const centers=clusterCenters();
+ for(const a of agents){
+  a.phase+=dt*(.5+a.size*.08);a.energy+=(s.reserve/100-a.energy)*dt*.12;const c=centers[a.cluster%centers.length];let ax=0,ay=0;
+  if(a.type==="scout"){const ang=a.phase+a.cluster;const tx=W/2+Math.cos(ang)*Math.min(W,H)*.36,ty=H/2+Math.sin(ang)*Math.min(W,H)*.3;ax=(tx-a.x)*.0007;ay=(ty-a.y)*.0007}
+  else if(a.type==="guardian"){const ang=a.phase*.45+a.cluster*2;const rad=Math.min(W,H)*(.18+s.territory/500);const tx=W/2+Math.cos(ang)*rad,ty=H/2+Math.sin(ang)*rad;ax=(tx-a.x)*.0008;ay=(ty-a.y)*.0008}
+  else if(a.type==="adapter"){const next=centers[(a.cluster+1)%centers.length];const blend=(Math.sin(a.phase*.7)+1)/2;const tx=c.x*(1-blend)+next.x*blend,ty=c.y*(1-blend)+next.y*blend;ax=(tx-a.x)*.0009;ay=(ty-a.y)*.0009}
+  else{ax=(c.x-a.x)*.0008;ay=(c.y-a.y)*.0008}
+  a.vx+=ax*60*dt+(Math.sin(a.phase*1.7)*.004);a.vy+=ay*60*dt+(Math.cos(a.phase*1.3)*.004);const sp=Math.hypot(a.vx,a.vy),max=.25+s.flexibility/130;if(sp>max){a.vx*=max/sp;a.vy*=max/sp}a.x+=a.vx*60*dt;a.y+=a.vy*60*dt;if(a.x<8||a.x>W-8)a.vx*=-.8;if(a.y<60||a.y>H-45)a.vy*=-.8;a.x=clamp(a.x,8,W-8);a.y=clamp(a.y,60,H-45)
+ }
+ for(const r of resources)r.phase+=dt;for(const q of signals)q.phase+=dt;shockwaves.forEach(w=>{w.r+=(w.max-w.r)*dt*2;w.life-=dt*.7});shockwaves=shockwaves.filter(w=>w.life>0);links=links.filter(l=>l.a&&l.b);
+ if(Math.floor(g.worldTime*2)%7===0)buildLinks(false);
+ if(g.worldTime>=g.nextDecisionAt){g.nextDecisionAt=Infinity;openDecision()}
+}
+function clusterCenters(){const n=3+Math.round(g.state.flexibility/35),arr=[];for(let i=0;i<n;i++){const ang=Math.PI*2*i/n+(g.turn*.17);const rad=Math.min(W,H)*(.15+i%2*.06);arr.push({x:W/2+Math.cos(ang)*rad,y:H/2+Math.sin(ang)*rad})}return arr}
+function drawWorld(t){ctx.clearRect(0,0,W,H);const grad=ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,Math.max(W,H)*.7);grad.addColorStop(0,"#0b1d29");grad.addColorStop(.55,"#07131d");grad.addColorStop(1,"#03080d");ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+ drawGrid();if(!g){drawIdle(t);return}drawTerritories();drawSignals(t);drawLinks();drawResources(t);drawAgents(t);drawShockwaves();drawCore();
+}
+function drawGrid(){ctx.lineWidth=.5;ctx.strokeStyle="#10243188";const gap=58;for(let x=0;x<W;x+=gap){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}for(let y=0;y<H;y+=gap){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}}
+function drawIdle(t){const n=28;for(let i=0;i<n;i++){const a=i/n*Math.PI*2+t*.00008,rad=90+(i%5)*24,x=W/2+Math.cos(a+i)*rad,y=H/2+Math.sin(a*.8+i)*rad*.65;ctx.fillStyle=i%4===0?"#e1bd68":"#50788f";ctx.globalAlpha=.35+.25*Math.sin(t*.002+i);ctx.beginPath();ctx.arc(x,y,2+i%3,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1}
+function drawTerritories(){const c=clusterCenters(),s=g.state;for(let i=0;i<c.length;i++){const r=34+s.territory*.45/c.length*2;const grd=ctx.createRadialGradient(c[i].x,c[i].y,0,c[i].x,c[i].y,r);grd.addColorStop(0,`rgba(174,139,224,${.025+s.integrity/1800})`);grd.addColorStop(1,"rgba(174,139,224,0)");ctx.fillStyle=grd;ctx.beginPath();ctx.arc(c[i].x,c[i].y,r,0,Math.PI*2);ctx.fill();ctx.strokeStyle=`rgba(174,139,224,${.08+s.territory/900})`;ctx.lineWidth=1;ctx.beginPath();ctx.arc(c[i].x,c[i].y,r,0,Math.PI*2);ctx.stroke()}}
+function drawSignals(t){for(const s of signals){ctx.strokeStyle=`rgba(105,174,230,${.12+.08*Math.sin(s.phase)})`;ctx.lineWidth=1;ctx.beginPath();ctx.arc(s.x,s.y,s.r*(.8+.15*Math.sin(s.phase)),0,Math.PI*2);ctx.stroke();ctx.fillStyle="#69aee6";ctx.globalAlpha=.4;ctx.beginPath();ctx.arc(s.x,s.y,1.6,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1}
+function drawLinks(){ctx.lineWidth=.7;for(const l of links){ctx.strokeStyle="rgba(112,206,208,.13)";ctx.beginPath();ctx.moveTo(l.a.x,l.a.y);ctx.lineTo(l.b.x,l.b.y);ctx.stroke()}}
+function drawResources(t){for(const r of resources){const pulse=.65+.25*Math.sin(r.phase*2+t*.001);ctx.fillStyle="#6ec99a";ctx.globalAlpha=.25+pulse*.35;ctx.shadowColor="#6ec99a";ctx.shadowBlur=6;ctx.beginPath();ctx.arc(r.x,r.y,r.size*pulse,0,Math.PI*2);ctx.fill()}ctx.shadowBlur=0;ctx.globalAlpha=1}
+function agentColor(a){if(a.type==="scout")return"#69aee6";if(a.type==="guardian")return"#e3a64e";if(a.type==="adapter")return"#ae8be0";if(a.type==="caretaker")return"#6ec99a";return"#dfe9ec"}
+function drawAgents(t){const harm=g.state.harm/100;for(const a of agents){const col=agentColor(a);ctx.shadowColor=col;ctx.shadowBlur=4+a.energy*5;ctx.globalAlpha=.5+a.energy*.45;ctx.fillStyle=harm>.65&&Math.sin(a.phase*4)>0?"#eb6875":col;ctx.beginPath();ctx.arc(a.x,a.y,a.size*(.8+a.energy*.25),0,Math.PI*2);ctx.fill();if(a.type==="guardian"){ctx.strokeStyle="rgba(227,166,78,.45)";ctx.lineWidth=.7;ctx.beginPath();ctx.arc(a.x,a.y,a.size+3,0,Math.PI*2);ctx.stroke()}if(a.type==="scout"){ctx.strokeStyle="rgba(105,174,230,.3)";ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(a.x-a.vx*14,a.y-a.vy*14);ctx.stroke()}}ctx.shadowBlur=0;ctx.globalAlpha=1}
+function drawShockwaves(){for(const w of shockwaves){ctx.strokeStyle=w.color;ctx.globalAlpha=Math.max(0,w.life)*.35;ctx.lineWidth=2;ctx.beginPath();ctx.arc(w.x,w.y,w.r,0,Math.PI*2);ctx.stroke()}ctx.globalAlpha=1}
+function drawCore(){const s=g.state,r=22+s.integrity*.13;const grd=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,r*2.5);grd.addColorStop(0,`rgba(225,189,104,${.25+s.integrity/300})`);grd.addColorStop(1,"rgba(225,189,104,0)");ctx.fillStyle=grd;ctx.beginPath();ctx.arc(W/2,H/2,r*2.5,0,Math.PI*2);ctx.fill();ctx.fillStyle="#d9c17d";ctx.globalAlpha=.55;ctx.beginPath();ctx.arc(W/2,H/2,4+s.integrity*.03,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1}
+function frame(t){const dt=Math.min(.05,(t-lastFrame)/1000)||.016;lastFrame=t;updateVisual(dt);drawWorld(t);requestAnimationFrame(frame)}requestAnimationFrame(frame);
+
+$("startBtn").addEventListener("click",startGame);$("continueBtn").addEventListener("click",continueWorld);$("sameSeedBtn").addEventListener("click",replaySame);$("changeDoctrineBtn").addEventListener("click",changeDoctrine);$("downloadBtn").addEventListener("click",downloadRecord);
+$("receiptsBtn").addEventListener("click",()=>toggleDrawer("receiptDrawer"));$("aboutBtn").addEventListener("click",()=>toggleDrawer("aboutDrawer"));document.querySelectorAll("[data-close-drawer]").forEach(b=>b.addEventListener("click",()=>$(b.dataset.closeDrawer).classList.remove("show")));
+$("pauseBtn").addEventListener("click",()=>{if(!g)return;visualPaused=!visualPaused;$("pauseBtn").textContent=visualPaused?"▶":"Ⅱ";toast(visualPaused?"Living world paused":"Living world resumed")});
+</script>
+</body>
+</html>

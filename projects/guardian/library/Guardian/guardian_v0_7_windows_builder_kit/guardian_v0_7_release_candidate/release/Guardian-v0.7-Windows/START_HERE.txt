@@ -1,0 +1,33 @@
+GUARDIAN v0.7 — WINDOWS RELEASE CANDIDATE
+
+Security limitation:
+Guardian may miss harmful, unsafe, or newly developed content. A pass means
+only that the artifact passed the checks implemented by this release.
+
+WHEN Guardian.exe IS PRESENT:
+
+1. Double-click CHECK_RELEASE_CHECKSUMS.cmd.
+2. Double-click VALIDATE_GUARDIAN.cmd.
+3. Confirm that the final message says PASSED.
+4. Double-click RUN_GUARDIAN_DEMO.cmd to see the visual explanation and rerun
+   the actual sample scans.
+
+The validation does not use Python. It records whether Windows can find Python,
+py, or python3, but Guardian.exe must run independently of them.
+
+Expected sample outcomes:
+
+clean.py              LET IN
+hold_file_write.py    HOLD
+reject_unsafe.py      REJECT
+missing_manifest.py   HOLD
+
+Results are written to:
+
+validation-output\WINDOWS_VALIDATION_RESULTS.json
+
+If Windows Defender or SmartScreen displays a warning, do not bypass it blindly.
+Record the exact warning and compare Guardian.exe against RELEASE_CHECKSUMS.txt.
+Unsigned PyInstaller executables can trigger reputation-based warnings.
+
+The visual HTML file is an explanation. Guardian.exe is the actual scanner.

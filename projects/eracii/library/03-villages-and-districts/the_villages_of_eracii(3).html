@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Eracii · The Natural Math Engine</title>
+<style>
+  body { margin: 0; background: #7ba37e; overflow: hidden; font-family: sans-serif; }
+  canvas { display: block; width: 100vw; height: 100vh; cursor: crosshair; }
+  .hud { position: fixed; top: 10px; left: 10px; background: rgba(28, 25, 21, 0.9); color: #e6c875; padding: 12px; border-radius: 8px; font-size: 13px; pointer-events: none; border: 1px solid #e6c875; }
+</style>
+</head>
+<body>
+<div class="hud" id="hud">Engine: Initializing...</div>
+<canvas id="gameCanvas"></canvas>
+<script>
+// --- 1. ENGINE STATE ---
+const state = {
+    tick: 0,
+    riverHealth: 0.3,
+    prosperity: 0.15,
+    order: 0.6,
+    northConnected: 0.0,
+    grainFlow: 0.0,
+    actionLog: [],
+    nextEventTick: 5000,
+    px: 250, py: 480, // Player
+    storageRansacked: false
+};
+
+// --- 2. MATH ENGINE ---
+function recomputeWorld() {
+    state.riverHealth = Math.min(Math.max(0.3 + (state.actionLog.filter(a=>a.type==='give_boards').length * 0.25), 0), 1);
+    state.prosperity = Math.min(Math.max(0.15 + (state.actionLog.filter(a=>a.type==='give_oil').length * 0.3), 0), 1);
+    state.order = Math.min(Math.max(0.6 - (state.actionLog.some(a=>a.type==='ransacked') ? 0.4 : 0) + (state.actionLog.filter(a=>a.type==='give_tools').length * 0.25), 0), 1);
+    state.northConnected = state.riverHealth > 0.5 ? 0.8 : 0;
+    
+    // Deterministic scheduling
+    state.nextEventTick = state.tick + Math.floor(5000 + (state.order * 5000));
+    
+    document.getElementById('hud').innerHTML = 
+        `River Health: ${(state.riverHealth*100).toFixed(0)}%<br>Prosperity: ${(state.prosperity*100).toFixed(0)}%<br>District Order: ${(state.order*100).toFixed(0)}%`;
+}
+
+function logAction(type) {
+    state.actionLog.push({t: state.tick, type});
+    recomputeWorld();
+}
+
+// --- 3. PIXEL SPRITE ENGINE ---
+const NPC_MAP = {
+    alda: [[0,0,0,0,3,3,3,0,0,0,0,0,0,0,0,0],[0,0,0,3,3,3,3,3,0,0,0,0,0,0,0,0],[0,0,3,3,3,3,3,3,3,0,0,0,0,0,0,0],[0,0,3,3,3,3,3,3,3,0,0,0,0,0,0,0],[0,0,3,3,3,3,3,3,3,0,0,0,0,0,0,0],[0,0,0,3,3,3,3,3,0,0,0,0,0,0,0,0],[0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0],[0,0,1,1,2,2,1,1,1,0,0,0,0,0,0,0],[0,0,1,2,2,2,2,1,1,0,0,0,0,0,0,0],[0,0,1,2,2,2,2,1,1,0,0,0,0,0,0,0],[0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0],[0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0],[0,0,1,1,2,2,1,1,1,0,0,0,0,0,0,0],[0,0,1,1,2,2,1,1,1,0,0,0,0,0,0,0],[0,0,1,1,0,0,1,1,1,0,0,0,0,0,0,0],[0,0,1,1,0,0,1,1,1,0,0,0,0,0,0,0]]
+};
+const COLORS = { 1:'#f4d7b9', 2:'#3b6ea5', 3:'#4a2e1b' };
+
+function drawPixelNPC(ctx, x, y, id) {
+    const map = NPC_MAP[id];
+    for(let r=0; r<16; r++) {
+        for(let c=0; c<16; c++) {
+            if(map[r][c] !== 0) {
+                ctx.fillStyle = COLORS[map[r][c]];
+                ctx.fillRect(x + c*2, y + r*2, 2, 2);
+            }
+        }
+    }
+}
+
+// --- 4. MAIN GAME LOOP ---
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = 1000; canvas.height = 700;
+
+function loop() {
+    state.tick++;
+    ctx.clearRect(0, 0, 1000, 700);
+    
+    // Background
+    ctx.fillStyle = '#7ba37e'; ctx.fillRect(0,0,1000,700);
+    
+    // River (Height scales with riverHealth)
+    const riverHeight = 80 * (1 + state.riverHealth);
+    ctx.fillStyle = '#3f6f94';
+    ctx.fillRect(0, 320, 1000, riverHeight);
+    
+    // Alda (Drawing with the Pixel Engine)
+    drawPixelNPC(ctx, 380, 460, 'alda');
+
+    // Deterministic Event Trigger
+    if (state.tick >= state.nextEventTick) {
+        if (state.order < 0.4) {
+            state.storageRansacked = true;
+            logAction('ransacked');
+        }
+    }
+
+    requestAnimationFrame(loop);
+}
+
+// Interaction
+canvas.addEventListener('mousedown', e => {
+    state.px = e.clientX; state.py = e.clientY;
+    // Example interaction
+    if(Math.hypot(e.clientX-380, e.clientY-460) < 50) {
+        logAction('give_boards');
+    }
+});
+
+recomputeWorld();
+loop();
+</script>
+</body>
+</html>

@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Eracii · Community & Consequences</title>
+<style>
+  body { margin:0; background:#1a2b18; overflow:hidden; font-family: 'Courier New', monospace; }
+  canvas { display:block; width:100%; height:100%; cursor:crosshair; }
+  .hud { position:fixed; top:10px; left:10px; background:rgba(8, 6, 4, 0.92); border:1px solid #a09070; padding:12px 16px; border-radius:8px; color:#e6dfc7; font-size:13px; pointer-events:none; box-shadow:0 4px 12px rgba(0,0,0,0.8); width:320px; z-index:10; }
+  .hud span { display:block; margin-top:4px; }
+  .hud .gold { color:#e6c875; }
+  .hud .green { color:#6dbfa6; }
+  .hud .red { color:#d97a5a; }
+  
+  .journal { position:fixed; top:10px; right:10px; width:300px; background:rgba(8, 6, 4, 0.92); border:1px solid #a09070; border-radius:8px; padding:12px 16px; color:#e6dfc7; font-size:12px; box-shadow:0 4px 12px rgba(0,0,0,0.8); max-height:300px; overflow-y:auto; pointer-events:none; z-index:10; }
+  .journal b { color:#a09070; font-size:11px; text-transform:uppercase; }
+  .journal p { margin:4px 0; padding-left:8px; border-left:2px solid #6dbfa6; }
+
+  .toast { position:fixed; left:50%; bottom:30px; transform:translateX(-50%); background:rgba(8,6,4,0.95); border:1px solid #a09070; padding:10px 20px; border-radius:8px; color:#f0e6d0; font-size:14px; opacity:0; transition:0.3s; pointer-events:none; }
+  .toast.show { opacity:1; }
+
+  /* Build Menu Overlay */
+  #buildMenu { position:fixed; bottom:50px; left:50%; transform:translateX(-50%); background:rgba(8,6,4,0.95); border:2px solid #e6c875; border-radius:12px; padding:20px; color:#e6dfc7; display:none; z-index:20; box-shadow:0 8px 32px rgba(0,0,0,0.9); }
+  #buildMenu.active { display:block; }
+  #buildMenu h3 { margin:0 0 10px; text-align:center; color:#e6c875; }
+  .build-btn { background:#2a1f14; border:1px solid #a09070; color:#e6c875; padding:8px 16px; margin:4px; border-radius:6px; cursor:pointer; }
+  .build-btn:hover { background:#4a3525; }
+</style>
+</head>
+<body>
+<canvas id="world"></canvas>
+
+<div class="hud" id="hud">
+  <b>🏡 ERAcii · COMMUNITY</b>
+  <span style="display:flex; gap:20px; flex-wrap:wrap;">
+    <span>🪓 Wood: <span id="wood" class="gold">0</span></span>
+    <span>🥩 Meat: <span id="meat" class="gold">0</span></span>
+    <span>🪣 Bucket: <span id="bucket" class="gold">1</span></span>
+    <span>🔧 Shovel: <span id="shovel" class="gold">0</span></span>
+  </span>
+  <span>🏠 Shed HP: <span id="shedHp" class="green">100%</span></span>
+  <span>🌲 Forest: <span id="forestCount" class="green">0</span></span>
+  <div style="margin-top:6px; font-size:11px; color:#a09070;">Press <b>B</b> to Build. <b>F</b> to Fight.</div>
+</div>
+
+<div class="journal" id="journal">
+  <b>📜 JOURNAL</b>
+  <p>Welcome to the valley. Build, plant, and survive.</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div id="buildMenu">
+  <h3>🛠️ Build Options</h3>
+  <button class="build-btn" onclick="buildFence()">🪵 Fence (10 Wood) - Stops Wolves</button>
+  <button class="build-btn" onclick="buildHouse()">🏠 House (25 Wood) - Attracts Neighbor</button>
+  <button class="build-btn" onclick="closeBuildMenu()">Close</button>
+</div>
+
+<script>
+// --- CANVAS SETUP ---
+const canvas = document.getElementById('world');
+const ctx = canvas.getContext('2d');
+const W = 1200, H = 800;
+canvas.width = W; canvas.height = H;
+
+// --- JOURNAL ---
+function addJournalEntry(text) {
+  const journal = document.getElementById('journal');
+  const entry = document.createElement('p');
+  entry.textContent = `• ${text}`;
+  journal.appendChild(entry);
+  while (journal.children.length > 12) journal.removeChild(journal.children[1]);
+}
+
+// --- WORLD STATE ---
+const world = {
+  wood: 0, meat: 0, 
+  hasShovel: false, hasBucket: true,
+  shedHealth: 100,
+  treesPlanted: 0,
+  stumps: [],
+  saplings: [],
+  
+  // Buildings
+  hasFence: false,
+  hasHouse: false,
+  neighborHere: false,
+  neighborBorrowedBucket: false,
+  neighborFireActive: false,
+  
+  // Player
+  px: 400, py: 500,
+  targetX: 400, targetY: 500
+};
+
+// --- ENTITIES ---
+let trees = [];
+let deer = [];
+let wolves = [];
+let neighbor = { x: 0, y: 0, active: false, campfireX: 0, campfireY: 0 };
+
+// --- GENERATE WORLD ---
+function generateWorld() {
+  trees = [];
+  for (let i = 0; i < 40; i++) {
+    const x = 50 + (i * 37) % 1100;
+    const y = 50 + (i * 53) % 700;
+    if (Math.hypot(x - 600, y - 400) < 120) continue;
+    trees.push({ x, y, size: 0.6 + ((i * 7) % 10)/10, alive: true, wood: 2 + ((i * 3) % 5) });
+  }
+  deer = [];
+  for (let i = 0; i < 6; i++) deer.push({ x: 100 + Math.random()*1000, y: 100 + Math.random()*600, targetX:0, targetY:0, alive:true });
+  wolves = [];
+  for (let i = 0; i < 4; i++) wolves.push({ x: 100 + Math.random()*1000, y: 100 + Math.random()*600, targetX:0, targetY:0, alive:true });
+}
+
+// --- BUILD MENU ---
+function toggleBuildMenu() {
+  const menu = document.getElementById('buildMenu');
+  menu.classList.toggle('active');
+}
+function closeBuildMenu() { document.getElementById('buildMenu').classList.remove('active'); }
+
+function buildFence() {
+  if (world.wood < 10) { showToast('❌ Need 10 Wood.'); return; }
+  if (world.hasFence) { showToast('✅ You already have a fence.'); return; }
+  world.wood -= 10;
+  world.hasFence = true;
+  addJournalEntry("You built a fence. The wolves won't reach the shed now.");
+  showToast('🪵 Fence built! Wolves cannot reach the shed.');
+  closeBuildMenu();
+  updateHUD();
+}
+
+function buildHouse() {
+  if (world.wood < 25) { showToast('❌ Need 25 Wood.'); return; }
+  if (world.hasHouse) { showToast('✅ You already have a house.'); return; }
+  world.wood -= 25;
+  world.hasHouse = true;
+  addJournalEntry("You built a house. A prospector might see the smoke.");
+  showToast('🏠 House built! Someone might be drawn here.');
+  closeBuildMenu();
+  updateHUD();
+}
+
+// --- PLAYER MOVEMENT ---
+const keys = {};
+function movePlayer() {
+  let dx=0, dy=0;
+  if (keys['w']||keys['arrowup']) dy-=1;
+  if (keys['s']||keys['arrowdown']) dy+=1;
+  if (keys['a']||keys['arrowleft']) dx-=1;
+  if (keys['d']||keys['arrowright']) dx+=1;
+  if (dx!==0 || dy!==0) {
+    const len = Math.hypot(dx, dy);
+    dx/=len; dy/=len;
+    world.px += dx * 4;
+    world.py += dy * 4;
+    world.px = Math.max(20, Math.min(W-20, world.px));
+    world.py = Math.max(20, Math.min(H-20, world.py));
+  } else {
+    const dist = Math.hypot(world.targetX - world.px, world.targetY - world.py);
+    if (dist > 3) {
+      world.px += ((world.targetX - world.px) / dist) * 4;
+      world.py += ((world.targetY - world.py) / dist) * 4;
+    }
+  }
+}
+
+// --- THE GAME LOOP ---
+function tickWorld() {
+  // Trees grow from saplings
+  for (let i = world.saplings.length - 1; i >= 0; i--) {
+    const s = world.saplings[i];
+    s.age += 0.1;
+    if (s.age >= 60) {
+      trees.push({ x: s.x, y: s.y, size: 0.8, alive: true, wood: 3 });
+      world.saplings.splice(i, 1);
+      world.treesPlanted++;
+      addJournalEntry("A sapling has grown into a tree!");
+    }
+  }
+
+  // Wolves attack if no fence
+  if (!world.hasFence && world.shedHealth > 0 && world.wolves.length > 0 && Math.random() < 0.003) {
+    world.shedHealth -= 5;
+    if (world.shedHealth < 0) world.shedHealth = 0;
+    showToast('🐺 Wolves attacked the shed! -5 HP');
+    addJournalEntry("Wolves attacked the shed. A fence would stop them.");
+  }
+
+  // Neighbor Logic
+  if (world.hasHouse && !world.neighborHere && world.neighbor.active === false) {
+    // Prospector arrives!
+    world.neighbor.active = true;
+    world.neighbor.x = world.px + 150 + Math.random() * 100;
+    world.neighbor.y = world.py - 100 + Math.random() * 100;
+    world.neighbor.campfireX = world.neighbor.x - 20;
+    world.neighbor.campfireY = world.neighbor.y + 20;
+    world.neighborBorrowedBucket = false;
+    world.neighborFireActive = false;
+    addJournalEntry("A Prospector arrived! He camped nearby.");
+    showToast('🧔 A Prospector has moved in nearby!');
+  }
+
+  // Neighbor's fire catches
+  if (world.neighbor.active && !world.neighborBorrowedBucket && Math.random() < 0.005) {
+    world.neighborFireActive = true;
+    showToast('🔥 The Prospector\'s campfire is out of control!');
+    addJournalEntry("The Prospector's campfire is spreading. He needs your bucket.");
+  }
+
+  // Deer movement
+  for (const d of deer) {
+    if (!d.alive) continue;
+    if (Math.hypot(world.px - d.x, world.py - d.y) < 150) {
+      d.targetX = world.px + (d.x - world.px) * 2 + Math.random() * 100;
+      d.targetY = world.py + (d.y - world.py) * 2 + Math.random() * 100;
+    } else if (Math.random() < 0.02 || d.targetX === 0) {
+      d.targetX = 50 + Math.random() * 1100;
+      d.targetY = 50 + Math.random() * 700;
+    }
+    const dist = Math.hypot(d.targetX - d.x, d.targetY - d.y);
+    if (dist > 2) {
+      d.x += ((d.targetX - d.x) / dist) * 1.5;
+      d.y += ((d.targetY - d.y) / dist) * 1.5;
+    }
+  }
+
+  // Wolf movement
+  for (const w of wolves) {
+    if (!w.alive) continue;
+    let nearest = null; let nearDist = 999;
+    for (const d of deer) {
+      if (!d.alive) continue;
+      const dist = Math.hypot(w.x - d.x, w.y - d.y);
+      if (dist < nearDist) { nearDist = dist; nearest = d; }
+    }
+    if (nearest && nearDist < 300) {
+      w.targetX = nearest.x; w.targetY = nearest.y;
+    } else if (Math.random() < 0.01) {
+      w.targetX = 50 + Math.random() * 1100;
+      w.targetY = 50 + Math.random() * 700;
+    }
+    const dist = Math.hypot(w.targetX - w.x, w.targetY - w.y);
+    if (dist > 2) {
+      w.x += ((w.targetX - w.x) / dist) * 2.2;
+      w.y += ((w.targetY - w.y) / dist) * 2.2;
+    }
+  }
+
+  updateHUD();
+}
+
+// --- INTERACTION ---
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top) * scaleY;
+
+  // 1. Talk to Neighbor (Fire event)
+  if (world.neighbor.active && Math.hypot(mx - world.neighbor.x, my - world.neighbor.y) < 50) {
+    if (world.neighborFireActive && !world.neighborBorrowedBucket) {
+      if (world.hasBucket) {
+        showToast('🪣 You lent your bucket. He puts out the fire.');
+        world.hasBucket = false;
+        world.neighborBorrowedBucket = true;
+        world.neighborFireActive = false;
+        addJournalEntry("You lent the Prospector your bucket. He is grateful.");
+        setTimeout(() => {
+          world.hasShovel = true;
+          showToast('🔧 The Prospector gave you a Shovel as thanks!');
+          addJournalEntry("The Prospector gave you a Shovel. Dig out those stumps.");
+          updateHUD();
+        }, 2000);
+      } else {
+        showToast('❌ You don\'t have a bucket to lend.');
+      }
+    } else if (!world.neighborBorrowedBucket) {
+      showToast('🧔 Prospector: "Quiet out here. I\'ll keep an eye on the wolves."');
+    } else {
+      showToast('🧔 Prospector: "Thanks for the bucket. Good luck out there."');
+    }
+    return;
+  }
+
+  // 2. Chop Tree
+  for (const t of trees) {
+    if (!t.alive) continue;
+    if (Math.hypot(mx - t.x, my - t.y) < 40) {
+      t.alive = false;
+      world.wood += t.wood;
+      // Drop a stump
+      world.stumps.push({ x: t.x, y: t.y });
+      showToast(`🪓 Chopped! +${t.wood} wood.`);
+      addJournalEntry(`Chopped a tree. A stump remains.`);
+      updateHUD();
+      return;
+    }
+  }
+
+  // 3. Dig out Stump (requires Shovel)
+  for (let i = world.stumps.length - 1; i >= 0; i--) {
+    const s = world.stumps[i];
+    if (Math.hypot(mx - s.x, my - s.y) < 30) {
+      if (!world.hasShovel) {
+        showToast('❌ You need a Shovel to dig up the stump.');
+        return;
+      }
+      world.stumps.splice(i, 1);
+      showToast('🔧 Dug out the stump! The land is clear.');
+      addJournalEntry("You removed a stump. The ground is ready for planting.");
+      updateHUD();
+      return;
+    }
+  }
+
+  // 4. Plant Sapling (on cleared land)
+  if (world.hasShovel && Math.hypot(mx - world.px, my - world.py) < 50) {
+    // Check if there's no stump here
+    let hasStump = world.stumps.some(s => Math.hypot(mx - s.x, my - s.y) < 30);
+    if (!hasStump) {
+      world.saplings.push({ x: mx, y: my, age: 0 });
+      showToast('🌱 Planted a sapling! It will grow in 60 seconds.');
+      addJournalEntry("You planted a sapling. The forest will return.");
+      updateHUD();
+      return;
+    }
+  }
+
+  // 5. Hunt Deer
+  for (const d of deer) {
+    if (!d.alive) continue;
+    if (Math.hypot(mx - d.x, my - d.y) < 40) {
+      d.alive = false;
+      world.meat += 3;
+      playSound('kill');
+      showToast(`🏹 Hunted! +3 Meat.`);
+      updateHUD();
+      return;
+    }
+  }
+
+  // 6. Kill Wolf
+  for (const w of wolves) {
+    if (!w.alive) continue;
+    if (Math.hypot(mx - w.x, my - w.y) < 40) {
+      w.alive = false;
+      world.meat += 1; // Wolf meat is tough
+      playSound('kill');
+      showToast(`🗡️ Killed a wolf! +1 Tough Meat.`);
+      updateHUD();
+      return;
+    }
+  }
+
+  // Walk
+  world.targetX = mx;
+  world.targetY = my;
+});
+
+// --- HUD UPDATE ---
+function updateHUD() {
+  document.getElementById('wood').textContent = world.wood;
+  document.getElementById('meat').textContent = world.meat;
+  document.getElementById('shedHp').textContent = Math.floor(world.shedHealth) + '%';
+  document.getElementById('bucket').textContent = world.hasBucket ? 1 : 0;
+  document.getElementById('shovel').textContent = world.hasShovel ? 1 : 0;
+  document.getElementById('forestCount').textContent = trees.filter(t=>t.alive).length + world.saplings.length;
+}
+
+// --- RENDERING ---
+function render() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#4a6b42';
+  ctx.fillRect(0, 0, W, H);
+  
+  // Stumps
+  for (const s of world.stumps) {
+    ctx.fillStyle = '#5a4030';
+    ctx.fillRect(s.x - 6, s.y - 4, 12, 8);
+    ctx.fillStyle = '#3d281d';
+    ctx.fillRect(s.x - 4, s.y - 6, 8, 4);
+  }
+
+  // Saplings
+  for (const s of world.saplings) {
+    const h = 4 + (s.age / 60) * 12;
+    ctx.fillStyle = '#2d5a2d';
+    ctx.fillRect(s.x - 1, s.y - h, 2, h);
+    ctx.fillStyle = '#4a7a4a';
+    ctx.beginPath(); ctx.arc(s.x, s.y - h, 2 + (s.age/60)*4, 0, Math.PI*2); ctx.fill();
+  }
+
+  // Trees
+  for (const t of trees) {
+    if (!t.alive) continue;
+    ctx.fillStyle = '#4d3a28';
+    ctx.fillRect(t.x - 3*t.size, t.y, 6*t.size, 16*t.size);
+    ctx.fillStyle = '#2d5a2d';
+    ctx.beginPath(); ctx.arc(t.x, t.y - 8*t.size, 16*t.size, 0, Math.PI*2); ctx.fill();
+  }
+
+  // Deer
+  for (const d of deer) { if (d.alive) { ctx.font='28px sans-serif'; ctx.textAlign='center'; ctx.fillText('🦌', d.x, d.y); } }
+  // Wolves
+  for (const w of wolves) { if (w.alive) { ctx.fillText('🐺', w.x, w.y); } }
+  ctx.textAlign = 'left';
+
+  // Fence
+  if (world.hasFence) {
+    ctx.fillStyle = '#6b4f31';
+    ctx.fillRect(80, 380, 140, 4); ctx.fillRect(80, 440, 140, 4);
+    ctx.fillRect(80, 380, 4, 60); ctx.fillRect(210, 380, 4, 60);
+    ctx.fillRect(140, 380, 4, 60);
+  }
+
+  // Shed
+  ctx.fillStyle = '#5a4030'; ctx.fillRect(100, 400, 100, 80);
+  ctx.fillStyle = '#8b6f47'; ctx.fillRect(100, 400, 100, 80);
+  ctx.fillStyle = '#4a3020'; ctx.fillRect(140, 450, 20, 30);
+
+  // House (if built)
+  if (world.hasHouse) {
+    ctx.fillStyle = '#8b6f47';
+    ctx.fillRect(240, 380, 80, 80);
+    ctx.fillStyle = '#5a4030';
+    ctx.beginPath(); ctx.moveTo(230, 380); ctx.lineTo(280, 340); ctx.lineTo(330, 380); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#e6c875'; ctx.fillRect(270, 420, 20, 40);
+  }
+
+  // Neighbor & Campfire
+  if (world.neighbor.active) {
+    // Campfire
+    ctx.font = '28px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('🔥', world.neighbor.campfireX, world.neighbor.campfireY);
+    if (world.neighborFireActive) {
+      ctx.fillStyle = '#d97a5a'; ctx.font='14px sans-serif';
+      ctx.fillText('🔥🔥', world.neighbor.campfireX - 20, world.neighbor.campfireY - 20);
+    }
+    // Neighbor Sprite
+    ctx.font = '30px sans-serif';
+    ctx.fillText('🧔', world.neighbor.x, world.neighbor.y);
+    ctx.font = '10px sans-serif'; ctx.fillStyle = '#e6c875';
+    ctx.fillText('Prospector', world.neighbor.x, world.neighbor.y + 20);
+    ctx.textAlign = 'left';
+  }
+
+  // Player
+  ctx.fillStyle = '#f4d7b9'; ctx.fillRect(world.px - 6, world.py - 14, 12, 12);
+  ctx.fillStyle = '#3b6ea5'; ctx.fillRect(world.px - 6, world.py - 2, 12, 14);
+  ctx.fillStyle = '#4a2e1b'; ctx.fillRect(world.px - 4, world.py - 16, 8, 6);
+}
+
+// --- AUDIO & TOAST ---
+let audioCtx = null;
+function playSound(type) {
+  if (!audioCtx) audioCtx = new AudioContext();
+  const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  if (type === 'kill') {
+    osc.type='square'; osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+  }
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// --- KEYBOARD ---
+addEventListener('keydown', (e) => {
+  const k = e.key.toLowerCase();
+  keys[k] = true;
+  if (k === 'b') toggleBuildMenu();
+});
+addEventListener('keyup', (e) => { const k = e.key.toLowerCase(); keys[k] = false; });
+
+// --- LOOP ---
+let state = { tick: 0 };
+generateWorld();
+addJournalEntry("You've found a valley. There are stumps to clear and trees to plant.");
+addJournalEntry("Press 'B' to open the Build menu when you have enough wood.");
+
+function loop() {
+  state.tick++;
+  movePlayer();
+  tickWorld();
+  render();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>

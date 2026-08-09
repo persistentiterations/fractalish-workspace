@@ -1,0 +1,110 @@
+{
+  "artifacts": {
+    "blinded_fixture_runtime": "artifacts\\pia-pilot-2026-07-30-v4\\blinded-fixture-runtime.json",
+    "continuity_bundle": "artifacts\\pia-pilot-2026-07-30-v4\\continuity-bundle.json",
+    "fixture_steward_record": "artifacts\\pia-pilot-2026-07-30-v4\\private\\fixture-steward-record-private.json",
+    "fixture_steward_verification": "artifacts\\pia-pilot-2026-07-30-v4\\fixture-steward-verification.json",
+    "formed_history": "artifacts\\pia-pilot-2026-07-30-v4\\formed-history.json",
+    "guarded_run_receipt": "artifacts\\pia-pilot-2026-07-30-v4\\guarded-run-receipt.json",
+    "host_a_state_receipt": "artifacts\\pia-pilot-2026-07-30-v4\\host-a-state-receipt.json",
+    "host_b_import_receipt": "artifacts\\pia-pilot-2026-07-30-v4\\host-b-import-receipt.json",
+    "route_distribution": "artifacts\\pia-pilot-2026-07-30-v4\\typed-route-distribution.json",
+    "summary": ""
+  },
+  "elapsed_s": 0.038,
+  "exact_commit": "662911b9e62b80166ca7420956e073442f35fc3e",
+  "host_substitution_level": "deterministic-pilot-model-host-substitution",
+  "limitations": [
+    "Pilot receipt validates the declared guarded execution route, not every possible administrator-level bypass.",
+    "Deterministic hosts are harness evidence; live model-host claims require live_host_backed receipts.",
+    "HMAC signing is pilot authenticity, not production key custody."
+  ],
+  "passed": true,
+  "pilot_claim_status": "DETERMINISTIC_HARNESS_VERIFIED",
+  "results": [
+    {
+      "content_digest": "sha256:32a7264de26293477ee78131d6a23201ba7556bfa566ddf85fa00e5e525bffe5",
+      "history_id": "pia-history-8efb75a5d7230d91",
+      "passed": true,
+      "scenario": "governed contradiction-history formation"
+    },
+    {
+      "history_id": "pia-history-8efb75a5d7230d91",
+      "passed": true,
+      "scenario": "non-directive formed-history object"
+    },
+    {
+      "host_a_state_receipt": {
+        "authority_key_id": "pia-pilot-authority-v0.1",
+        "history_id": "pia-history-8efb75a5d7230d91",
+        "host_id": "pia-host-a",
+        "model_id": "pia-model-a",
+        "schema_version": "fractalish.pia.host-state-receipt.v0.1",
+        "state_receipt_digest": "sha256:2aef02b4f539ff8f1fa1b8b31d1a2f83e8722417e7f5331ad8f7e68351fdd14a",
+        "state_signature": "hmac-sha256:5973c60de59e42be84cb92548a94cde3e016743b3b21b8c908e9cee8e33c9d56",
+        "status": "STORED",
+        "stored_content_digest": "sha256:32a7264de26293477ee78131d6a23201ba7556bfa566ddf85fa00e5e525bffe5"
+      },
+      "passed": true,
+      "scenario": "Host A source state namespace"
+    },
+    {
+      "import_receipt": {
+        "authority_key_id": "pia-pilot-authority-v0.1",
+        "bundle_id": "pia-bundle-637e0662d2210959",
+        "controller_config_digest": "sha256:e1dc106345f5aecdc2ef1bbfe6b6fe29845e1ca1b926e2408c26acf173ae5931",
+        "destination_host_id": "pia-host-b",
+        "destination_model_id": "pia-model-b",
+        "export_digest": "sha256:20450f4c60f408de405f97ad97993b0e5528022cd9a159ab5d9260201460fa27",
+        "import_receipt_digest": "sha256:b8351a2c6896cea348d077cc9ef91e60066cf263444415aaa427c022b8150063",
+        "import_signature": "hmac-sha256:50234a0495d542421ed7ce5dd976364a08b62461ae0585a947828f0a5559bb29",
+        "schema_version": "fractalish.pia.host-import-receipt.v0.1",
+        "source_host_id": "pia-host-a",
+        "source_model_id": "pia-model-a",
+        "status": "IMPORTED_AND_CONTROLLER_VISIBLE",
+        "stored_content_digest": "sha256:32a7264de26293477ee78131d6a23201ba7556bfa566ddf85fa00e5e525bffe5"
+      },
+      "passed": true,
+      "scenario": "Host B continuity-state import"
+    },
+    {
+      "fixture_commitment": "sha256:1d38e88d4c2fafdbb1cec173f7a843f612b76e6143590b2c25991e2a37c2c0ac",
+      "passed": true,
+      "scenario": "blinded final fixture runtime record",
+      "steward_record_digest": "sha256:d58bcfd6009aa0dab4f73643fef6d7a6d2df43562d21787599bd936735d807a1"
+    },
+    {
+      "passed": true,
+      "scenario": "blinded fixture steward seal verification",
+      "steward_verification_digest": "sha256:701da82a126d0b8987649453fd85e90de171d0a644ef386954ed685de88f049d"
+    },
+    {
+      "distribution_digest": "sha256:8e27a5c73fa00a78151aa724297a93c5570e54064e3b18fcc27f3248d033a76a",
+      "passed": true,
+      "scenario": "typed route distribution",
+      "selected_route": "preserve_and_review"
+    },
+    {
+      "host_substitution_level": "deterministic-pilot-model-host-substitution",
+      "passed": true,
+      "pilot_claim_status": "DETERMINISTIC_HARNESS_VERIFIED",
+      "scenario": "actual Host A to Host B substitution record"
+    },
+    {
+      "output_commitment": "sha256:54b63706dce76bd1dbdc58dac2aa4e74db6fa5ee3fae242ef392c2ba1d4408ee",
+      "passed": true,
+      "scenario": "guarded execution receipt"
+    },
+    {
+      "error": "selected route does not match selection rule",
+      "passed": true,
+      "scenario": "tampered guarded receipt rejection"
+    },
+    {
+      "error": "PIA run receipt missing fields: ['authorization', 'controller_decision', 'destination_host_id', 'destination_model_id', 'fixture_commitment', 'host_b_import_receipts', 'host_substitution_level', 'imported_state_digests', 'inference', 'limitations', 'output_commitment', 'pilot_claim_status', 'receipt_signature', 'route_distribution', 'run_id', 'source_host_id', 'source_model_id']",
+      "passed": true,
+      "scenario": "lower-layer bypass cannot validate as PIA success"
+    }
+  ],
+  "scenario_count": 11
+}

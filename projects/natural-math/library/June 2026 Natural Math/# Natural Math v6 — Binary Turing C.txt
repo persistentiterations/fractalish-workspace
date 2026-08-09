@@ -1,0 +1,336 @@
+# Natural Math v6 — Binary Turing Core
+
+**Status:** Clean binary/ternary state machine. No scalar arithmetic. No milli-units. No fractions.
+
+---
+
+## Core Principle
+
+Everything is one of:
+- **-1**
+- **0**
+- **+1**
+
+Or:
+- **TRUE / FALSE**
+- **LEFT / RIGHT / FORWARD / STOP**
+
+No numbers bigger than 1. No multiplication. No division. No gradients. No denominators.
+
+---
+
+## 1. Node Record
+
+Each node has exactly these fields, all binary or ternary:
+
+| Field | Values | Meaning |
+|-------|--------|---------|
+| id | 0, 1, 2, ... | Unique label |
+| pos_x | -1, 0, +1 | Grid position |
+| pos_y | -1, 0, +1 | Grid position |
+| pos_z | -1, 0, +1 | Grid position |
+| alive | TRUE / FALSE | Living or dead |
+| energy | 0 or 1 | Has energy or not |
+| pressure | 0 or 1 | Under pressure or not |
+| direction_x | -1, 0, +1 | Facing |
+| direction_y | -1, 0, +1 | Facing |
+| direction_z | -1, 0, +1 | Facing |
+| type | SEED / TIP / BRANCH / INERT / WALL | Node class |
+| parent | id or NONE | Who made this |
+| bonds | set of ids | Connected nodes |
+
+---
+
+## 2. Movement
+
+Movement is one step in exactly one axis:
+
+```
+LEFT   = (-1, 0, 0)
+RIGHT  = (+1, 0, 0)
+FORWARD = (0, +1, 0)   (Y is "up" in this model)
+BACK   = (0, -1, 0)
+UP     = (0, 0, +1)
+DOWN   = (0, 0, -1)
+STOP   = (0, 0, 0)
+```
+
+A node **always** moves exactly one cell per step, unless it is dead or blocked.
+
+---
+
+## 3. Decisions — All Binary
+
+A live node looks at its **six neighbors** (left, right, forward, back, up, down).
+
+For each neighbor, check:
+
+```
+neighbor_alive = TRUE / FALSE
+neighbor_energy = 0 or 1
+neighbor_pressure = 0 or 1
+bonded = TRUE / FALSE (is this neighbor in my bonds?)
+```
+
+### Decision flow:
+
+```
+IF NOT alive:
+    DO NOTHING
+
+ELSE IF energy == 0:
+    DIE (alive = FALSE)
+
+ELSE IF ANY bonded neighbor at distance 1:
+    SHARE ENERGY (split 1/0 becomes 1/1? actually you can't split 1... so maybe energy stays 1 for both? Or bonding doesn't transfer energy in binary mode)
+
+ELSE IF ANY alive neighbor in front (forward direction):
+    TURN LEFT or RIGHT (random 50/50) — but don't move forward
+
+ELSE IF ANY alive neighbor to LEFT:
+    TURN LEFT
+
+ELSE IF ANY alive neighbor to RIGHT:
+    TURN RIGHT
+
+ELSE IF forward cell is EMPTY:
+    MOVE FORWARD
+
+ELSE IF left cell is EMPTY:
+    TURN LEFT and MOVE LEFT
+
+ELSE IF right cell is EMPTY:
+    TURN RIGHT and MOVE RIGHT
+
+ELSE:
+    STOP (stay in place, turn randomly)
+```
+
+**Key:** Every decision is a simple TRUE/FALSE check. No arithmetic.
+
+---
+
+## 4. Energy — Binary
+
+Energy is **0 or 1**:
+
+- Energy = 1 → node is "powered"
+- Energy = 0 → node is "dead" (or will die next step)
+
+A node loses energy when:
+- It moves → energy becomes 0
+- It turns → energy becomes 0
+- It senses → energy becomes 0
+- It shares with a bonded neighbor → both get energy = 1 (if either had it)
+
+Actually, simpler:
+
+**Each step, every live node:**
+1. Spends 1 energy to stay alive.
+2. If energy was 1 → it becomes 0, but it gets to act.
+3. If energy was 0 → it dies.
+
+Wait, that's just a counter. Let's make it simpler:
+
+---
+
+## 4A. Simpler Energy Rule
+
+Energy is a **flag**:
+
+- `energy = 1` means "I can act this turn"
+- `energy = 0` means "I cannot act this turn and I die"
+
+At the start of each step:
+1. If energy == 0 → alive = FALSE
+2. If energy == 1 → act, then energy = 0
+
+**No node ever has energy > 1.** Energy is a single bit.
+
+---
+
+## 5. Pressure — Binary
+
+Pressure is also **0 or 1**:
+
+- Pressure = 1 means "I am being pushed"
+- Pressure = 0 means "I am not being pushed"
+
+A node gains pressure = 1 if:
+- It tried to move but was blocked
+- A neighbor tried to move into it
+
+Pressure resets to 0 at the end of each step unless pressure is sustained by neighbors.
+
+**Simpler:** Pressure just means "blocked last step." It makes the node turn away next step.
+
+---
+
+## 6. Splitting / Bifurcation — Binary
+
+A node splits if:
+
+```
+energy == 1
+AND pressure == 1
+AND there are at least 2 empty adjacent cells
+```
+
+When it splits:
+1. Parent becomes `type = BRANCH`, `alive = FALSE`
+2. Two children appear in two empty adjacent cells (chosen by a fixed rule)
+3. Children get `energy = 1`, `pressure = 0`
+4. Children face away from each other
+
+No energy arithmetic. No half-energy. Just `1` becomes two `1`s. (Energy is created, not conserved — this is an open system.)
+
+---
+
+## 7. Bonding — Binary
+
+Bonding is simple:
+
+- Two adjacent live nodes can bond if both have `energy = 1`
+- Bonded nodes share energy: if one has 1 and the other has 0, both become 1
+- If both have 1, nothing changes
+- If both have 0, both die
+
+Bonds are symmetric. Max bonds = 4 (one per cardinal direction).
+
+---
+
+## 8. Randomness — Binary
+
+Randomness is only used for:
+- Deciding LEFT vs RIGHT when both are equal
+- Deciding which direction to turn when blocked
+- Initial placement
+
+Random draw is a single bit:
+
+```
+draw() → 0 or 1 (50/50)
+```
+
+No 1,000,000 thresholds. No randrange. Just coin flip.
+
+---
+
+## 9. Full Step Order (Binary)
+
+1. **Validate** — all fields are -1, 0, +1 or TRUE/FALSE
+2. **Kill** — any live node with energy == 0 → alive = FALSE
+3. **Act** — each live node with energy == 1:
+   - Sense neighbors (binary checks)
+   - Choose move (turn / go / stop)
+   - Move or turn
+   - If blocked → pressure = 1
+   - If moved → energy = 0
+4. **Bond** — adjacent live nodes with energy == 1 may bond (coin flip)
+5. **Split** — live nodes with pressure == 1 and energy == 1 may split
+6. **Pressure decay** — pressure = 0 for all nodes (resets)
+7. **Energy recharge** — nodes that didn't move get energy = 1 (rest)
+   Wait, that makes energy infinite. Let's be careful.
+
+---
+
+## 9A. Energy Cycle (Fixed)
+
+Let's design a proper binary energy cycle:
+
+| State | Action | Result |
+|-------|--------|--------|
+| energy=0, alive=TRUE | Dies at start of step | alive=FALSE |
+| energy=1, alive=TRUE | Acts, then energy becomes 0 | energy=0 |
+| energy=0, alive=FALSE | Nothing | dead |
+| Bonded neighbor has energy=1 | Share: both get 1 | both energy=1 |
+
+So energy is a **resource that must be replenished by bonding** or by some external source.
+
+For an open system, add:
+
+**Resource absorption** — if a live node is adjacent to a resource cell, it gains energy = 1.
+
+---
+
+## 10. Turing Table Format
+
+The entire rule set can be written as a transition table:
+
+| Current State | Neighbor Left | Neighbor Right | Neighbor Forward | Action |
+|---------------|---------------|----------------|------------------|--------|
+| alive=1, energy=1, pressure=0 | 0 | 0 | 0 | Move Forward |
+| alive=1, energy=1, pressure=0 | 0 | 0 | 1 | Turn Left |
+| alive=1, energy=1, pressure=0 | 1 | 0 | 0 | Turn Right |
+| alive=1, energy=1, pressure=0 | 1 | 1 | 0 | Turn Left (coin flip) |
+| alive=1, energy=1, pressure=1 | any | any | any | Split if possible, else Turn |
+| alive=0 | — | — | — | None |
+| alive=1, energy=0 | — | — | — | Die |
+
+This is a **finite state machine** with:
+- Finite states (alive/energy/pressure/direction combinations)
+- Finite input (neighbor states)
+- Finite output (move/turn/split/die)
+
+---
+
+## 11. Summary of Changes from v5
+
+| v5 (Integer) | v6 (Binary Turing) |
+|--------------|-------------------|
+| Energy = 0 to 1,600,000 | Energy = 0 or 1 |
+| Pressure = 0 to 12,000+ | Pressure = 0 or 1 |
+| Movement gradient with denominators | Direct neighbor checks |
+| Cross-multiplication comparisons | TRUE/FALSE checks |
+| randrange(0, 1,000,000) | coin flip (0 or 1) |
+| Child energy = (E - costs) / 2 | Child energy = 1 |
+| Fraction arithmetic | No arithmetic at all |
+| 64-bit integers | Single-bit states |
+| Continuous grid positions (-100..100) | -1, 0, +1 positions |
+
+---
+
+## 12. Formal Definition
+
+A **state** is a tuple:
+
+```
+(alive, energy, pressure, dir_x, dir_y, dir_z, type, bonds)
+```
+
+Where every field is one of:
+- `{-1, 0, +1}` for directions
+- `{0, 1}` for alive, energy, pressure
+- `{SEED, TIP, BRANCH, INERT, WALL}` for type
+- `set of ids` for bonds (ids are small integers)
+
+The transition function is:
+
+```
+next(alive, energy, pressure, dir, neighbors, bonds) → (new_alive, new_energy, new_pressure, new_dir, action)
+```
+
+This is a **deterministic finite automaton** with a small random bit for tie-breaking.
+
+---
+
+## 13. What This Means
+
+**This is now Turing-style:**
+
+- Finite states
+- Read local symbols (neighbor states)
+- Write local symbols (change own state)
+- Move one cell (left/right/forward/stop)
+- Explicit transition table
+
+**No arithmetic.** No fractions. No gradients. No large integers.
+
+Everything is a binary decision based on the immediate neighbors.
+
+---
+
+Do you want me to:
+1. Expand the full transition table?
+2. Write the pseudo-code implementation?
+3. Define the cluster benchmark in binary terms?

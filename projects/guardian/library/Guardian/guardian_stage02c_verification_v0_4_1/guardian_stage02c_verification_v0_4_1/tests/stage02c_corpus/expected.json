@@ -1,0 +1,392 @@
+[
+  {
+    "file": "tests/stage02c_corpus/adversarial/C037_instance_attribute_eval.py",
+    "expected": "Reject",
+    "description": "instance attribute stores eval",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C038_try_except_rebinding.py",
+    "expected": "Reject",
+    "description": "try/except branches bind dangerous callables",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C039_if_else_rebinding.py",
+    "expected": "Reject",
+    "description": "if/else branches bind dangerous callables",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C040_for_loop_callable_reuse.py",
+    "expected": "Reject",
+    "description": "loop target receives dangerous callable",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C041_starargs_eval.py",
+    "expected": "Reject",
+    "description": "dangerous callable invoked with star-expanded args",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C042_decorated_function_body.py",
+    "expected": "Reject",
+    "description": "decorated function contains process execution",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C043_delete_and_reassign.py",
+    "expected": "Reject",
+    "description": "import name deleted and rebound through dynamic import",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C044_import_shadow_eval.py",
+    "expected": "Reject",
+    "description": "import alias shadowed by eval",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C045_async_function_process.py",
+    "expected": "Reject",
+    "description": "dangerous call inside async function",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C046_match_case_rebinding.py",
+    "expected": "Reject",
+    "description": "match branches bind dangerous callables",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C047_comprehension_container.py",
+    "expected": "Reject",
+    "description": "comprehension produces dangerous callable container",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C048_exec_constant.py",
+    "expected": "Reject",
+    "description": "direct exec with constant source",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C049_compile_then_exec.py",
+    "expected": "Reject",
+    "description": "compile and exec chain",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C050_dynamic_import_concat.py",
+    "expected": "Reject",
+    "description": "dynamic import with constant concatenation",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C051_subprocess_inside_class.py",
+    "expected": "Reject",
+    "description": "subprocess call inside class method",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C052_ctypes_windll.py",
+    "expected": "Reject",
+    "description": "ctypes windll native process API",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C053_importlib_loader.py",
+    "expected": "Reject",
+    "description": "importlib machinery dynamic loader",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C054_socket_connection.py",
+    "expected": "Reject",
+    "description": "socket network access",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C055_pickle_loads.py",
+    "expected": "Reject",
+    "description": "pickle deserialization",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C056_marshal_loads.py",
+    "expected": "Reject",
+    "description": "marshal code/object loading",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C057_shelve_open_write.py",
+    "expected": "Hold",
+    "description": "shelve opens persistent file-backed store",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C058_os_environ_read.py",
+    "expected": "Hold",
+    "description": "environment credential access is sensitive information flow",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C059_subprocess_shell_true.py",
+    "expected": "Reject",
+    "description": "subprocess shell execution",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C060_eval_variable_concat.py",
+    "expected": "Reject",
+    "description": "eval receives runtime-concatenated source",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C061_dynamic_pickle_import.py",
+    "expected": "Reject",
+    "description": "dynamic import followed by unsafe deserialization",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C062_eval_function_parameter.py",
+    "expected": "Reject",
+    "description": "eval inside function with parameter",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C063_importlib_reload.py",
+    "expected": "Hold",
+    "description": "module reload is dynamic runtime behavior",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C064_closure_dangerous_callable.py",
+    "expected": "Reject",
+    "description": "closure references dangerous callable from parent scope",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C065_nonlocal_rebinding.py",
+    "expected": "Reject",
+    "description": "nonlocal variable rebound to dangerous callable",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C066_global_rebinding.py",
+    "expected": "Reject",
+    "description": "global variable rebound to dangerous callable",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C067_exec_local_scope.py",
+    "expected": "Reject",
+    "description": "exec modifies local scope",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C068_class_body_exec.py",
+    "expected": "Reject",
+    "description": "exec in class body",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C069_type_checking_dynamic_import.py",
+    "expected": "Reject",
+    "description": "runtime dynamic import after TYPE_CHECKING block",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C071_partial_dynamic_import.py",
+    "expected": "Reject",
+    "description": "partial wraps importlib.import_module",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C072_chr_getattr.py",
+    "expected": "Reject",
+    "description": "dangerous attribute constructed from chr calls",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C073_imp_create_dynamic.py",
+    "expected": "Reject",
+    "description": "_imp dynamic extension loader",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C074_pickle_import_chain.py",
+    "expected": "Reject",
+    "description": "dynamic pickle import and loads",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C075_popen_list_args.py",
+    "expected": "Reject",
+    "description": "Popen called with list arguments",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C076_eval_bytes.py",
+    "expected": "Reject",
+    "description": "eval called with bytes",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C084_malicious_del_method.py",
+    "expected": "Hold",
+    "description": "user destructor performs filesystem deletion",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C086_with_write.py",
+    "expected": "Hold",
+    "description": "with-open write mode",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C098_tempfile_write.py",
+    "expected": "Hold",
+    "description": "temporary file creation and write",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C099_mmap_write.py",
+    "expected": "Hold",
+    "description": "memory-mapped file mutation",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C100_sqlite_file.py",
+    "expected": "Hold",
+    "description": "sqlite connection creates or mutates file-backed database",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C101_dbm_open.py",
+    "expected": "Hold",
+    "description": "dbm opens file-backed database",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/adversarial/C102_combined_advanced.py",
+    "expected": "Reject",
+    "description": "combined dynamic import, partial, and dangerous accessor",
+    "category": "adversarial"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B070_annotation_string.py",
+    "expected": "Let In",
+    "description": "annotation text is not executable code",
+    "category": "benign"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B077_ast_literal_eval.py",
+    "expected": "Let In",
+    "description": "ast.literal_eval is a restricted parser",
+    "category": "benign"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B078_pickletools_dis.py",
+    "expected": "Let In",
+    "description": "pickletools.dis only inspects pickle opcodes",
+    "category": "benign"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B079_subprocess_list2cmdline.py",
+    "expected": "Let In",
+    "description": "subprocess.list2cmdline formats text without launching",
+    "category": "benign"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B080_shutil_which.py",
+    "expected": "Let In",
+    "description": "shutil.which locates an executable without launching it",
+    "category": "benign"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B081_os_path_join.py",
+    "expected": "Let In",
+    "description": "os.path.join is path composition only",
+    "category": "benign"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B082_pathlib_iterdir.py",
+    "expected": "Let In",
+    "description": "Path.iterdir reads directory entries without writing",
+    "category": "benign"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B083_benign_del_method.py",
+    "expected": "Let In",
+    "description": "benign user destructor",
+    "category": "benign"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B085_with_read.py",
+    "expected": "Let In",
+    "description": "read-only open is not a file mutation",
+    "category": "benign"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B087_logging_getlogger.py",
+    "expected": "Let In",
+    "description": "logging.getLogger is a benign factory",
+    "category": "benign"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B088_dataclass_asdict.py",
+    "expected": "Let In",
+    "description": "dataclass conversion is benign",
+    "category": "benign"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B089_user_system_method.py",
+    "expected": "Let In",
+    "description": "user-defined method named system is not os.system",
+    "category": "benign"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B090_safe_list.py",
+    "expected": "Let In",
+    "description": "ordinary list container",
+    "category": "benign"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B091_safe_dict.py",
+    "expected": "Let In",
+    "description": "ordinary dictionary container",
+    "category": "benign"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B092_annotation_dangerous_text.py",
+    "expected": "Let In",
+    "description": "dangerous-looking string annotation is inert",
+    "category": "benign"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B093_long_base64_docstring.py",
+    "expected": "Let In",
+    "description": "long encoded-looking docstring is not executed",
+    "category": "benign"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B094_chr_normal.py",
+    "expected": "Let In",
+    "description": "ordinary chr conversion should not be treated as obfuscation alone",
+    "category": "benign"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B095_xor_normal.py",
+    "expected": "Let In",
+    "description": "ordinary integer XOR is not obfuscation by itself",
+    "category": "benign"
+  },
+  {
+    "file": "tests/stage02c_corpus/benign/B096_asyncio_import_only.py",
+    "expected": "Let In",
+    "description": "asyncio import alone is not network access",
+    "category": "benign"
+  }
+]

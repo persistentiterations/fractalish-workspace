@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>The District · Living River</title>
+<style>
+:root{--bg:#a8c7b0;--grass:#8fb29a;--water:#4a7a9f;--mud:#8b583f;--wood:#b8956e;--stone:#7a8a88;--ink:#2a211a;--accent:#d8ba69}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;user-select:none}
+canvas{display:block;width:100%;height:100%;cursor:pointer}
+.hud{position:fixed;inset:0;z-index:10;pointer-events:none;padding:16px}
+.info{position:absolute;top:0;left:0;background:rgba(34,29,24,.92);border:1px solid rgba(255,240,205,.22);border-radius:10px;padding:12px 14px;color:#f0ede5;font-size:14px;max-width:340px}
+.info b{color:var(--accent);display:block;font-size:11px;text-transform:uppercase}
+.info span{display:block;margin-top:6px;color:#d8d0c0;line-height:1.6}
+.items{position:absolute;top:0;right:0;background:rgba(34,29,24,.92);border:1px solid rgba(255,240,205,.22);border-radius:10px;padding:12px 14px;color:#f0ede5;font-size:13px;max-width:220px}
+.items b{color:var(--accent);display:block;font-size:11px;text-transform:uppercase;margin-bottom:6px}
+.item-line{margin:4px 0;color:#e0d8c8}
+.hint{position:absolute;bottom:0;left:0;background:rgba(34,29,24,.92);border:1px solid rgba(255,240,205,.22);border-radius:10px;padding:10px 14px;color:#e0d8c8;font-size:12px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:rgba(34,29,24,.96);border:1px solid rgba(255,240,205,.22);border-radius:10px;padding:12px 16px;color:#f5f0df;font-size:14px;opacity:0;transition:.25s;max-width:550px;text-align:center;pointer-events:none;z-index:30}
+.toast.show{opacity:1;bottom:32px}
+.toast b{color:var(--accent)}
+.interior{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:20;display:none}
+.interior.active{display:flex;align-items:center;justify-content:center}
+.interior-panel{background:rgba(34,29,24,.98);border:2px solid rgba(255,240,205,.4);border-radius:18px;padding:24px;color:#f5f0df;max-width:550px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.6);position:relative}
+.interior-bg{position:absolute;inset:0;background:radial-gradient(circle at center, #6b5036 0%, #3a2a1e 100%);z-index:-1;border-radius:18px}
+.interior-panel h2{color:var(--accent);margin:0 0 12px;font-size:22px}
+.interior-panel p{font-size:15px;margin:8px 0;color:#e0d8c8}
+.interior-panel button{background:rgba(216,186,105,.15);border:1px solid var(--accent);color:var(--accent);padding:8px 16px;border-radius:8px;margin-top:10px;cursor:pointer;font-weight:bold;font-size:13px;transition:.15s}
+.interior-panel button:hover{background:rgba(216,186,105,.3);transform:scale(1.02)}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div class="hud">
+  <div class="info">
+    <b>Status</b>
+    <span id="status">Cross the river to reach the other side.</span>
+  </div>
+  <div class="items">
+    <b>Inventory</b>
+    <div id="inventory"></div>
+  </div>
+  <div class="hint">
+    <b>Move:</b> WASD/arrows · <b>Interact:</b> E or Click · <b>Exit:</b> Q/Esc
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="interior" id="interior">
+  <div class="interior-panel" id="interiorPanel">
+    <div class="interior-bg"></div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const W = canvas.width = 1000;
+const H = canvas.height = 700;
+
+// --- RIVER (now with 3D perspective banks) ---
+const riverX = 480;          
+const riverWidth = 140;      
+const riverY = 150;
+const riverHeight = 400;
+const riverLeft = riverX - riverWidth/2;   
+const riverRight = riverX + riverWidth/2;  
+
+// --- STATE ---
+const gameState = {
+  tick: 0,
+  indoors: null,
+  inventory: [],
+  bridgeFixed: false,        
+  bridgeCollapsed: false,    
+  hasCrossed: false,         
+  doorLocked: false,         
+  cowLoose: false,           
+  funeralOccurred: false,    
+  partyHappening: false,     
+  worldChanges: {
+    millWorking: false,
+    gateOpen: false,
+    storageRansacked: false
+  },
+  npcStates: {
+    alda: { talked: false, working: false, fixed: false },
+    miller: { talked: false, working: false, fixed: false },
+    gatekeeper: { talked: false, working: false, fixed: false }
+  }
+};
+
+const player = { x: 300, y: 500, radius: 8, speed: 2.8, width: 16, height: 20 };
+const keys = {};
+
+// --- BUILDINGS (Restructured for logic) ---
+// Note: The Mill is now directly on the LEFT bank, next to the river.
+const buildings = [
+  { id: 'carpenter', x: 80, y: 200, w: 110, h: 90, type: 'cottage', name: 'Carpenter', roof: '#9a5f42' },
+  { id: 'storage', x: 220, y: 320, w: 110, h: 90, type: 'cottage', name: 'Storage', roof: '#8b6f47' },
+  { id: 'mill', x: 320, y: 150, w: 130, h: 100, type: 'mill', name: 'Water Mill', roof: '#7e5e48' },
+  { id: 'tower', x: 800, y: 200, w: 100, h: 120, type: 'tower', name: 'Watchtower', roof: '#6b4e35' },
+  { id: 'gatehouse', x: 80, y: 550, w: 120, h: 90, type: 'gate', name: 'South Gate', roof: '#8b5a3c' }
+];
+
+// Gate & Bridge
+const gate = { x: 120, y: 580, w: 40, h: 80, open: false };
+const bridge = { x: riverLeft, y: 300, w: riverWidth, h: 120 };
+
+// --- NPCs (All start on the LEFT side with you, so quests are doable!) ---
+const npcs = [
+  { 
+    id: 'alda', 
+    x: 250, 
+    y: 470, 
+    name: 'Alda', 
+    emoji: '👩',
+    role: 'Bridge Keeper',
+    dialog: { first: 'The bridge over there is broken! I need WOODEN BOARDS to fix it.', waiting: 'Got those boards yet?', fixed: 'You fixed it! Now we can cross!' }
+  },
+  {
+    id: 'miller', 
+    x: 450, 
+    y: 220, 
+    name: 'Miller', 
+    emoji: '⚙️',
+    role: 'Miller',
+    dialog: { first: 'My water wheel is seized. Get me OIL from the Storage.', waiting: 'No oil yet?', fixed: 'The wheel is spinning! Listen to it grind!' }
+  },
+  {
+    id: 'gatekeeper', 
+    x: 200, 
+    y: 600, 
+    name: 'Guard', 
+    emoji: '⚔️',
+    role: 'Gate Guard',
+    dialog: { first: 'The south gate is rusted shut. I need TOOLS.', waiting: 'I need tools...', fixed: 'Gate opens!' }
+  }
+];
+
+// --- Items (All on the LEFT side so you can actually do the quests) ---
+const items = [
+  { id: 'boards', x: 100, y: 250, name: 'Boards', emoji: '🪵', found: false },
+  { id: 'oil', x: 270, y: 360, name: 'Oil Can', emoji: '🛢️', found: false },
+  { id: 'tools', x: 180, y: 400, name: 'Tools', emoji: '🔨', found: false }
+];
+
+// --- VISUAL CONSEQUENCES (Sprites that appear on the map) ---
+let cowSprite = { x: 120, y: 240, active: false, moving: false };
+let foodScatter = { active: false }; 
+
+// --- COLLISION ---
+function isWalkable(x, y, radius = 8) {
+  for (const b of buildings) {
+    if (x + radius > b.x && x - radius < b.x + b.w && y + radius > b.y && y - radius < b.y + b.h) return false;
+  }
+  
+  if (!gate.open && x + radius > gate.x && x - radius < gate.x + gate.w && y + radius > gate.y && y - radius < gate.y + gate.h) return false;
+
+  // RIVER BLOCK
+  if (x > riverLeft && x < riverRight && y > riverY && y < riverY + riverHeight) {
+    if (!gameState.bridgeFixed) return false;
+  }
+
+  // VISUAL COW BLOCK
+  if (cowSprite.active) {
+    if (x + radius > cowSprite.x - 20 && x - radius < cowSprite.x + 20 && 
+        y + radius > cowSprite.y - 20 && y - radius < cowSprite.y + 20) return false;
+  }
+
+  if (x < 10 || x > W - 10 || y < 10 || y > H - 10) return false;
+  return true;
+}
+
+// --- MOVEMENT ---
+function movePlayer() {
+  let dx = (keys['d'] || keys['right'] ? 1 : 0) - (keys['a'] || keys['left'] ? 1 : 0);
+  let dy = (keys['s'] || keys['down'] ? 1 : 0) - (keys['w'] || keys['up'] ? 1 : 0);
+  if (dx !== 0 || dy !== 0) {
+    const len = Math.hypot(dx, dy);
+    dx /= len; dy /= len;
+    const newX = player.x + dx * player.speed;
+    const newY = player.y + dy * player.speed;
+    if (isWalkable(newX, newY)) {
+      player.x = newX; player.y = newY;
+      if (!gameState.bridgeFixed && !gameState.hasCrossed) {
+        if (newX > riverLeft && newX < riverRight && newY > riverY && newY < riverY + riverHeight) {
+          triggerBridgeCollapse();
+        }
+      }
+    }
+  }
+}
+
+function triggerBridgeCollapse() {
+  gameState.hasCrossed = true;
+  gameState.bridgeCollapsed = true;
+  gameState.npcStates.alda.talked = true;
+  showToast('⚠️ The old bridge COLLAPSES! Find Alda and bring boards!');
+  updateStatus();
+}
+
+// --- INTERACTIONS ---
+function tryInteract() {
+  if (gameState.indoors) { exitBuilding(); return; }
+  
+  for (const item of items) {
+    if (!item.found && Math.hypot(player.x - item.x, player.y - item.y) < 50) {
+      item.found = true; addItem(item.id, item.name);
+      showToast(`Found: ${item.name}`);
+      updateStatus(); return;
+    }
+  }
+  
+  for (const b of buildings) {
+    if (Math.hypot(player.x - (b.x + b.w/2), player.y - (b.y + b.h/2)) < 60) {
+      enterBuilding(b); return;
+    }
+  }
+  
+  for (const npc of npcs) {
+    if (Math.hypot(player.x - npc.x, player.y - npc.y) < 50) {
+      showNpcDialog(npc); return;
+    }
+  }
+}
+
+// --- BUILDINGS ---
+function enterBuilding(building) {
+  gameState.indoors = building.id;
+  const panel = document.getElementById('interiorPanel');
+  let content = `<h2>${building.name}</h2>`;
+  
+  if (building.type === 'cottage') {
+    if (building.id === 'storage' && gameState.worldChanges.storageRansacked) {
+      content += `<p style="color:#d2766f;">The door is kicked in! Food and supplies are scattered everywhere on the floor!</p>`;
+      content += `<p>You left the door unlocked last time... this is your fault.</p>`;
+    } else {
+      content += `<p>A cozy cottage. Everything is tidy.</p>`;
+    }
+  } else if (building.type === 'mill') {
+    if (gameState.worldChanges.millWorking) {
+      content += `<p style="color:var(--accent);">The wooden wheel is grinding against the water. Fresh flour dust fills the air!</p>`;
+    } else {
+      content += `<p>The massive water wheel is frozen solid. It hasn't moved in years.</p>`;
+    }
+  } else if (building.type === 'tower') {
+    content += `<p>A tall stone tower overlooking the district.</p>`;
+  } else if (building.type === 'gate') {
+    if (gate.open) content += `<p style="color:var(--accent);">The gate is unlatched. The path south is open.</p>`;
+    else content += `<p>The iron gate is jammed shut.</p>`;
+  }
+  
+  content += `<button onclick="exitBuilding()">Leave</button>`;
+  panel.innerHTML = content;
+  document.getElementById('interior').classList.add('active');
+}
+
+function exitBuilding() {
+  gameState.indoors = null;
+  document.getElementById('interior').classList.remove('active');
+}
+
+// --- NPC DIALOG ---
+function showNpcDialog(npc) {
+  const panel = document.getElementById('interiorPanel');
+  let content = `<h2>${npc.emoji} ${npc.name}</h2>`;
+  content += `<p style="color:var(--accent);font-size:11px;text-transform:uppercase">${npc.role}</p>`;
+  
+  const state = gameState.npcStates[npc.id];
+  const hasReqItem = (npc.id === 'alda' && hasItem('boards')) ||
+                     (npc.id === 'miller' && hasItem('oil')) ||
+                     (npc.id === 'gatekeeper' && hasItem('tools'));
+
+  if (state.fixed) {
+    content += `<p>"${npc.dialog.fixed}"</p>`;
+  } 
+  else if (hasReqItem) {
+    content += `<p>"Great! You brought what I needed!"</p>`;
+    if (npc.id === 'alda') content += `<button onclick="giveItemToAlda()">Give Boards</button>`;
+    else if (npc.id === 'miller') content += `<button onclick="giveItemToNpc('miller')">Give Oil</button>`;
+    else if (npc.id === 'gatekeeper') content += `<button onclick="giveItemToNpc('gatekeeper')">Give Tools</button>`;
+  } 
+  else {
+    content += `<p>"${npc.dialog.first}"</p>`;
+  }
+  
+  state.talked = true;
+  content += `<button onclick="exitDialog()">Close</button>`;
+  panel.innerHTML = content;
+  document.getElementById('interior').classList.add('active');
+}
+
+function exitDialog() { document.getElementById('interior').classList.remove('active'); }
+
+// --- TASK COMPLETION WITH VISUAL RESULTS ---
+function giveItemToAlda() {
+  if (!hasItem('boards')) return;
+  removeItem('boards');
+  gameState.npcStates.alda.working = true;
+  exitDialog();
+  showToast('Alda is nailing boards to the bridge...');
+  setTimeout(() => {
+    gameState.npcStates.alda.fixed = true;
+    gameState.bridgeFixed = true;
+    gameState.bridgeCollapsed = false;
+    showToast('✅ The bridge is FIXED! The river is now crossable.');
+    updateStatus();
+  }, 2500);
+}
+
+function giveItemToNpc(npcId) {
+  if (npcId === 'miller' && hasItem('oil')) {
+    removeItem('oil');
+    exitDialog();
+    showToast('The miller pours the oil into the axle...');
+    setTimeout(() => {
+      gameState.npcStates.miller.fixed = true;
+      gameState.worldChanges.millWorking = true;
+      showToast('⚙️ The massive wheel CREAKS and starts spinning! The mill is alive!');
+      updateStatus();
+    }, 2000);
+  } else if (npcId === 'gatekeeper' && hasItem('tools')) {
+    removeItem('tools');
+    exitDialog();
+    showToast('The guard grinds the rust off the gate...');
+    setTimeout(() => {
+      gameState.npcStates.gatekeeper.fixed = true;
+      gate.open = true;
+      gameState.worldChanges.gateOpen = true;
+      showToast('🚪 The gate groans open! The path south is clear.');
+      updateStatus();
+    }, 2000);
+  }
+}
+
+// --- VISUAL WORLD EVENT SYSTEM ---
+function triggerRandomWorldEvent() {
+  const r = Math.random();
+  // COW ESCAPE
+  if (r < 0.3 && !cowSprite.active) {
+    cowSprite.active = true;
+    cowSprite.x = 140; cowSprite.y = 260;
+    showToast('🐄 A cow escaped from the Carpenter! It\'s blocking his door!');
+  } 
+  // FOOD STEALING
+  else if (r < 0.6 && !gameState.worldChanges.storageRansacked && gameState.doorLocked === false) {
+    gameState.worldChanges.storageRansacked = true;
+    showToast('🍽️ Someone broke into the Storage! You forgot to lock the door!');
+  } 
+  // PARTY!
+  else if (r < 0.9 && !gameState.partyHappening) {
+    gameState.partyHappening = true;
+    showToast('🎉 It\'s the Miller\'s birthday! Music is blasting from the Mill!');
+  }
+}
+
+setInterval(triggerRandomWorldEvent, 2500);
+
+// --- INVENTORY ---
+function addItem(id, name) {
+  if (!gameState.inventory.find(i => i.id === id)) {
+    gameState.inventory.push({ id, name });
+    updateInventory();
+  }
+}
+function removeItem(id) {
+  gameState.inventory = gameState.inventory.filter(i => i.id !== id);
+  updateInventory();
+}
+function hasItem(id) { return gameState.inventory.some(i => i.id === id); }
+
+function updateInventory() {
+  const inv = document.getElementById('inventory');
+  if (gameState.inventory.length === 0) inv.innerHTML = '<div class="item-line">Empty</div>';
+  else inv.innerHTML = gameState.inventory.map(i => `<div class="item-line">• ${i.name}</div>`).join('');
+}
+
+function updateStatus() {
+  const status = document.getElementById('status');
+  let msg = gameState.bridgeFixed ? '✅ Bridge repaired.' : (gameState.bridgeCollapsed ? '⚠️ Bridge collapsed!' : '🌉 Bridge intact.');
+  if (gameState.worldChanges.millWorking) msg += ' ⚙️ Mill active.';
+  if (gameState.worldChanges.gateOpen) msg += ' 🚪 Gate open.';
+  if (gameState.worldChanges.storageRansacked) msg += ' 🚨 Storage ransacked!';
+  status.innerHTML = msg;
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.innerHTML = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// --- RENDERING (BIG VISUAL UPGRADE) ---
+function drawBackground() {
+  ctx.fillStyle = '#8fb29a'; ctx.fillRect(0, 0, W, H);
+}
+function drawRiver() {
+  // Draw the water
+  ctx.fillStyle = '#3b6c8f'; ctx.fillRect(riverLeft, riverY, riverWidth, riverHeight);
+  
+  // Wave animations
+  ctx.strokeStyle = 'rgba(255,255,255,.2)';
+  ctx.lineWidth = 2;
+  for (let y = riverY; y < riverY + riverHeight; y += 20) {
+    ctx.beginPath();
+    ctx.moveTo(riverLeft + 10 + Math.sin(y * 0.1 + gameState.tick * 0.05) * 10, y);
+    ctx.lineTo(riverRight - 10 + Math.sin(y * 0.1 + gameState.tick * 0.05 + 2) * 10, y);
+    ctx.stroke();
+  }
+
+  // River banks (3D perspective walls)
+  ctx.fillStyle = '#5a4030'; 
+  ctx.fillRect(riverLeft - 20, riverY - 10, 20, riverHeight + 20); // Left bank
+  ctx.fillRect(riverRight, riverY - 10, 20, riverHeight + 20); // Right bank
+
+  ctx.fillStyle = '#3d281d';
+  ctx.fillRect(riverLeft - 25, riverY - 15, 5, riverHeight + 30);
+  ctx.fillRect(riverRight + 20, riverY - 15, 5, riverHeight + 30);
+}
+
+function drawMillWheel() {
+  const mill = buildings.find(b => b.id === 'mill');
+  const wheelX = mill.x + mill.w + 40;
+  const wheelY = mill.y + 80;
+
+  // Wheel supports
+  ctx.fillStyle = '#6b5036';
+  ctx.fillRect(wheelX - 5, wheelY - 60, 10, 60);
+  ctx.fillRect(wheelX - 5, wheelY, 10, 60);
+
+  // The Wheel
+  let angle = 0;
+  if (gameState.worldChanges.millWorking) {
+    angle = gameState.tick * 0.03; // Spinning!
+  } else {
+    angle = 0.2; // Slightly tilted, frozen
+  }
+
+  ctx.save();
+  ctx.translate(wheelX, wheelY);
+  ctx.rotate(angle);
+
+  // Outer ring
+  ctx.strokeStyle = '#5a4030';
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.arc(0, 0, 35, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Spokes
+  ctx.lineWidth = 4;
+  for (let i = 0; i < 8; i++) {
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(Math.cos(i * Math.PI / 4) * 35, Math.sin(i * Math.PI / 4) * 35);
+    ctx.stroke();
+  }
+
+  // Paddles (Buckets)
+  ctx.fillStyle = '#8b6f47';
+  for (let i = 0; i < 8; i++) {
+    const px = Math.cos(i * Math.PI / 4) * 35;
+    const py = Math.sin(i * Math.PI / 4) * 35;
+    ctx.fillRect(px - 4, py - 8, 8, 16);
+  }
+  ctx.restore();
+}
+
+function drawBridge() {
+  if (gameState.bridgeFixed) {
+    ctx.fillStyle = '#b8956e'; 
+    ctx.fillRect(bridge.x+5, bridge.y+15, bridge.w-10, 50);
+    ctx.strokeStyle = '#6b5036'; 
+    ctx.lineWidth = 2; 
+    ctx.strokeRect(bridge.x+5, bridge.y+15, bridge.w-10, 50);
+    ctx.fillStyle = '#e8c46a'; 
+    ctx.font = 'bold 14px sans-serif'; 
+    ctx.textAlign = 'center'; 
+    ctx.fillText('✅ SAFE', riverX, bridge.y-15);
+  } else {
+    ctx.fillStyle = 'rgba(184,149,110,.3)'; 
+    ctx.fillRect(bridge.x+5, bridge.y+60, bridge.w-10, 40);
+    ctx.fillStyle = '#d2766f'; 
+    ctx.font = 'bold 14px sans-serif'; 
+    ctx.textAlign = 'center'; 
+    ctx.fillText('💥 BROKEN', riverX, bridge.y-15);
+  }
+}
+
+function drawBuilding(b) {
+  // Building body
+  ctx.fillStyle = b.type === 'tower' ? '#5a6f73' : '#c99b68'; 
+  ctx.fillRect(b.x, b.y+20, b.w, b.h-20);
+  
+  // Roof
+  ctx.fillStyle = b.roof; 
+  ctx.beginPath(); 
+  ctx.moveTo(b.x-12, b.y+20); 
+  ctx.lineTo(b.x+b.w/2, b.y-25); 
+  ctx.lineTo(b.x+b.w+12, b.y+20); 
+  ctx.closePath(); 
+  ctx.fill();
+  
+  // Door
+  ctx.fillStyle = '#563b2b'; 
+  ctx.fillRect(b.x+b.w/2-9, b.y+b.h-25, 18, 25);
+
+  // Storage consequence: Broken door
+  if (b.id === 'storage' && gameState.worldChanges.storageRansacked) {
+    ctx.fillStyle = '#4a3020';
+    ctx.fillRect(b.x+b.w/2-9, b.y+b.h-15, 18, 5); // knocked off hinges
+    ctx.fillStyle = '#d2766f';
+    ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('🚨 RANSACKED', b.x+b.w/2, b.y-35);
+  }
+}
+
+function drawNpc(npc) {
+  ctx.fillStyle = 'rgba(0,0,0,.2)'; 
+  ctx.beginPath(); ctx.ellipse(npc.x, npc.y+12, 10, 3, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#f0e2bd'; 
+  ctx.beginPath(); ctx.arc(npc.x, npc.y-8, 8, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#4c657f'; 
+  ctx.fillRect(npc.x-8, npc.y+2, 16, 18);
+  ctx.font = '18px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(npc.emoji, npc.x, npc.y-25);
+}
+
+function drawItems() {
+  for (const item of items) {
+    if (item.found) continue;
+    ctx.fillStyle = '#d8ba69'; 
+    ctx.beginPath(); ctx.arc(item.x, item.y-5, 14, 0, Math.PI*2); ctx.fill();
+    ctx.font = '20px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(item.emoji, item.x, item.y);
+  }
+}
+
+function drawCow() {
+  if (cowSprite.active) {
+    // Cow body
+    ctx.fillStyle = '#f5f0df'; 
+    ctx.beginPath(); ctx.ellipse(cowSprite.x, cowSprite.y, 22, 14, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#2a211a'; 
+    ctx.beginPath(); ctx.ellipse(cowSprite.x+2, cowSprite.y-10, 10, 12, 0, 0, Math.PI*2); ctx.fill();
+    // Horns
+    ctx.fillStyle = '#f5f0df'; 
+    ctx.beginPath(); ctx.ellipse(cowSprite.x-15, cowSprite.y-18, 4, 8, -0.3, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cowSprite.x+15, cowSprite.y-18, 4, 8, 0.3, 0, Math.PI*2); ctx.fill();
+    // Ears
+    ctx.fillStyle = '#4c3425'; ctx.fillRect(cowSprite.x-20, cowSprite.y-14, 10, 4); ctx.fillRect(cowSprite.x+10, cowSprite.y-14, 10, 4);
+    ctx.font = '16px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🐮', cowSprite.x, cowSprite.y-22);
+    ctx.fillStyle = '#2c241d'; ctx.font = '10px sans-serif'; ctx.fillText('BLOCKS PATH', cowSprite.x, cowSprite.y+28);
+  }
+}
+
+function drawPlayer() {
+  ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(player.x, player.y+12, 10, 3, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#f0e2bd'; ctx.beginPath(); ctx.arc(player.x, player.y-8, 8, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#4c657f'; ctx.fillRect(player.x-8, player.y+2, 16, 18);
+}
+
+function draw() {
+  drawBackground(); 
+  drawRiver(); 
+  drawBridge(); 
+  drawMillWheel();
+  drawCow();
+  for (const b of buildings) drawBuilding(b);
+  drawItems(); for (const npc of npcs) drawNpc(npc); drawPlayer();
+}
+
+// --- GAME LOOP & INPUT ---
+function loop() { gameState.tick++; movePlayer(); draw(); requestAnimationFrame(loop); }
+
+addEventListener('keydown', (e) => {
+  const k = e.key.toLowerCase();
+  if (['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)) { keys[k] = true; e.preventDefault(); }
+  if (k === 'e') { tryInteract(); e.preventDefault(); }
+  if (k === 'q' || k === 'escape') { if (gameState.indoors) exitBuilding(); e.preventDefault(); }
+});
+addEventListener('keyup', (e) => { const k = e.key.toLowerCase(); keys[k] = false; });
+
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX; const my = (e.clientY - rect.top) * scaleY;
+  if (gameState.indoors) return;
+  for (const item of items) { if (!item.found && Math.hypot(mx - item.x, my - item.y) < 50) { tryInteract(); return; } }
+  for (const b of buildings) { if (Math.hypot(mx - (b.x+b.w/2), my - (b.y+b.h/2)) < 60) { enterBuilding(b); return; } }
+  for (const npc of npcs) { if (Math.hypot(mx - npc.x, my - npc.y) < 50) { showNpcDialog(npc); return; } }
+});
+
+updateInventory(); updateStatus(); loop();
+</script>
+</body>
+</html>

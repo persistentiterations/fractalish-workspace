@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "guardian-intake"
+version = "0.6.0"
+description = "Manifest-first static intake checkpoint for Python source files"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  {name = "Guardian Project"}
+]
+license = {text = "Proprietary evaluation build"}
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Topic :: Security",
+  "Programming Language :: Python :: 3",
+  "License :: Other/Proprietary License"
+]
+dependencies = []
+
+[project.scripts]
+guardian = "guardian_intake.guardian:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,118 @@
+{
+  "generated_at": "2026-06-18T16:35:00-04:00",
+  "canonical_repository_path": "C:/Users/moop/cognitive-basin-platform",
+  "inventory": [
+    {
+      "path": "C:/Users/moop/cognitive-basin-platform",
+      "branch": "main",
+      "head": "6ad571592874e4906b44d339af8a34c3e5e7f903",
+      "git_common_dir": ".git",
+      "clean": true,
+      "active_or_obsolete": "active-canonical",
+      "parent_directory_relationship": ["flat-or-standalone"],
+      "safe_removal_eligibility": false
+    },
+    {
+      "path": "C:/Users/moop/Cognitive-Basin-Worktrees/build-memory-governance-codex",
+      "branch": "build/memory-governance-codex",
+      "head": "3f4274f4929d2703c17301033b659b0e81e2105c",
+      "git_common_dir": "C:/Users/moop/cognitive-basin-platform/.git",
+      "clean": true,
+      "active_or_obsolete": "obsolete-merged",
+      "parent_directory_relationship": ["flat-or-standalone"],
+      "safe_removal_eligibility": true
+    },
+    {
+      "path": "C:/Users/moop/Cognitive-Basin-Worktrees/build-connectors-cloudflare-readiness-codex",
+      "branch": "build/connectors-cloudflare-readiness-codex",
+      "head": "c192df8ad5e04ee949b0bfe2350a5267875c3b12",
+      "git_common_dir": "C:/Users/moop/cognitive-basin-platform/.git",
+      "clean": true,
+      "active_or_obsolete": "obsolete-merged",
+      "parent_directory_relationship": ["flat-or-standalone"],
+      "safe_removal_eligibility": true
+    },
+    {
+      "path": "C:/Users/moop/Cognitive-Basin-Worktrees/build-operational-consciousness-kernel-codex",
+      "branch": "build/operational-consciousness-kernel-codex",
+      "head": "6ad571592874e4906b44d339af8a34c3e5e7f903",
+      "git_common_dir": "C:/Users/moop/cognitive-basin-platform/.git",
+      "clean": false,
+      "active_or_obsolete": "obsolete-merged",
+      "parent_directory_relationship": ["flat-or-standalone"],
+      "safe_removal_eligibility": false
+    },
+    {
+      "path": "C:/Users/moop/Cognitive-Basin-Worktrees/build-predictive-world-interoception-codex",
+      "branch": "build/predictive-world-interoception-codex",
+      "head": "6ad571592874e4906b44d339af8a34c3e5e7f903",
+      "git_common_dir": "C:/Users/moop/cognitive-basin-platform/.git",
+      "clean": false,
+      "active_or_obsolete": "active-predictive-world-interoception",
+      "parent_directory_relationship": ["flat-or-standalone"],
+      "safe_removal_eligibility": false
+    },
+    {
+      "path": "C:/Users/moop/Downloads/Articles on X.com/Fractalish.com/build/basinlab-persistence-memory-codex",
+      "branch": "build/basinlab-persistence-memory-codex",
+      "head": "a655d73b814dbbd0aeebda53b7c3bb321c17b88d",
+      "git_common_dir": "C:/Users/moop/cognitive-basin-platform/.git",
+      "clean": true,
+      "active_or_obsolete": "obsolete-merged",
+      "parent_directory_relationship": ["flat-or-standalone"],
+      "safe_removal_eligibility": true
+    },
+    {
+      "path": "C:/Users/moop/Downloads/Articles on X.com/Fractalish.com/build/ephux-local-integration-codex",
+      "branch": "build/ephux-local-integration-codex",
+      "head": "9848c64cdfcd3cee4c4e46572eed1951ce64a47c",
+      "git_common_dir": "C:/Users/moop/cognitive-basin-platform/.git",
+      "clean": true,
+      "active_or_obsolete": "obsolete-merged",
+      "parent_directory_relationship": ["flat-or-standalone"],
+      "safe_removal_eligibility": true
+    },
+    {
+      "path": "C:/Users/moop/Downloads/Articles on X.com/Fractalish.com/build/ephux-product-surface-codex",
+      "branch": "build/ephux-product-surface-codex",
+      "head": "0666093e560841d26b67fdca2a9eb9fedf02e614",
+      "git_common_dir": "C:/Users/moop/cognitive-basin-platform/.git",
+      "clean": false,
+      "active_or_obsolete": "obsolete-merged",
+      "parent_directory_relationship": ["flat-or-standalone"],
+      "safe_removal_eligibility": false
+    },
+    {
+      "path": "C:/Users/moop/Downloads/Articles on X.com/Fractalish.com/build/evaluation-natural-math-codex",
+      "branch": "build/evaluation-natural-math-codex",
+      "head": "74782f662ce9ca0d8cbef06c006acfacf49a2965",
+      "git_common_dir": "C:/Users/moop/cognitive-basin-platform/.git",
+      "clean": true,
+      "active_or_obsolete": "obsolete-merged",
+      "parent_directory_relationship": ["flat-or-standalone"],
+      "safe_removal_eligibility": true
+    },
+    {
+      "path": "C:/Users/moop/Downloads/Articles on X.com/Fractalish.com/build/evaluation-natural-math-codex/build/ephux-lab-product-codex",
+      "branch": "build/ephux-lab-product-codex",
+      "head": "e2967625e77686167af1eed9f9987d6cc688646a",
+      "git_common_dir": "C:/Users/moop/cognitive-basin-platform/.git",
+      "clean": true,
+      "active_or_obsolete": "obsolete-merged",
+      "parent_directory_relationship": [
+        "nested-inside:C:/Users/moop/Downloads/Articles on X.com/Fractalish.com/build/evaluation-natural-math-codex"
+      ],
+      "safe_removal_eligibility": true
+    },
+    {
+      "path": "C:/Users/moop/Downloads/Articles on X.com/Fractalish.com/build/provider-sandbox-codex",
+      "branch": "build/provider-sandbox-codex",
+      "head": "1d6d74ec010c30a8ff4bd10209f7257cacae5fb3",
+      "git_common_dir": "C:/Users/moop/cognitive-basin-platform/.git",
+      "clean": false,
+      "active_or_obsolete": "obsolete-merged",
+      "parent_directory_relationship": ["flat-or-standalone"],
+      "safe_removal_eligibility": false
+    }
+  ]
+}

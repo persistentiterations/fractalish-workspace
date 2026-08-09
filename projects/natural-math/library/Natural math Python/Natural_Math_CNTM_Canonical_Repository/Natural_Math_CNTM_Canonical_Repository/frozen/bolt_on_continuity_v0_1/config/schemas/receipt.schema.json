@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bonacqui.example/schemas/bolt-on-continuity/receipt-1.json",
+  "title": "Continuity Receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "receipt_id",
+    "incident_id",
+    "sequence",
+    "receipt_type",
+    "subject_id",
+    "payload_digest",
+    "previous_receipt_digest",
+    "receipt_digest"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1"
+    },
+    "receipt_id": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 128
+    },
+    "incident_id": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 128
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "receipt_type": {
+      "enum": [
+        "EVIDENCE_ACCEPTED",
+        "EVIDENCE_REJECTED",
+        "NORMALIZED",
+        "INCIDENT_OPENED",
+        "INCIDENT_UPDATED",
+        "ACTION_PROJECTED",
+        "ACTION_SUPPRESSED",
+        "GATEWAY_ACCEPTED",
+        "GATEWAY_REJECTED",
+        "HOST_ACCEPTED",
+        "HOST_REJECTED",
+        "STATE_OBSERVED",
+        "REPLAY_VERIFIED",
+        "REPLAY_FAILED",
+        "DISABLED",
+        "RECOVERED",
+        "UNINSTALLED"
+      ]
+    },
+    "subject_id": {
+      "type": "string",
+      "minLength": 12,
+      "maxLength": 128
+    },
+    "payload_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "previous_receipt_digest": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "receipt_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  }
+}

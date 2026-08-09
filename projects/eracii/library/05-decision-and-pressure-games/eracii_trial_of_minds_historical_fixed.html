@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
+<title>Eracii — Trial of Minds</title>
+<style>
+:root{
+  --ink:#f4efe5;--muted:#9ea6b3;--deep:#06080d;--panel:#10151dcf;--line:#303948;
+  --gold:#d8b56a;--player:#73a7ff;--rival:#ef7887;--accent:#d8b56a;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#05070b;color:var(--ink);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
+body{overflow:hidden}
+button,input{font:inherit}
+button{color:inherit}
+button:disabled{opacity:.35;cursor:not-allowed}
+.shell{height:100dvh;overflow:hidden;background:
+ radial-gradient(circle at 18% -10%,#254f7e55,transparent 35rem),
+ radial-gradient(circle at 88% 0,#6b3d6445,transparent 32rem),
+ linear-gradient(180deg,#080b12,#05070b 70%);position:relative}
+.shell:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.19;background-image:linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff06 1px,transparent 1px);background-size:72px 72px;mask-image:radial-gradient(circle at center,black,transparent 82%)}
+.topbar{height:54px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 16px;border-bottom:1px solid #29313d;background:#070a10e8;backdrop-filter:blur(16px);position:relative;z-index:30}
+.brand{font-size:11px;font-weight:950;letter-spacing:.22em}.brand b{color:var(--gold)}
+.top-title{font:700 14px Georgia,serif;letter-spacing:.08em;color:var(--gold)}
+.top-actions{display:flex;justify-content:flex-end;gap:6px}
+.ghost,.small{border:1px solid #344050;background:#111823;border-radius:9px;padding:6px 10px;font-size:10px;font-weight:800;cursor:pointer}
+.ghost:hover,.small:hover{border-color:var(--gold)}
+.screen{display:none;height:calc(100dvh - 54px);position:relative;z-index:2}.screen.active{display:flex}
+
+/* SETUP */
+#setupScreen{overflow:auto;padding:18px;align-items:flex-start;justify-content:center}
+.setup-wrap{width:min(1420px,98vw);display:grid;grid-template-columns:1.35fr .9fr;gap:14px;padding-bottom:20px}
+.panel{background:linear-gradient(145deg,#111722e8,#0d121be8);border:1px solid #303947;border-radius:16px;box-shadow:0 18px 60px #0008}
+.hero{padding:22px 24px 16px}.eyebrow{font-size:9px;letter-spacing:.2em;color:var(--gold);font-weight:950;text-transform:uppercase}.hero h1{font:700 clamp(31px,4vw,58px)/.98 Georgia,serif;margin:7px 0 10px;max-width:850px}.hero p{margin:0;color:#bac0c9;max-width:800px;font-size:14px}
+.mode-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.mode-card{border:1px solid #344050;background:#0a1018;border-radius:12px;padding:11px;text-align:left;cursor:pointer;min-height:100px}.mode-card.active{border-color:var(--gold);box-shadow:inset 0 0 0 1px #d8b56a66;background:#15180f}.mode-card b{display:block;font:700 17px Georgia,serif;color:#f6e4b8}.mode-card span{display:block;color:#aab1bc;font-size:10px;margin-top:5px}
+.roster-panel{padding:14px}.section-title{display:flex;justify-content:space-between;align-items:end;margin-bottom:8px}.section-title h2{font:700 22px Georgia,serif;margin:0}.section-title small{color:var(--muted)}
+.roster{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.mind-card{border:1px solid #333d4a;background:#0b1018;border-radius:12px;padding:10px;text-align:left;cursor:pointer;min-height:146px;position:relative;overflow:hidden}.mind-card:before{content:"";position:absolute;inset:auto -25px -35px auto;width:90px;height:90px;border-radius:50%;background:var(--c);filter:blur(35px);opacity:.25}.mind-card:hover{transform:translateY(-2px);border-color:var(--c)}.mind-card.selected-player{outline:2px solid var(--player);box-shadow:0 0 0 4px #73a7ff20}.mind-card.selected-rival{outline:2px solid var(--rival);box-shadow:0 0 0 4px #ef788720}.mind-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--c);color:var(--c);font:700 18px Georgia,serif;background:#080c12}.mind-card h3{font:700 15px Georgia,serif;margin:7px 0 2px}.mind-card .role{color:var(--c);font-size:8px;text-transform:uppercase;letter-spacing:.1em;font-weight:900}.mind-card p{font-size:9px;color:#adb5c1;margin:6px 0}.mind-card .instinct{font-size:8px;color:#e7dcc7;background:#151d28;border-radius:5px;padding:3px 5px;display:inline-block}
+.mind-card .basis{font-size:8px;color:#8994a3;margin-top:6px;line-height:1.25}
+.historical-note{margin-top:12px;padding:9px 11px;border:1px solid #394454;border-left:3px solid var(--gold);border-radius:9px;background:#0a1018;color:#aeb6c2;font-size:10px}
+.historical-note b{color:#ecd394}
+.side-setup{display:flex;flex-direction:column;gap:12px}.selection{padding:16px}.versus{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}.pick{min-height:70px;padding:10px;border:1px solid #303a47;border-radius:11px;background:#090e15}.pick.right{text-align:right}.pick small{display:block;color:var(--muted);font-size:8px;text-transform:uppercase;letter-spacing:.13em}.pick b{font:700 17px Georgia,serif;display:block;margin-top:3px}.vs{font-weight:950;color:var(--gold)}
+.doctrine{padding:16px}.doctrine h2,.trial-choice h2{font:700 21px Georgia,serif;margin:0 0 4px}.doctrine>p,.trial-choice>p{color:var(--muted);font-size:10px;margin:0 0 11px}.slider-row{display:grid;grid-template-columns:72px 1fr 22px;gap:8px;align-items:center;margin:9px 0;font-size:10px}.slider-row label{font-weight:800}.slider-row input{width:100%;accent-color:var(--accent)}.slider-row output{text-align:right;color:var(--gold);font-weight:900}
+.trial-choice{padding:16px}.trial-tabs{display:grid;gap:6px}.trial-tab{border:1px solid #323c49;border-radius:9px;background:#0b1119;padding:8px 10px;text-align:left;cursor:pointer}.trial-tab.active{border-color:var(--gold);background:#16180f}.trial-tab b{display:block}.trial-tab span{font-size:9px;color:var(--muted)}
+.begin{width:100%;border:1px solid #f0d391;background:linear-gradient(180deg,#e1c27d,#b98a3e);color:#171006;border-radius:12px;padding:13px;font-weight:950;cursor:pointer;box-shadow:0 12px 28px #0008}.begin:disabled{opacity:.35}.setup-note{text-align:center;color:var(--muted);font-size:9px;margin-top:7px}
+
+/* TRIAL */
+#trialScreen{padding:7px;gap:6px;flex-direction:column;min-height:0}
+.trial-header{flex:0 0 64px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:6px 10px}.identity{display:flex;gap:9px;align-items:center;min-width:0}.identity.rival{flex-direction:row-reverse;text-align:right}.sigil{width:46px;height:46px;border-radius:50%;border:2px solid var(--c);display:grid;place-items:center;font:700 21px Georgia,serif;background:radial-gradient(circle,var(--c) 0,#111925 55%);box-shadow:0 0 24px color-mix(in srgb,var(--c) 40%,transparent)}.identity h2{font:700 17px Georgia,serif;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.identity .sub{font-size:8px;color:var(--c);text-transform:uppercase;letter-spacing:.1em;font-weight:900}.meters{display:flex;gap:7px;flex-wrap:wrap;color:#aeb6c2;font-size:9px}.meters b{color:#fff}.trial-center{text-align:center}.trial-center b{font:700 16px Georgia,serif;color:var(--gold)}.trial-center span{display:block;font-size:8px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}.round-pips{display:flex;justify-content:center;gap:3px;margin-top:4px}.pip{width:5px;height:5px;border-radius:50%;background:#343e4b}.pip.done{background:var(--gold)}
+.trial-main{flex:1;display:grid;grid-template-columns:minmax(180px,230px) 1fr minmax(200px,260px);gap:6px;min-height:0}.rail{display:flex;flex-direction:column;gap:6px;min-height:0}.box{padding:10px;overflow:hidden}.box h3{font-size:8px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);margin:0 0 6px}.doctrine-bars{display:grid;gap:7px}.dbar{display:grid;grid-template-columns:62px 1fr 20px;gap:5px;align-items:center;font-size:9px}.bar{height:6px;border-radius:99px;background:#252d38;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--c),#fff8)}
+.principle{font:italic 13px Georgia,serif;color:#e7ddca}.passive{margin-top:7px;padding:7px;border-left:3px solid var(--c);background:#0a1018;border-radius:5px;font-size:9px;color:#c5cbd4}.mode-explain{font-size:9px;color:#c0c6cf}.mode-explain b{color:var(--gold)}
+.field-shell{position:relative;min-height:0;overflow:hidden;border-radius:18px;background:radial-gradient(circle at 50% 45%,#1a2332,#090d14 68%,#05070a);border:1px solid #344050;box-shadow:inset 0 0 100px #000,0 18px 50px #0008}.field-shell:before{content:"";position:absolute;inset:10%;border:1px solid #ffffff08;border-radius:50%;box-shadow:0 0 60px #6fa5ff1b;animation:breathe 5s ease-in-out infinite}.field-shell:after{content:"";position:absolute;left:50%;top:50%;width:520px;height:520px;transform:translate(-50%,-50%);border-radius:50%;background:conic-gradient(from 0deg,transparent,#d8b56a10,transparent 22%,#73a7ff0e,transparent 50%,#ef78870e,transparent 75%);animation:turn 24s linear infinite;pointer-events:none}@keyframes turn{to{transform:translate(-50%,-50%) rotate(360deg)}}@keyframes breathe{50%{transform:scale(1.04);opacity:.55}}
+#fieldSvg{width:100%;height:100%;min-height:390px;display:block;position:relative;z-index:3}.thread{stroke:#495568;stroke-width:4;opacity:.65}.thread.owned-player{stroke:var(--player);opacity:.8}.thread.owned-enemy{stroke:var(--rival);opacity:.8}.node{cursor:default}.node .halo{fill:#0b1018;stroke:#465365;stroke-width:2;transition:.18s}.node .core{fill:#121a25;stroke:#738095;stroke-width:1.5}.node text{fill:#dce2ea;font:700 12px Inter,sans-serif;pointer-events:none}.node .node-kind{font-size:8px;fill:#939eae;letter-spacing:.08em}.node.legal{cursor:pointer}.node.legal .halo{stroke:#8fe1bb;stroke-width:5;filter:url(#glowGreen)}.node.legal:hover .halo{fill:#183126}.node.player-owned .halo{stroke:var(--player)}.node.enemy-owned .halo{stroke:var(--rival)}.node.pressure .core{fill:#36221c;stroke:#d9896e}.node.witness .core{fill:#182c39;stroke:#74b8d8}.node.revision .core{fill:#2c243d;stroke:#b991e0}.node.current .halo{stroke:var(--gold);stroke-width:5}.token-g{pointer-events:none}.token-g.player-token{pointer-events:all}.token-ring{fill:#090d14;stroke-width:5;filter:url(#tokenGlow)}.token-core{stroke:#fff;stroke-width:2}.token-letter{fill:#fff;font:700 19px Georgia,serif;text-anchor:middle;dominant-baseline:middle}.token-name{fill:#fff;font:800 10px Inter,sans-serif;text-anchor:middle;paint-order:stroke;stroke:#070a0f;stroke-width:4}.pulse-ring{fill:none;stroke-width:3;opacity:.45;animation:pulseRing 1.6s ease-out infinite}@keyframes pulseRing{to{r:39;opacity:0}}
+.field-banner{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:8;background:#090e16e8;border:1px solid #3a4554;border-radius:99px;padding:6px 14px;font-size:10px;font-weight:850;box-shadow:0 8px 25px #0008;max-width:86%;text-align:center}.field-banner b{color:var(--gold)}
+.decision-card{background:#090f17;border:1px solid #303a47;border-radius:10px;padding:9px;margin-bottom:6px}.decision-card h4{font:700 15px Georgia,serif;color:var(--gold);margin:0 0 3px}.decision-card p{font-size:10px;color:#c5cbd4;margin:0}.decision-card .why{font-size:8px;color:#8994a4;margin-top:5px}.receipt-log{flex:1;overflow:auto;background:#070b11;border-radius:9px;padding:6px;min-height:100px}.receipt{border-left:2px solid #465466;padding:4px 5px;margin:0 0 5px;font-size:8px}.receipt b{display:block;color:#e1e6ed}.receipt code{font-size:7px;color:#748195}.legend{display:grid;gap:5px;font-size:8px;color:#aeb6c2}.legend span{display:flex;align-items:center;gap:6px}.legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.console{flex:0 0 94px;display:grid;grid-template-columns:1fr minmax(380px,1.8fr) 1fr;gap:6px;min-height:0}.coach{padding:10px;display:flex;flex-direction:column;justify-content:center}.coach h3{font:700 15px Georgia,serif;color:var(--gold);margin:0 0 3px}.coach p{font-size:9px;color:#b8c0cb;margin:0}.controls{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:6px}.action{border:1px solid #354150;background:#111925;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px;cursor:pointer;min-width:0}.action:hover:not(:disabled){border-color:var(--c)}.action strong{font-size:12px}.action small{font-size:7px;color:#9ba6b5;text-align:center;line-height:1.2}.action .icon{font-size:18px;color:var(--c)}.autonomy{padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px;align-content:center}.autonomy button{border:1px solid #3b4654;border-radius:9px;background:#121a25;padding:8px;font-size:9px;font-weight:900;cursor:pointer}.autonomy button.primary{background:linear-gradient(180deg,#d9bb76,#ad7f38);color:#171006;border-color:#f0d391}.autonomy .wide{grid-column:1/-1}.autonomy-note{grid-column:1/-1;text-align:center;font-size:8px;color:var(--muted)}
+
+/* MODALS */
+.overlay{display:none;position:fixed;inset:0;background:#020409e8;z-index:100;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px)}.overlay.show{display:flex}.modal{width:min(760px,96vw);max-height:90dvh;overflow:auto;padding:20px}.modal h2{font:700 32px Georgia,serif;margin:0 0 6px}.modal p{color:#b7bec8}.upgrade-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.upgrade{border:1px solid #3a4552;background:#0a1018;border-radius:12px;padding:13px;text-align:left;cursor:pointer}.upgrade:hover{border-color:var(--gold)}.upgrade b{display:block;color:#f3d99e;font:700 16px Georgia,serif}.upgrade span{font-size:9px;color:#aeb6c2}.portrait-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.portrait-card{background:#090f17;border:1px solid #313b48;border-radius:10px;padding:10px;text-align:left}.portrait-card small{display:block;color:var(--muted);font-size:8px;text-transform:uppercase;letter-spacing:.1em}.portrait-card b{font:700 18px Georgia,serif;color:#efd28f}.final-code{font:11px ui-monospace,Consolas,monospace;background:#070b10;border-radius:9px;padding:10px;color:#cbd2db;overflow-wrap:anywhere}.modal-actions{display:flex;gap:7px;justify-content:center;margin-top:13px}.modal-actions button{padding:9px 14px;border-radius:9px;border:1px solid #3c4755;background:#121a25;font-weight:850;cursor:pointer}.modal-actions .primary{background:linear-gradient(180deg,#dfc17c,#b4873f);color:#171006;border-color:#f0d391}
+.toast{position:fixed;left:50%;top:65px;transform:translateX(-50%);z-index:200;background:#101823;border:1px solid var(--gold);border-radius:99px;padding:8px 15px;font-weight:900;opacity:0;pointer-events:none;transition:.2s}.toast.show{opacity:1}
+
+@media(max-width:1050px){body{overflow:auto}.shell{height:auto;min-height:100dvh;overflow:visible}.screen{height:auto;min-height:calc(100dvh - 54px)}.setup-wrap{grid-template-columns:1fr}.side-setup{display:grid;grid-template-columns:1fr 1fr}.trial-main{grid-template-columns:1fr}.rail.left{display:grid;grid-template-columns:1fr 1fr}.rail.right{display:grid;grid-template-columns:1fr 1fr}.field-shell{min-height:520px}.console{grid-template-columns:1fr}.controls{min-height:90px}.autonomy{grid-template-columns:repeat(3,1fr)}.autonomy .wide{grid-column:auto}.autonomy-note{grid-column:1/-1}}
+@media(max-width:650px){.topbar{grid-template-columns:1fr auto}.top-title{display:none}.roster{grid-template-columns:repeat(2,1fr)}.mode-row{grid-template-columns:1fr}.side-setup{display:flex}.trial-header{grid-template-columns:1fr 1fr}.trial-center{grid-column:1/-1;grid-row:2}.trial-header{height:auto}.trial-main{display:flex;flex-direction:column}.rail.left,.rail.right{display:flex}.field-shell{order:-1;min-height:430px}.controls{grid-template-columns:1fr 1fr}.console{flex-basis:auto}.upgrade-grid,.portrait-grid{grid-template-columns:1fr}.identity h2{font-size:13px}.sigil{width:38px;height:38px}.field-banner{font-size:8px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header class="topbar">
+  <div class="brand">ERA<b>CII</b></div>
+  <div id="topTitle" class="top-title">TRIAL OF MINDS</div>
+  <div class="top-actions"><button id="receiptButton" class="ghost" disabled>Receipt Chain</button><button id="resetButton" class="ghost">New Formation</button></div>
+</header>
+
+<section id="setupScreen" class="screen active">
+  <div class="setup-wrap">
+    <div>
+      <div class="panel hero">
+        <div class="eyebrow">A deterministic experiment in formed behavior</div>
+        <h1>Form a mind. Place it under pressure. See what its principles produce.</h1>
+        <p>This is not a board match. The field is a living network of pressure, witness, and revision. Choose a historical figure through a gameplay category, then pilot the rule set, counsel it, or release it to act from a doctrine you define.</p>
+        <div class="historical-note"><b>Historical exhibition roster:</b> every person shown here is deceased. Each match is based on publicly known work, methods, or accomplishments used as game inspiration—not a personality diagnosis, moral ranking, or claim about the whole person. Living figures are intentionally excluded until a fair opt-in questionnaire or consent-based method exists.</div>
+        <div id="modeRow" class="mode-row">
+          <button class="mode-card active" data-mode="pilot"><b>Pilot</b><span>You move and act. The mind explains exact consequences before commitment.</span></button>
+          <button class="mode-card" data-mode="counsel"><b>Counsel</b><span>You may act directly or surrender a complete decision to the mind.</span></button>
+          <button class="mode-card" data-mode="sovereign"><b>Sovereign</b><span>The doctrine acts autonomously. You watch, pause, step, and inspect receipts.</span></button>
+        </div>
+      </div>
+      <div class="panel roster-panel" style="margin-top:12px">
+        <div class="section-title"><h2>Choose two historical alignments</h2><small>First selection is yours. Second becomes the opposing rule set.</small></div>
+        <div id="roster" class="roster"></div>
+      </div>
+    </div>
+
+    <aside class="side-setup">
+      <div class="panel selection">
+        <div class="versus"><div class="pick"><small>Your mind</small><b id="playerPick">Choose first</b></div><div class="vs">VS</div><div class="pick right"><small>Opposing mind</small><b id="rivalPick">Choose second</b></div></div>
+      </div>
+      <div class="panel doctrine">
+        <h2>Shape its doctrine</h2><p>These weights govern autonomous decisions and the advice it gives in Counsel mode.</p>
+        <div class="slider-row"><label>Pressure</label><input id="wPress" type="range" min="1" max="10" value="6"><output id="oPress">6</output></div>
+        <div class="slider-row"><label>Witness</label><input id="wObserve" type="range" min="1" max="10" value="6"><output id="oObserve">6</output></div>
+        <div class="slider-row"><label>Preserve</label><input id="wHold" type="range" min="1" max="10" value="6"><output id="oHold">6</output></div>
+        <div class="slider-row"><label>Transform</label><input id="wAdapt" type="range" min="1" max="10" value="6"><output id="oAdapt">6</output></div>
+      </div>
+      <div class="panel trial-choice">
+        <h2>Opening trial</h2><p>A three-trial run changes topology after every result.</p>
+        <div id="trialTabs" class="trial-tabs"></div>
+      </div>
+      <div><button id="beginButton" class="begin" disabled>Awaken the Trial Field</button><div class="setup-note">No dice. No hidden random roll. The same state and doctrine produce the same decision.</div></div>
+    </aside>
+  </div>
+</section>
+
+<section id="trialScreen" class="screen">
+  <div class="panel trial-header">
+    <div id="playerIdentity" class="identity"></div>
+    <div class="trial-center"><span id="trialCounter">Trial 1 of 3</span><b id="trialName">The Crucible</b><div id="roundPips" class="round-pips"></div></div>
+    <div id="enemyIdentity" class="identity rival"></div>
+  </div>
+
+  <div class="trial-main">
+    <aside class="rail left">
+      <div class="panel box"><h3>Declared doctrine</h3><div id="doctrineBars" class="doctrine-bars"></div></div>
+      <div class="panel box"><h3>Formed principle</h3><div id="principle" class="principle"></div><div id="passive" class="passive"></div></div>
+      <div class="panel box"><h3>Mode</h3><div id="modeExplain" class="mode-explain"></div></div>
+      <div class="panel box"><h3>Field meanings</h3><div class="legend"><span><i style="background:#d9896e"></i>Pressure builds Force</span><span><i style="background:#74b8d8"></i>Witness builds Clarity</span><span><i style="background:#b991e0"></i>Revision restores transformation</span><span><i style="background:#697586"></i>Neutral junction</span></div></div>
+    </aside>
+
+    <main id="fieldShell" class="field-shell">
+      <div id="fieldBanner" class="field-banner"><b>The field is listening.</b> Select your mind.</div>
+      <svg id="fieldSvg" viewBox="0 0 1000 620" role="img" aria-label="Living trial network"></svg>
+    </main>
+
+    <aside class="rail right">
+      <div class="panel box"><h3>Current decision</h3><div class="decision-card"><h4 id="decisionTitle">Awaiting formation</h4><p id="decisionBody">The first decision will appear here.</p><div id="decisionWhy" class="why"></div></div></div>
+      <div class="panel box" style="display:flex;flex-direction:column;min-height:0"><h3>Receipt thread</h3><div id="receiptLog" class="receipt-log"></div></div>
+    </aside>
+  </div>
+
+  <div class="console">
+    <div class="panel coach"><h3 id="coachTitle">Select your mind</h3><p id="coachBody">Choose a glowing reachable junction. The four action buttons activate after movement.</p></div>
+    <div class="panel controls">
+      <button class="action" data-action="press" disabled style="--c:#e88672"><span class="icon">◆</span><strong>Pressure</strong><small>Strike nearby or build Force at range</small></button>
+      <button class="action" data-action="observe" disabled style="--c:#78bddc"><span class="icon">◉</span><strong>Witness</strong><small>Gain Clarity and expose the rival's leaning</small></button>
+      <button class="action" data-action="hold" disabled style="--c:#82d6ad"><span class="icon">⬟</span><strong>Preserve</strong><small>Raise Ward and restore Resolve</small></button>
+      <button class="action" data-action="adapt" disabled style="--c:#c197e5"><span class="icon">✦</span><strong>Transform</strong><small>Use the mind's exceptional intervention</small></button>
+    </div>
+    <div class="panel autonomy">
+      <button id="askMind" class="wide" disabled>Let the Mind Decide</button>
+      <button id="stepButton" disabled>Step One Decision</button>
+      <button id="autoButton" class="primary" disabled>Release Mind</button>
+      <div id="autonomyNote" class="autonomy-note">Pilot mode keeps control in your hands.</div>
+    </div>
+  </div>
+</section>
+</div>
+
+<div id="evolutionOverlay" class="overlay"><div class="panel modal"><div class="eyebrow">Between trials</div><h2 id="evolutionTitle">The mind survived pressure.</h2><p id="evolutionText">Choose one change. The receipt thread remains continuous.</p><div id="upgradeGrid" class="upgrade-grid"></div></div></div>
+<div id="portraitOverlay" class="overlay"><div id="portraitModal" class="panel modal"></div></div>
+<div id="receiptOverlay" class="overlay"><div class="panel modal"><button class="small" style="float:right" onclick="closeReceipts()">Close</button><div class="eyebrow">Verifiable history</div><h2>Receipt Chain</h2><p>Every movement, objective, decision, and result is chained to the prior receipt.</p><div id="fullReceipts" class="final-code"></div></div></div>
+<div id="toast" class="toast"></div>
+
+<script>
+"use strict";
+const MAX_ROUND=10;
+const MINDS=[
+ {id:"ANCHOR",name:"George Washington",mark:"GW",color:"#d6ad63",category:"The Anchor",role:"Keeper of continuity",basis:"Matched through his public role in founding institutions and transferring authority within a new constitutional system.",principle:"Preserve what allows the system to continue through change.",passive:"Holding a central junction creates 2 Ward instead of 1.",move:"steady",special:"Hold the Center",weights:{press:4,observe:5,hold:10,adapt:7}},
+ {id:"SPEAR",name:"Alexander the Great",mark:"AG",color:"#de7667",category:"The Spear",role:"Directed pressure",basis:"Matched through rapid campaigns, long-range advance, and repeated commitment to forward movement.",principle:"Close distance before opportunity disappears.",passive:"Moving closer to the rival adds 1 Force.",move:"stride",special:"Break the Line",weights:{press:10,observe:3,hold:4,adapt:6}},
+ {id:"QUESTION",name:"Socrates",mark:"S",color:"#76b7d5",category:"The Questioner",role:"Evidence seeker",basis:"Matched through the documented method of examining claims by sustained questioning rather than accepting the first answer.",principle:"Do not spend certainty you have not earned.",passive:"Witness grants 2 Clarity instead of 1.",move:"witness",special:"Expose Contradiction",weights:{press:3,observe:10,hold:7,adapt:7}},
+ {id:"MIRROR",name:"Carl Jung",mark:"CJ",color:"#9a82cf",category:"The Mirror",role:"Pattern reverser",basis:"Matched through his public work on recurring symbols, oppositions, projection, and the relationship between conscious and hidden patterns.",principle:"What repeats may be turned and examined from another side.",passive:"Changing actions twice restores 1 Resolve.",move:"mirror",special:"Return the Pattern",weights:{press:5,observe:8,hold:7,adapt:9}},
+ {id:"LENS",name:"Marie Curie",mark:"MC",color:"#69c2a5",category:"The Lens",role:"Accumulating investigator",basis:"Matched through sustained experimental work in which careful measurement and repeated evidence produced cumulative discovery.",principle:"Small observations can become irreversible advantage.",passive:"Every third Witness permanently adds 1 Pressure damage.",move:"witness",special:"Concentrated Proof",weights:{press:5,observe:10,hold:5,adapt:6}},
+ {id:"GUIDE",name:"Harriet Tubman",mark:"HT",color:"#df946e",category:"The Guide",role:"Route finder",basis:"Matched through repeated journeys that depended on route knowledge, secrecy, protection, and preserving a path to safety.",principle:"Survival requires preserving a way through.",passive:"When Resolve is 4 or lower, moving away restores 1 Resolve.",move:"escape",special:"Open Passage",weights:{press:6,observe:7,hold:9,adapt:8}},
+ {id:"FLOW",name:"Bruce Lee",mark:"BL",color:"#e4aa48",category:"The Flow",role:"Adaptive variation",basis:"Matched through his publicly taught emphasis on responsiveness, economy of movement, and avoiding rigid adherence to a single form.",principle:"Do not offer the same rigidity twice.",passive:"Changing actions adds 1 damage to the next nearby Pressure.",move:"leap",special:"Become the Opening",weights:{press:9,observe:7,hold:5,adapt:8}},
+ {id:"ARCHITECT",name:"Ada Lovelace",mark:"AL",color:"#d58cad",category:"The Architect",role:"Sequence builder",basis:"Matched through her published treatment of ordered operations and the possibility of machines manipulating structured symbols.",principle:"A useful action becomes stronger when placed in sequence.",passive:"Pressure → Witness → Preserve refreshes Transform once.",move:"revision",special:"Rewrite the Sequence",weights:{press:6,observe:8,hold:7,adapt:9}},
+ {id:"CHALLENGER",name:"Harry Houdini",mark:"HH",color:"#64c3d5",category:"The Challenger",role:"Constraint tester",basis:"Matched through performances built around explicit constraints, visible risk, and testing whether an apparent limit could be escaped.",principle:"Make the constraint visible, then test where it actually holds.",passive:"New objectives grant one additional matching resource.",move:"leap",special:"Change the Stakes",weights:{press:8,observe:5,hold:4,adapt:10}},
+ {id:"VOICE",name:"Josephine Baker",mark:"JB",color:"#c987d3",category:"The Voice",role:"Attention shaper",basis:"Matched through a public career that used performance, visibility, and later civic advocacy to redirect attention across different arenas.",principle:"A field can be reorganized by what it learns to notice.",passive:"Pressure junctions grant 2 Force instead of 1.",move:"stride",special:"Command the Stage",weights:{press:8,observe:8,hold:5,adapt:7}},
+ {id:"SHIFTER",name:"William Shakespeare",mark:"WS",color:"#8d9fe8",category:"The Shifter",role:"Context adapter",basis:"Matched through dramatic works that repeatedly changed viewpoint, role, setting, and access to the same underlying conflict.",principle:"Keep the parts; change the context that makes them reachable.",passive:"Claiming three different node types grants 2 Resolve.",move:"mirror",special:"Change the Scene",weights:{press:6,observe:8,hold:7,adapt:10}},
+ {id:"COORDINATOR",name:"Florence Nightingale",mark:"FN",color:"#8fc58d",category:"The Coordinator",role:"Distributed organizer",basis:"Matched through documented work coordinating care, records, logistics, sanitation, and institutional reform across many local operations.",principle:"No single action should be forced to carry the whole system.",passive:"Using all three standard actions adds 2 Force.",move:"steady",special:"Align the Field",weights:{press:7,observe:8,hold:8,adapt:7}}
+];
+const TRIALS=[
+ {id:"crucible",name:"The Crucible",desc:"A dense field where central commitment creates immediate friction.",startP:"L",startE:"R",nodes:[
+  {id:"L",x:90,y:310},{id:"A",x:220,y:170,type:"witness"},{id:"B",x:220,y:450,type:"pressure"},{id:"C",x:360,y:310,type:"normal"},{id:"D",x:500,y:130,type:"revision"},{id:"E",x:500,y:310,type:"pressure"},{id:"F",x:500,y:490,type:"witness"},{id:"G",x:650,y:210,type:"normal"},{id:"H",x:650,y:410,type:"revision"},{id:"R",x:900,y:310}],
+  edges:[["L","A"],["L","B"],["A","C"],["B","C"],["A","D"],["B","F"],["C","D"],["C","E"],["C","F"],["D","G"],["E","G"],["E","H"],["F","H"],["G","R"],["H","R"]]},
+ {id:"wildroot",name:"The Wildroot",desc:"Branching routes reward minds that can preserve alternatives.",startP:"L",startE:"R",nodes:[
+  {id:"L",x:80,y:310},{id:"A",x:190,y:310,type:"normal"},{id:"B",x:310,y:130,type:"witness"},{id:"C",x:310,y:310,type:"pressure"},{id:"D",x:310,y:500,type:"revision"},{id:"E",x:470,y:105,type:"normal"},{id:"F",x:470,y:240,type:"revision"},{id:"G",x:470,y:385,type:"witness"},{id:"H",x:470,y:525,type:"normal"},{id:"I",x:650,y:190,type:"pressure"},{id:"J",x:650,y:430,type:"witness"},{id:"K",x:790,y:310,type:"revision"},{id:"R",x:920,y:310}],
+  edges:[["L","A"],["A","B"],["A","C"],["A","D"],["B","E"],["B","F"],["C","F"],["C","G"],["D","G"],["D","H"],["E","I"],["F","I"],["F","J"],["G","I"],["G","J"],["H","J"],["I","K"],["J","K"],["K","R"]]},
+ {id:"rift",name:"The Rift",desc:"Separated corridors force commitment before the paths reconnect.",startP:"L",startE:"R",nodes:[
+  {id:"L",x:80,y:310},{id:"A",x:200,y:150,type:"pressure"},{id:"B",x:200,y:470,type:"witness"},{id:"C",x:350,y:110,type:"normal"},{id:"D",x:350,y:510,type:"revision"},{id:"E",x:520,y:160,type:"witness"},{id:"F",x:520,y:460,type:"pressure"},{id:"G",x:680,y:110,type:"revision"},{id:"H",x:680,y:510,type:"normal"},{id:"I",x:800,y:310,type:"witness"},{id:"R",x:920,y:310}],
+  edges:[["L","A"],["L","B"],["A","C"],["B","D"],["C","E"],["D","F"],["E","G"],["F","H"],["G","I"],["H","I"],["I","R"],["E","F"]]}
+];
+const UPGRADES=[
+ {id:"will",name:"Tempered Will",text:"Maximum Resolve +2 for later trials.",apply:r=>r.maxBonus+=2},
+ {id:"pressure",name:"Sharpened Pressure",text:"Doctrine Pressure weight +2.",apply:r=>r.bonus.press+=2},
+ {id:"witness",name:"Wider Witness",text:"Doctrine Witness weight +2.",apply:r=>r.bonus.observe+=2},
+ {id:"preserve",name:"Deeper Preservation",text:"Doctrine Preserve weight +2.",apply:r=>r.bonus.hold+=2},
+ {id:"transform",name:"Open Transformation",text:"Doctrine Transform weight +2.",apply:r=>r.bonus.adapt+=2},
+ {id:"memory",name:"Retained Pattern",text:"Begin later trials with 1 Clarity.",apply:r=>r.startClarity+=1}
+];
+let selectedMode="pilot",playerId=null,rivalId=null,openingTrial=0,g=null,run=null,legal=[],autoTimer=null,autoRunning=false,busy=false;
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const mind=id=>MINDS.find(m=>m.id===id),trial=()=>TRIALS[g.trialIndex];
+function hash(text){let h=2166136261;for(const c of text){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return("00000000"+(h>>>0).toString(16)).slice(-8)}
+function toast(text){const t=$("#toast");t.textContent=text;t.classList.add("show");clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove("show"),1600)}
+function setDecision(title,body,why=""){$("#decisionTitle").textContent=title;$("#decisionBody").textContent=body;$("#decisionWhy").textContent=why}
+function record(type,data,summary){const prev=run.receipts.length?run.receipts.at(-1).hash:"GENESIS";const n=run.receipts.length+1;const h=hash(JSON.stringify({n,type,data,prev}));run.receipts.push({n,type,data,summary,hash:h,trial:g?.trialIndex??0,round:g?.round??0});renderReceipts();return h}
+function renderSetup(){
+ $("#roster").innerHTML=MINDS.map(m=>`<button class="mind-card ${playerId===m.id?"selected-player":""} ${rivalId===m.id?"selected-rival":""}" data-id="${m.id}" style="--c:${m.color}" title="${m.basis}"><span class="mind-mark">${m.mark}</span><div class="role">${m.category} · ${m.role}</div><h3>${m.name}</h3><p>${m.principle}</p><span class="instinct">${m.special}</span><div class="basis">Gameplay basis: ${m.basis}</div></button>`).join("");
+ $$(".mind-card").forEach(c=>c.onclick=()=>pickMind(c.dataset.id));
+ $("#playerPick").textContent=playerId?mind(playerId).name:"Choose first";$("#rivalPick").textContent=rivalId?mind(rivalId).name:"Choose second";
+ $("#beginButton").disabled=!(playerId&&rivalId);
+ $("#trialTabs").innerHTML=TRIALS.map((t,i)=>`<button class="trial-tab ${openingTrial===i?"active":""}" data-i="${i}"><b>${t.name}</b><span>${t.desc}</span></button>`).join("");
+ $$(".trial-tab").forEach(b=>b.onclick=()=>{openingTrial=+b.dataset.i;renderSetup()});
+}
+function pickMind(id){if(!playerId)playerId=id;else if(playerId===id){playerId=null;rivalId=null}else if(!rivalId)rivalId=id;else if(rivalId===id)rivalId=null;else rivalId=id;if(playerId){const w=mind(playerId).weights;for(const k of ["Press","Observe","Hold","Adapt"]){const key=k.toLowerCase();$("#w"+k).value=w[key];$("#o"+k).value=w[key]}}renderSetup()}
+function selectedWeights(){return{press:+$("#wPress").value,observe:+$("#wObserve").value,hold:+$("#wHold").value,adapt:+$("#wAdapt").value}}
+function startRun(){
+ run={receipts:[],wins:0,losses:0,maxBonus:0,startClarity:0,bonus:{press:0,observe:0,hold:0,adapt:0},baseWeights:selectedWeights(),counts:{press:0,observe:0,hold:0,adapt:0},moves:0,autonomous:0,manual:0,upgrades:[],openingTrial};
+ document.documentElement.style.setProperty("--accent",mind(playerId).color);$("#setupScreen").classList.remove("active");$("#trialScreen").classList.add("active");$("#receiptButton").disabled=false;$("#topTitle").textContent="TRIAL OF MINDS";startTrial(0)
+}
+function unit(m,node,side){const max=12+(side==="player"?run.maxBonus:0);return{m,node,prevNode:null,res:max,maxRes:max,force:0,clarity:side==="player"?run.startClarity:0,ward:0,specialUsed:false,last:null,history:[],witnessCount:0,permanentDamage:0,types:new Set(),sequence:[],side}}
+function trialOrderIndex(i){return(run.openingTrial+i)%TRIALS.length}
+function startTrial(runIndex){
+ clearAuto();const ti=trialOrderIndex(runIndex);g={runIndex,trialIndex:ti,round:1,turn:"player",phase:"select",over:false,owners:{},player:unit(mind(playerId),TRIALS[ti].startP,"player"),enemy:unit(mind(rivalId),TRIALS[ti].startE,"enemy")};
+ record("TRIAL_OPEN",{trial:TRIALS[ti].id,mode:selectedMode,player:playerId,rival:rivalId,weights:effectiveWeights("player")},`${TRIALS[ti].name} opened around ${mind(playerId).name} and ${mind(rivalId).name}.`);
+ renderAll();setDecision("The field awakens",TRIALS[ti].desc,`Trial hash ${hash(TRIALS[ti].id+playerId+rivalId+JSON.stringify(effectiveWeights("player")))}`);
+ if(selectedMode==="sovereign"){$("#fieldBanner").innerHTML="<b>Doctrine ready.</b> Release the mind or step one decision.";setPhase("autonomous")}else{setPhase("select");selectPlayerToken()}
+}
+function effectiveWeights(side){const m=g?g[side].m:mind(side==="player"?playerId:rivalId);if(side==="enemy")return{...m.weights};return{press:run.baseWeights.press+run.bonus.press,observe:run.baseWeights.observe+run.bonus.observe,hold:run.baseWeights.hold+run.bonus.hold,adapt:run.baseWeights.adapt+run.bonus.adapt}}
+function nodeBy(id){return trial().nodes.find(n=>n.id===id)}
+function adjacency(id){const out=[];for(const [a,b] of trial().edges){if(a===id)out.push(b);if(b===id)out.push(a)}return out.sort()}
+function distance(a,b){if(a===b)return 0;const q=[[a,0]],seen=new Set([a]);while(q.length){const[n,d]=q.shift();for(const x of adjacency(n)){if(x===b)return d+1;if(!seen.has(x)){seen.add(x);q.push([x,d+1])}}}return 99}
+function occupied(id){return g.player.node===id||g.enemy.node===id}
+function mirroredNode(id){const n=nodeBy(id);return trial().nodes.filter(x=>!occupied(x.id)).slice().sort((a,b)=>Math.abs((1000-n.x)-a.x)+Math.abs((620-n.y)-a.y)-Math.abs((1000-n.x)-b.x)-Math.abs((620-n.y)-b.y)||a.id.localeCompare(b.id))[0]?.id}
+function legalMoves(u){
+ let targets=adjacency(u.node).filter(n=>!occupied(n));
+ const all=trial().nodes.map(n=>n.id).filter(n=>!occupied(n));
+ if(u.m.move==="stride"||u.m.move==="leap")targets.push(...all.filter(n=>distance(u.node,n)===2));
+ if(u.m.move==="witness")targets.push(...all.filter(n=>distance(u.node,n)<=2&&nodeBy(n).type==="witness"));
+ if(u.m.move==="revision")targets.push(...all.filter(n=>distance(u.node,n)<=2&&nodeBy(n).type==="revision"));
+ if(u.m.move==="mirror"){const m=mirroredNode(u.node);if(m)targets.push(m)}
+ if(u.m.move==="escape"&&u.res<=4){const other=u===g.player?g.enemy:g.player;targets.push(...all.filter(n=>distance(u.node,n)<=2&&distance(n,other.node)>distance(u.node,other.node)))}
+ targets=[...new Set(targets)].sort();if(!targets.length)targets=[u.node];return targets
+}
+function centerScore(id){const n=nodeBy(id);return 500-Math.abs(500-n.x)}
+function moveUnit(side,target,autonomous=false,decision=null){
+ const u=g[side],other=g[side==="player"?"enemy":"player"],from=u.node,before=distance(u.node,other.node);u.prevNode=u.node;u.node=target;run.moves++;
+ const after=distance(u.node,other.node);if(u.m.id==="SPEAR"&&after<before)u.force=Math.min(5,u.force+1);if(u.m.id==="GUIDE"&&u.res<=4&&after>before)u.res=Math.min(u.maxRes,u.res+1);
+ record("MOVE",{side,from,to:target,autonomous,decision},`${u.m.name} moved through the field from ${from} to ${target}.`);claim(side);renderAll()
+}
+function claim(side){const u=g[side],n=nodeBy(u.node),type=n.type||"normal";if(type==="normal"||g.owners[u.node]===side)return;const first=!g.owners[u.node];g.owners[u.node]=side;u.types.add(type);let result="";
+ if(type==="pressure"){let gain=u.m.id==="VOICE"?2:1;if(u.m.id==="CHALLENGER"&&first)gain++;u.force=Math.min(5,u.force+gain);result=`gained ${gain} Force`}
+ if(type==="witness"){let gain=u.m.id==="QUESTION"?2:1;if(u.m.id==="CHALLENGER"&&first)gain++;u.clarity=Math.min(4,u.clarity+gain);result=`gained ${gain} Clarity`}
+ if(type==="revision"){if(u.specialUsed){u.specialUsed=false;result="restored Transform"}else{u.res=Math.min(u.maxRes,u.res+1);result="restored 1 Resolve"}}
+ if(u.m.id==="SHIFTER"&&u.types.size>=3&&!u.shiftReward){u.shiftReward=true;u.res=Math.min(u.maxRes,u.res+2);result+=" and changed accessibility for +2 Resolve"}
+ record("NODE_CLAIM",{side,node:u.node,type,result},`${u.m.name} entered ${type.toUpperCase()} and ${result}.`)
+}
+function observeState(side){const me=g[side],other=g[side==="player"?"enemy":"player"];return{distance:distance(me.node,other.node),adjacent:distance(me.node,other.node)===1,myRes:me.res,otherRes:other.res,myForce:me.force,myClarity:me.clarity,myWard:me.ward,otherWard:other.ward,myNode:(nodeBy(me.node).type||"normal"),otherLast:other.last,round:g.round,unusedTransform:!me.specialUsed}}
+function actionScore(side,a){const u=g[side],o=observeState(side),w=effectiveWeights(side);let s=w[a];const reasons=[];
+ if(a==="press"){if(o.adjacent){s+=6+o.myForce+o.myClarity;reasons.push("the rival is within immediate pressure range")}else{s+=1;reasons.push("range converts pressure into stored Force")}if(o.otherRes<=4){s+=4;reasons.push("the rival is near collapse")}if(o.otherLast==="observe"){s+=2;reasons.push("the rival spent its last turn observing")}}
+ if(a==="observe"){if(!o.adjacent){s+=3;reasons.push("distance permits evidence gathering")}if(o.myClarity<2){s+=2;reasons.push("Clarity is currently low")}if(o.otherLast==="hold"){s+=3;reasons.push("preservation can be answered without wasting Force")}}
+ if(a==="hold"){if(o.myRes<=5){s+=6;reasons.push("Resolve is under pressure")}if(o.otherLast==="press"){s+=4;reasons.push("the rival recently applied pressure")}if(o.adjacent){s+=2;reasons.push("nearby pressure makes Ward valuable")}}
+ if(a==="adapt"){if(u.specialUsed)return{score:-999,reasons:["Transform has already been spent"]};if(o.adjacent){s+=3;reasons.push("proximity increases intervention value")}if(o.myRes<=4||o.otherRes<=4){s+=3;reasons.push("the trial is near a decisive threshold")}if(g.round>=6){s+=2;reasons.push("late-trial conditions justify transformation")}}
+ return{score:s,reasons}
+}
+function chooseAction(side){const order=["press","observe","hold","adapt"];const ranked=order.map(a=>({action:a,...actionScore(side,a)})).sort((a,b)=>b.score-a.score||order.indexOf(a.action)-order.indexOf(b.action));return{...ranked[0],scores:Object.fromEntries(ranked.map(x=>[x.action,x.score]))}}
+function moveScore(side,target){const u=g[side],other=g[side==="player"?"enemy":"player"],w=effectiveWeights(side),n=nodeBy(target),d=distance(target,other.node);let s=0;const reasons=[];
+ if(n.type==="pressure"){s+=w.press/2;reasons.push("Pressure junction matches doctrine")}
+ if(n.type==="witness"){s+=w.observe/2;reasons.push("Witness junction matches doctrine")}
+ if(n.type==="revision"){s+=w.adapt/2;reasons.push("Revision preserves transformation")}
+ if(!g.owners[target]){s+=1;reasons.push("the junction is unclaimed")}
+ if(w.press>=w.hold){s+=(8-d)*.7;reasons.push("the doctrine favors closing distance")}else{s+=d*.45;reasons.push("the doctrine values preserved distance")}
+ if(u.m.id==="ANCHOR")s+=centerScore(target)/150;
+ if(u.res<=4)s+=d*.8;
+ return{target,score:Math.round(s*100)/100,reasons}
+}
+function chooseMove(side){const ranked=legalMoves(g[side]).map(t=>moveScore(side,t)).sort((a,b)=>b.score-a.score||a.target.localeCompare(b.target));return{...ranked[0],all:ranked}}
+function exactPreview(side,a){const u=g[side],other=g[side==="player"?"enemy":"player"],o=observeState(side);if(a==="press"){const bonus=u.permanentDamage+(u.m.id==="FLOW"&&u.last&&u.last!=="press"?1:0);const dmg=o.adjacent?Math.max(1,2+u.force+u.clarity+bonus-(other.ward?2:0)):0;return o.adjacent?`${dmg} exact Resolve damage. Force and Clarity will be spent.`:`No damage at this distance. Gain 1 Force.`}if(a==="observe")return`${u.m.id==="QUESTION"?2:1} Clarity gained. The rival's current leaning becomes explicit.`;if(a==="hold")return`${u.m.id==="ANCHOR"&&centerScore(u.node)>350?2:1} Ward gained and 1 Resolve restored.`;return specialPreview(u,other)}
+function specialPreview(u,other){const adjacent=distance(u.node,other.node)===1;const map={ANCHOR:"Gain 3 Ward and restore 2 Resolve.",SPEAR:adjacent?"Deal 4 exact damage through 1 Ward.":"Gain 2 Force and move pressure forward.",QUESTION:"Remove the rival's Ward and deal Clarity + 2 damage.",MIRROR:"Repeat the rival's last standard action against it.",LENS:`Deal ${2+u.witnessCount} damage from accumulated evidence.`,GUIDE:"Restore 3 Resolve and claim the current junction.",FLOW:adjacent?"Deal 5 exact damage and clear stored resources.":"Move again after transforming.",ARCHITECT:"Set Force, Clarity, and Ward to at least 2.",CHALLENGER:"Both minds lose 2 Resolve; you gain 2 Force.",VOICE:"Gain 3 Force and 1 Clarity.",SHIFTER:"Exchange current Force and Clarity, then restore 2 Resolve.",COORDINATOR:"Gain 1 Force, 1 Clarity, 1 Ward, and 1 Resolve."};return map[u.m.id]||"Apply the mind's exceptional intervention."}
+function applyAction(side,a,autonomous=false,decision=null){if(g.over||(busy&&!autonomous))return;const u=g[side],other=g[side==="player"?"enemy":"player"],obs=observeState(side);let result={};
+ if(a==="press"){if(obs.adjacent){const flow=u.m.id==="FLOW"&&u.last&&u.last!=="press"?1:0;const dmg=Math.max(1,2+u.force+u.clarity+u.permanentDamage+flow-(other.ward?2:0));other.res=Math.max(0,other.res-dmg);result={damage:dmg,target:other.side};u.force=0;u.clarity=0;other.ward=0}else{u.force=Math.min(5,u.force+1);result={force:1}}}
+ if(a==="observe"){const gain=u.m.id==="QUESTION"?2:1;u.clarity=Math.min(4,u.clarity+gain);u.witnessCount++;if(u.m.id==="LENS"&&u.witnessCount%3===0)u.permanentDamage++;result={clarity:gain,leaning:chooseAction(side==="player"?"enemy":"player").action}}
+ if(a==="hold"){const ward=u.m.id==="ANCHOR"&&centerScore(u.node)>350?2:1;u.ward=Math.max(u.ward,ward);u.res=Math.min(u.maxRes,u.res+1);result={ward,heal:1}}
+ if(a==="adapt"){u.specialUsed=true;result=applySpecial(u,other)}
+ u.history.push(a);u.sequence.push(a);if(u.sequence.length>3)u.sequence.shift();if(u.m.id==="MIRROR"&&u.history.length>=2&&u.history.at(-1)!==u.history.at(-2)){u.mirrorChanges=(u.mirrorChanges||0)+1;if(u.mirrorChanges%2===0)u.res=Math.min(u.maxRes,u.res+1)}
+ if(u.m.id==="ARCHITECT"&&u.sequence.join(",")==="press,observe,hold"&&u.specialUsed){u.specialUsed=false;u.sequence=[]}
+ if(u.m.id==="COORDINATOR"&&new Set(u.history.filter(x=>x!=="adapt")).size===3&&!u.coordReward){u.coordReward=true;u.force=Math.min(5,u.force+2)}
+ u.last=a;run.counts[a]++;if(side==="player"){if(autonomous)run.autonomous++;else run.manual++}
+ record("ACTION",{side,action:a,autonomous,decision,result,observation:obs},`${u.m.name} chose ${actionName(a)}${result.damage?` and removed ${result.damage} Resolve`:""}.`);renderAll();checkEnd(side)
+}
+function applySpecial(u,other){const id=u.m.id;if(id==="ANCHOR"){u.ward=3;u.res=Math.min(u.maxRes,u.res+2);return{ward:3,heal:2}}if(id==="SPEAR"){if(distance(u.node,other.node)===1){const dmg=Math.max(1,4-(other.ward?1:0));other.res=Math.max(0,other.res-dmg);other.ward=0;return{damage:dmg}}u.force=Math.min(5,u.force+2);return{force:2}}if(id==="QUESTION"){const dmg=2+u.clarity;other.ward=0;other.res=Math.max(0,other.res-dmg);u.clarity=0;return{damage:dmg,wardRemoved:true}}if(id==="MIRROR"){const a=["press","observe","hold"].includes(other.last)?other.last:"observe";if(a==="press"){const dmg=Math.max(1,2-(other.ward?2:0));other.res=Math.max(0,other.res-dmg);return{mirrored:a,damage:dmg}}if(a==="observe"){u.clarity=Math.min(4,u.clarity+1);return{mirrored:a,clarity:1}}u.ward=Math.max(u.ward,1);u.res=Math.min(u.maxRes,u.res+1);return{mirrored:a,ward:1,heal:1}}if(id==="LENS"){const dmg=2+u.witnessCount;other.res=Math.max(0,other.res-dmg);return{damage:dmg}}if(id==="GUIDE"){u.res=Math.min(u.maxRes,u.res+3);return{heal:3}}if(id==="FLOW"){if(distance(u.node,other.node)===1){const dmg=5;other.res=Math.max(0,other.res-dmg);u.force=0;u.clarity=0;return{damage:dmg}}u.force=Math.min(5,u.force+1);u.clarity=Math.min(4,u.clarity+1);return{force:1,clarity:1}}if(id==="ARCHITECT"){u.force=Math.max(u.force,2);u.clarity=Math.max(u.clarity,2);u.ward=Math.max(u.ward,2);return{setMinimum:2}}if(id==="CHALLENGER"){u.res=Math.max(1,u.res-2);other.res=Math.max(0,other.res-2);u.force=Math.min(5,u.force+2);return{selfDamage:2,damage:2,force:2}}if(id==="VOICE"){u.force=Math.min(5,u.force+3);u.clarity=Math.min(4,u.clarity+1);return{force:3,clarity:1}}if(id==="SHIFTER"){[u.force,u.clarity]=[Math.min(5,u.clarity),Math.min(4,u.force)];u.res=Math.min(u.maxRes,u.res+2);return{exchange:true,heal:2}}u.force=Math.min(5,u.force+1);u.clarity=Math.min(4,u.clarity+1);u.ward=Math.max(u.ward,1);u.res=Math.min(u.maxRes,u.res+1);return{force:1,clarity:1,ward:1,heal:1}}
+function actionName(a){return({press:"Pressure",observe:"Witness",hold:"Preserve",adapt:"Transform"})[a]}
+function setPhase(p){g.phase=p;legal=[];const manual=g.turn==="player"&&!g.over&&!busy&&(selectedMode!=="sovereign");$$(".action").forEach(b=>{b.disabled=!(manual&&p==="action")||(b.dataset.action==="adapt"&&g.player.specialUsed)});$("#askMind").disabled=!(selectedMode==="counsel"&&g.turn==="player"&&!g.over&&!busy);$("#stepButton").disabled=!(selectedMode==="sovereign"&&!g.over&&!busy&&!autoRunning);$("#autoButton").disabled=!(selectedMode==="sovereign"&&!g.over);renderField()}
+function selectPlayerToken(){if(g.turn!=="player"||g.phase!=="select"||busy)return;legal=legalMoves(g.player);g.phase="move";$("#fieldBanner").innerHTML=`<b>${g.player.m.name} is listening.</b> Choose one glowing reachable junction. The action buttons activate after movement.`;$("#coachTitle").textContent="Choose access";$("#coachBody").textContent=`${legal.length} junctions are reachable under the ${g.player.m.category.toLowerCase()} movement rule.`;renderField()}
+function playerMove(target){if(g.phase!=="move"||!legal.includes(target)||busy)return;moveUnit("player",target,false);setPhase("action");$("#fieldBanner").innerHTML="<b>Position committed.</b> Choose what the mind does from here.";$("#coachTitle").textContent="Choose a principle";$("#coachBody").textContent="Hover or focus an action to see the exact deterministic result."}
+function playerAction(a){if(g.phase!=="action"||busy)return;applyAction("player",a,false);if(!g.over)finishTurn("player")}
+function finishTurn(side){
+ if(g.over)return;
+ if(side!=="player"){g.turn="player";return}
+ g.turn="enemy";
+ setPhase("enemy");
+ busy=true;
+ setTimeout(()=>{
+  autonomousTurn("enemy",()=>{
+   busy=false;
+   if(g.over)return;
+   g.round++;
+   if(g.round>MAX_ROUND){endByScore();return}
+   g.turn="player";
+   if(selectedMode==="sovereign"){
+    setPhase("autonomous");
+    scheduleAuto();
+   }else{
+    setPhase("select");
+    selectPlayerToken();
+   }
+  });
+ },520);
+}
+function autonomousTurn(side,done){if(g.over){done?.();return}const mv=chooseMove(side),ac=chooseAction(side),u=g[side];const rationale=`Move ${mv.target} scored ${mv.score}. ${mv.reasons.slice(0,2).join("; ")}. ${actionName(ac.action)} scored ${ac.score}. ${ac.reasons.slice(0,2).join("; ")}.`;setDecision(`${u.m.name} commits to ${actionName(ac.action)}`,`It will move to ${mv.target}, then apply ${actionName(ac.action)}.`,rationale);$("#fieldBanner").innerHTML=`<b>${u.m.name} is deciding.</b> ${actionName(ac.action)} follows from the current state.`;moveUnit(side,mv.target,true,{moveScore:mv.score,actionScores:ac.scores,rationale});setTimeout(()=>{applyAction(side,ac.action,true,{scores:ac.scores,rationale});done?.()},420)}
+function askMind(){if(selectedMode!=="counsel"||g.turn!=="player"||busy)return;busy=true;setPhase("counsel");autonomousTurn("player",()=>{busy=false;if(!g.over)finishTurn("player")})}
+function stepDecision(){if(selectedMode!=="sovereign"||busy||g.over)return;busy=true;const side=g.turn;autonomousTurn(side,()=>{busy=false;if(g.over)return;if(side==="player"){g.turn="enemy"}else{g.round++;if(g.round>MAX_ROUND){endByScore();return}g.turn="player"}setPhase("autonomous")})}
+function toggleAuto(){if(selectedMode!=="sovereign"||g.over)return;autoRunning=!autoRunning;$("#autoButton").textContent=autoRunning?"Pause Mind":"Release Mind";$("#autonomyNote").textContent=autoRunning?"The doctrine is acting continuously.":"The doctrine is paused at a decision boundary.";if(autoRunning)scheduleAuto();else clearAuto(false)}
+function scheduleAuto(){if(!autoRunning||busy||g.over)return;clearTimeout(autoTimer);autoTimer=setTimeout(()=>{if(!autoRunning||g.over)return;stepDecision();const wait=setInterval(()=>{if(!busy){clearInterval(wait);scheduleAuto()}},100)},600)}
+function clearAuto(reset=true){clearTimeout(autoTimer);autoTimer=null;if(reset){autoRunning=false;const b=$("#autoButton");if(b)b.textContent="Release Mind"}}
+function checkEnd(actor){if(g.player.res<=0||g.enemy.res<=0){const winner=g.player.res>g.enemy.res?"player":"enemy";endTrial(winner,`${g[winner].m.name} preserved operative Resolve.`)}}
+function influence(side){return Object.values(g.owners).filter(x=>x===side).length}
+function endByScore(){const ps=g.player.res+influence("player"),es=g.enemy.res+influence("enemy");endTrial(ps>=es?"player":"enemy",`Resolve plus field influence: ${ps} to ${es}.`)}
+function endTrial(winner,reason){if(g.over)return;g.over=true;clearAuto();setPhase("over");winner==="player"?run.wins++:run.losses++;record("TRIAL_CLOSE",{winner,reason,playerResolve:g.player.res,enemyResolve:g.enemy.res,owners:g.owners},`${g[winner].m.name} completed ${trial().name}. ${reason}`);renderAll();if(winner==="player"&&g.runIndex<2)setTimeout(showEvolution,450);else setTimeout(showPortrait,450)}
+function showEvolution(){const choices=UPGRADES.filter(u=>!run.upgrades.includes(u.id)).slice(0,3);$("#evolutionTitle").textContent=`${g.player.m.name} survived ${trial().name}.`;$("#evolutionText").textContent="Choose one deterministic change before the field reforms.";$("#upgradeGrid").innerHTML=choices.map(u=>`<button class="upgrade" data-id="${u.id}"><b>${u.name}</b><span>${u.text}</span></button>`).join("");$$(".upgrade").forEach(b=>b.onclick=()=>{const u=UPGRADES.find(x=>x.id===b.dataset.id);u.apply(run);run.upgrades.push(u.id);record("FORMATION_CHANGE",{upgrade:u.id},`${g.player.m.name} retained ${u.name}.`);$("#evolutionOverlay").classList.remove("show");startTrial(g.runIndex+1)});$("#evolutionOverlay").classList.add("show")}
+function showPortrait(){const total=Object.values(run.counts).reduce((a,b)=>a+b,0)||1;const dominant=Object.entries(run.counts).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0];const declared=Object.entries(effectiveWeights("player")).sort((a,b)=>b[1]-a[1])[0][0];const enacted=dominant[0];const adherence=declared===enacted?"Aligned":"Divergent";const decisive=run.receipts.filter(r=>r.type==="ACTION"&&r.data.result?.damage).sort((a,b)=>(b.data.result.damage||0)-(a.data.result.damage||0))[0];const finalHash=run.receipts.at(-1)?.hash||"none";
+ $("#portraitModal").innerHTML=`<div class="eyebrow">Decision portrait</div><h2>${mind(playerId).name}</h2><p>${run.wins===3?"The mind crossed all three fields.":`The run closed after ${run.wins+run.losses} trial${run.wins+run.losses===1?"":"s"}.`} Its declared doctrine and enacted behavior can now be compared.</p><div class="portrait-grid"><div class="portrait-card"><small>Trials survived</small><b>${run.wins} / 3</b></div><div class="portrait-card"><small>Dominant behavior</small><b>${actionName(dominant[0])} · ${Math.round(dominant[1]/total*100)}%</b></div><div class="portrait-card"><small>Doctrine relation</small><b>${adherence}</b></div><div class="portrait-card"><small>Control surrendered</small><b>${run.autonomous} decisions</b></div><div class="portrait-card"><small>Field movements</small><b>${run.moves}</b></div><div class="portrait-card"><small>Strongest intervention</small><b>${decisive?`${decisive.data.result.damage} damage`:`${actionName(dominant[0])}`}</b></div></div><p><b style="color:#efd28f">What the run revealed:</b> The declared highest priority was ${actionName(declared)}, while the most frequently enacted behavior was ${actionName(enacted)}. ${adherence==="Aligned"?"Pressure did not dislodge the mind from its stated priority.":"The field changed which principle was most accessible, despite the declared doctrine."}</p><div class="final-code">FINAL RECEIPT ${finalHash}<br>CHAIN LENGTH ${run.receipts.length}<br>UPGRADES ${run.upgrades.join(", ")||"none"}</div><div class="modal-actions"><button onclick="showReceipts()">Inspect Receipts</button><button onclick="restartSame()">Run Again</button><button class="primary" onclick="newFormation()">Form Another Mind</button></div>`;$("#portraitOverlay").classList.add("show")}
+function renderAll(){renderHeader();renderDoctrine();renderField();renderReceipts();renderControls()}
+function renderHeader(){if(!g)return;$("#trialCounter").textContent=`Trial ${g.runIndex+1} of 3`;$("#trialName").textContent=trial().name;$("#roundPips").innerHTML=Array.from({length:MAX_ROUND},(_,i)=>`<i class="pip ${i<g.round-1?"done":""}"></i>`).join("");$("#playerIdentity").innerHTML=identityHtml(g.player);$("#enemyIdentity").innerHTML=identityHtml(g.enemy)}
+function identityHtml(u){return`<div class="sigil" style="--c:${u.m.color}">${u.m.mark}</div><div style="min-width:0"><div class="sub" style="--c:${u.m.color}">${u.m.category} · ${u.m.role}</div><h2>${u.m.name}</h2><div class="meters"><span>Resolve <b>${u.res}/${u.maxRes}</b></span><span>Force <b>${u.force}</b></span><span>Clarity <b>${u.clarity}</b></span><span>Ward <b>${u.ward}</b></span></div></div>`}
+function renderDoctrine(){if(!g)return;const w=effectiveWeights("player"),max=12;$("#doctrineBars").innerHTML=[["Pressure","press"],["Witness","observe"],["Preserve","hold"],["Transform","adapt"]].map(([label,k])=>`<div class="dbar" style="--c:${g.player.m.color}"><span>${label}</span><div class="bar"><i style="width:${Math.min(100,w[k]/max*100)}%"></i></div><b>${w[k]}</b></div>`).join("");$("#principle").textContent=`“${g.player.m.principle}”`;$("#passive").innerHTML=`<b style="color:${g.player.m.color}">${g.player.m.special}</b><br>${g.player.m.passive}`;const text={pilot:"<b>Pilot:</b> you select access and principle. The doctrine remains visible as a comparison against your actual choices.",counsel:"<b>Counsel:</b> you may make any decision or allow the mind to execute one complete receipt-backed turn.",sovereign:"<b>Sovereign:</b> movement and action are chosen from the declared weights and current local state."};$("#modeExplain").innerHTML=text[selectedMode]}
+function renderField(){if(!g)return;const svg=$("#fieldSvg");const t=trial();let html=`<defs><filter id="glowGreen"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="tokenGlow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+ html+=t.edges.map(([a,b])=>{const A=nodeBy(a),B=nodeBy(b),oa=g.owners[a],ob=g.owners[b],cl=oa&&oa===ob?`owned-${oa}`:"";return`<line class="thread ${cl}" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"/>`}).join("");
+ html+=t.nodes.map(n=>{const type=n.type||"normal",owner=g.owners[n.id],isLegal=legal.includes(n.id),current=g.player.node===n.id||g.enemy.node===n.id;const label=type==="pressure"?"PRESSURE":type==="witness"?"WITNESS":type==="revision"?"REVISION":"JUNCTION";return`<g class="node ${type} ${owner?owner+"-owned":""} ${isLegal?"legal":""} ${current?"current":""}" data-node="${n.id}" transform="translate(${n.x} ${n.y})"><circle class="halo" r="34"/><circle class="core" r="24"/><text text-anchor="middle" y="4">${n.id}</text><text class="node-kind" text-anchor="middle" y="52">${label}</text></g>`}).join("");
+ html+=tokenHtml(g.player)+tokenHtml(g.enemy);svg.innerHTML=html;svg.querySelectorAll(".node.legal").forEach(el=>el.onclick=()=>playerMove(el.dataset.node));svg.querySelectorAll(".token-g.player-token").forEach(el=>el.onclick=selectPlayerToken)
+}
+function tokenHtml(u){const n=nodeBy(u.node),side=u.side,color=side==="player"?"var(--player)":"var(--rival)";return`<g class="token-g ${side}-token" transform="translate(${n.x} ${n.y-3})" style="cursor:${side==="player"&&g.phase==="select"?"pointer":"default"}"><circle class="pulse-ring" r="27" stroke="${color}"/><circle class="token-ring" r="27" stroke="${color}"/><circle class="token-core" r="20" fill="${u.m.color}"/><text class="token-letter" y="1">${u.m.mark}</text><text class="token-name" y="-37">${u.m.name.replace("The ","")}</text></g>`}
+function renderReceipts(){if(!run)return;$("#receiptLog").innerHTML=run.receipts.slice(-7).reverse().map(r=>`<div class="receipt"><b>${r.summary}</b><code>#${r.n} · ${r.hash}</code></div>`).join("")}
+function renderControls(){if(!g)return;const autonomous=selectedMode==="sovereign";$("#askMind").style.display=selectedMode==="counsel"?"block":"none";$("#stepButton").style.display=autonomous?"block":"none";$("#autoButton").style.display=autonomous?"block":"none";$("#autonomyNote").textContent=selectedMode==="pilot"?"Pilot mode keeps control in your hands.":selectedMode==="counsel"?"You may surrender the next complete decision.":autoRunning?"The doctrine is acting continuously.":"The doctrine is paused at a decision boundary."}
+function showReceipts(){$("#fullReceipts").innerHTML=run.receipts.slice().reverse().map(r=>`#${r.n} ${r.type} → ${r.hash}<br>${r.summary}<br>${JSON.stringify(r.data)}`).join("<hr>");$("#receiptOverlay").classList.add("show")}
+function closeReceipts(){$("#receiptOverlay").classList.remove("show")}
+function newFormation(){clearAuto();$("#portraitOverlay").classList.remove("show");$("#receiptOverlay").classList.remove("show");$("#trialScreen").classList.remove("active");$("#setupScreen").classList.add("active");$("#receiptButton").disabled=true;g=null;run=null;renderSetup()}
+function restartSame(){clearAuto();$("#portraitOverlay").classList.remove("show");startRun()}
+window.closeReceipts=closeReceipts;window.showReceipts=showReceipts;window.newFormation=newFormation;window.restartSame=restartSame;
+
+$$(".mode-card").forEach(b=>b.onclick=()=>{$$(".mode-card").forEach(x=>x.classList.remove("active"));b.classList.add("active");selectedMode=b.dataset.mode});
+for(const k of ["Press","Observe","Hold","Adapt"]){$("#w"+k).oninput=e=>$("#o"+k).value=e.target.value}
+$("#beginButton").onclick=startRun;$("#resetButton").onclick=()=>{if(g)newFormation();else{playerId=null;rivalId=null;renderSetup()}};$("#receiptButton").onclick=showReceipts;$("#askMind").onclick=askMind;$("#stepButton").onclick=stepDecision;$("#autoButton").onclick=toggleAuto;
+$$(".action").forEach(b=>{b.onclick=()=>playerAction(b.dataset.action);b.onmouseenter=()=>{if(g&&g.phase==="action"){const a=b.dataset.action;setDecision(actionName(a),exactPreview("player",a),`No random roll. Current state hash ${hash(JSON.stringify(observeState("player")))}`)}};b.onfocus=b.onmouseenter});
+renderSetup();
+</script>
+</body>
+</html>

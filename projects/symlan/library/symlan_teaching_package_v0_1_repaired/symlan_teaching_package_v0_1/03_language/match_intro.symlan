@@ -1,0 +1,49 @@
+// CONFIGURATOR v1.2 → SymLan dual-view (teaching emission)
+// Rule: configurator-v1.2-symlan-bridge-2026-07-27
+// Authority: symlan.v0.2.6 teaching spine + team package v0.3 expansion
+// Law: programmer specifies arena; substrate earns V; operate only after resolve.
+// Match tip (CONFIGURATOR): e12fdc82a42493df…
+
+// ===== PHASE 1: ARENA (maps to match open + discovery rounds) =====
+node Alpha, Beta, Gamma, Delta
+node basin_center  // conflict target (grid center)
+
+Alpha -> basin_center [kappa: 0.50, phi: pi/4, T: 1.0]  // witness ladder slot 0: 1/2  (book form: kappa->k, phi->phi, T)
+Beta -> basin_center [kappa: 0.33, phi: pi/5, T: 1.0]  // witness ladder slot 1: 1/3  (book form: kappa->k, phi->phi, T)
+Gamma -> basin_center [kappa: 0.25, phi: pi/6, T: 1.0]  // witness ladder slot 2: 1/4  (book form: kappa->k, phi->phi, T)
+Delta -> basin_center [kappa: 0.17, phi: 3*pi/8, T: 1.0]  // witness ladder slot 3: 1/6  (book form: kappa->k, phi->phi, T)
+
+vocab V = register(basin_center, theta: auto, features: 7D)
+run discovery for 30s seed: "configurator-v1.2-symlan-bridge-2026-07-27"
+
+// ===== PHASE 2: AFTER RESOLVE (maps to conflict commits + gates) =====
+// Symbols S1.. / Sj are *earned* -- analogous to post-discovery grid attractors.
+after resolve V {
+
+  // Pre-commit honesty (CONFIGURATOR PREVIEW): inspect before treat-as-real
+  // Last R_arb winner in this match: Alpha
+  send Alpha[S1] -> basin_center
+  expect basin_center[Sj] within 500ms, fidelity: 0.85
+
+  // Ternary coherence gate ~ CONFIGURATOR HOLD / commit / back-off
+  // NOTE: SymLan HOLD is NOT Basin action HOLD (namespaces stay separate)
+  branch on T(basin_center, V) {
+    > 1.02 : reverse basin_center;  // over-coupled / unsafe commit
+    ~ 1.0  : proceed Alpha[S1]; // near band -- commit scar
+    < 0.98 : hold;                  // under-resolved -- wait (legal)
+  }
+}
+
+// ===== ROSETTA (CONFIGURATOR -> SymLan) =====
+// Match open / arena config                ->  node …; couplings [κ, φ, T]; run discovery
+// Agents on the grid                       ->  node Alpha, Beta, … (oscillator / unit handles)
+// Witness ladder / claim strength          ->  κ (coupling) and claim witness in proposals
+// Independent rounds (disjoint scars)      ->  Phase-1 discovery: substrate earns attractors
+// Conflict round + arbitration scar        ->  Contention → deterministic resolve; R_arb ≈ earned commit
+// PREVIEW before ACTION                    ->  SymLan: never treat symbols as real before resolve
+// SessionGlyph checkpoint                  ->  Receipt/checkpoint after discovery; portable state
+// HOLD then RELEASE                        ->  SymLan gate HOLD (≠ Basin HOLD); wait is legal
+// Chained match log + HMAC                 ->  ActivationReceipt chain; canonicalize → hash
+// proceed after release                    ->  branch on T ≈ → proceed; under → hold; over → reverse
+// Final MATCH_END tip binding              ->  Replay tip / program_id sealed to history
+

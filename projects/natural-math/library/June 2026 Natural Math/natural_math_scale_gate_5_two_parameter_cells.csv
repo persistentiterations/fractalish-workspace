@@ -1,0 +1,109 @@
+pair,parameter_a,value_a,parameter_b,value_b,runs,passes,pass_rate,band,avg_alive_count,avg_average_energy,resource_reached,success_distance_passed,failure_counts
+rest_gain_x_decay_cost,rest_gain,140,decay_cost,160,50,50,50/50,stable,30,43875,50,50,{}
+rest_gain_x_decay_cost,rest_gain,140,decay_cost,220,50,6,6/50,transition,30,35281,50,50,{'average_energy<38000': 44}
+rest_gain_x_decay_cost,rest_gain,140,decay_cost,280,50,0,0/50,collapse,30,26956,50,49,"{'average_energy<38000': 50, 'success_distance_passed=False': 1}"
+rest_gain_x_decay_cost,rest_gain,140,decay_cost,340,50,0,0/50,collapse,29,18686,50,48,"{'average_energy<38000': 50, 'success_distance_passed=False': 2}"
+rest_gain_x_decay_cost,rest_gain,170,decay_cost,160,50,50,50/50,stable,30,47342,50,50,{}
+rest_gain_x_decay_cost,rest_gain,170,decay_cost,220,50,28,28/50,transition,30,38679,50,50,{'average_energy<38000': 22}
+rest_gain_x_decay_cost,rest_gain,170,decay_cost,280,50,0,0/50,collapse,30,30305,50,49,"{'average_energy<38000': 50, 'success_distance_passed=False': 1}"
+rest_gain_x_decay_cost,rest_gain,170,decay_cost,340,50,0,0/50,collapse,30,22043,50,48,"{'average_energy<38000': 50, 'success_distance_passed=False': 2}"
+rest_gain_x_decay_cost,rest_gain,200,decay_cost,160,50,50,50/50,stable,30,50762,50,50,{}
+rest_gain_x_decay_cost,rest_gain,200,decay_cost,220,50,47,47/50,transition,30,42182,50,50,{'average_energy<38000': 3}
+rest_gain_x_decay_cost,rest_gain,200,decay_cost,280,50,1,1/50,transition,30,33675,50,49,"{'average_energy<38000': 49, 'success_distance_passed=False': 1}"
+rest_gain_x_decay_cost,rest_gain,200,decay_cost,340,50,0,0/50,collapse,30,25398,50,48,"{'average_energy<38000': 50, 'success_distance_passed=False': 2}"
+rest_gain_x_decay_cost,rest_gain,220,decay_cost,160,50,50,50/50,stable,30,53044,50,50,{}
+rest_gain_x_decay_cost,rest_gain,220,decay_cost,220,50,50,50/50,stable,30,44542,50,50,{}
+rest_gain_x_decay_cost,rest_gain,220,decay_cost,280,50,15,15/50,transition,30,35932,50,49,"{'average_energy<38000': 35, 'success_distance_passed=False': 1}"
+rest_gain_x_decay_cost,rest_gain,220,decay_cost,340,50,0,0/50,collapse,30,27651,50,48,"{'average_energy<38000': 50, 'success_distance_passed=False': 2}"
+rest_gain_x_decay_cost,rest_gain,260,decay_cost,160,50,50,50/50,stable,30,57608,50,50,{}
+rest_gain_x_decay_cost,rest_gain,260,decay_cost,220,50,50,50/50,stable,30,49067,50,50,{}
+rest_gain_x_decay_cost,rest_gain,260,decay_cost,280,50,36,36/50,transition,30,40523,50,49,"{'average_energy<38000': 14, 'success_distance_passed=False': 1}"
+rest_gain_x_decay_cost,rest_gain,260,decay_cost,340,50,0,0/50,collapse,30,32159,50,48,"{'average_energy<38000': 50, 'success_distance_passed=False': 2}"
+rest_gain_x_damage_energy_loss,rest_gain,170,damage_energy_loss,14000,50,28,28/50,transition,30,38679,50,50,{'average_energy<38000': 22}
+rest_gain_x_damage_energy_loss,rest_gain,170,damage_energy_loss,17000,50,9,9/50,transition,30,35854,50,49,"{'average_energy<38000': 41, 'success_distance_passed=False': 1}"
+rest_gain_x_damage_energy_loss,rest_gain,170,damage_energy_loss,21000,50,0,0/50,collapse,30,32207,50,49,"{'average_energy<38000': 50, 'success_distance_passed=False': 1}"
+rest_gain_x_damage_energy_loss,rest_gain,170,damage_energy_loss,25000,50,0,0/50,collapse,30,28259,50,49,"{'average_energy<38000': 50, 'success_distance_passed=False': 1}"
+rest_gain_x_damage_energy_loss,rest_gain,200,damage_energy_loss,14000,50,47,47/50,transition,30,42182,50,50,{'average_energy<38000': 3}
+rest_gain_x_damage_energy_loss,rest_gain,200,damage_energy_loss,17000,50,32,32/50,transition,30,39310,50,49,"{'average_energy<38000': 18, 'success_distance_passed=False': 1}"
+rest_gain_x_damage_energy_loss,rest_gain,200,damage_energy_loss,21000,50,11,11/50,transition,30,35605,50,49,"{'average_energy<38000': 39, 'success_distance_passed=False': 1}"
+rest_gain_x_damage_energy_loss,rest_gain,200,damage_energy_loss,25000,50,0,0/50,collapse,30,31714,50,49,"{'average_energy<38000': 50, 'success_distance_passed=False': 1}"
+rest_gain_x_damage_energy_loss,rest_gain,220,damage_energy_loss,14000,50,50,50/50,stable,30,44542,50,50,{}
+rest_gain_x_damage_energy_loss,rest_gain,220,damage_energy_loss,17000,50,47,47/50,transition,30,41632,50,49,"{'average_energy<38000': 3, 'success_distance_passed=False': 1}"
+rest_gain_x_damage_energy_loss,rest_gain,220,damage_energy_loss,21000,50,26,26/50,transition,30,37895,50,49,"{'average_energy<38000': 24, 'success_distance_passed=False': 1}"
+rest_gain_x_damage_energy_loss,rest_gain,220,damage_energy_loss,25000,50,2,2/50,transition,30,34013,50,49,"{'average_energy<38000': 48, 'success_distance_passed=False': 1}"
+rest_gain_x_damage_energy_loss,rest_gain,260,damage_energy_loss,14000,50,50,50/50,stable,30,49067,50,50,{}
+rest_gain_x_damage_energy_loss,rest_gain,260,damage_energy_loss,17000,50,50,50/50,stable,30,45902,50,50,{}
+rest_gain_x_damage_energy_loss,rest_gain,260,damage_energy_loss,21000,50,47,47/50,transition,30,42064,50,49,"{'average_energy<38000': 2, 'success_distance_passed=False': 1}"
+rest_gain_x_damage_energy_loss,rest_gain,260,damage_energy_loss,25000,50,28,28/50,transition,30,38385,50,49,"{'average_energy<38000': 22, 'success_distance_passed=False': 1}"
+move_cost_x_world_size,move_cost,300,world_size,25,50,50,50/50,stable,30,44542,50,50,{}
+move_cost_x_world_size,move_cost,300,world_size,35,50,24,24/50,transition,29,39688,50,31,"{'success_distance_passed=False': 19, 'alive_count<24': 1, 'average_energy<38000': 8}"
+move_cost_x_world_size,move_cost,300,world_size,45,50,12,12/50,transition,22,29647,39,17,"{'average_energy<38000': 17, 'success_distance_passed=False': 33, 'alive_count<24': 13, 'component_count!=1': 11, 'resource_reached=False': 11}"
+move_cost_x_world_size,move_cost,300,world_size,60,50,0,0/50,collapse,12,16195,21,1,"{'alive_count<24': 29, 'component_count!=1': 29, 'average_energy<38000': 33, 'resource_reached=False': 29, 'success_distance_passed=False': 49}"
+move_cost_x_world_size,move_cost,450,world_size,25,50,43,43/50,transition,30,42001,50,49,"{'average_energy<38000': 6, 'success_distance_passed=False': 1}"
+move_cost_x_world_size,move_cost,450,world_size,35,50,11,11/50,transition,29,37243,50,18,"{'average_energy<38000': 36, 'success_distance_passed=False': 32, 'alive_count<24': 1}"
+move_cost_x_world_size,move_cost,450,world_size,45,50,6,6/50,transition,21,25959,37,11,"{'average_energy<38000': 43, 'success_distance_passed=False': 39, 'alive_count<24': 15, 'component_count!=1': 13, 'resource_reached=False': 13}"
+move_cost_x_world_size,move_cost,450,world_size,60,50,0,0/50,collapse,10,12604,18,0,"{'alive_count<24': 32, 'component_count!=1': 32, 'average_energy<38000': 50, 'resource_reached=False': 32, 'success_distance_passed=False': 50}"
+move_cost_x_world_size,move_cost,600,world_size,25,50,30,30/50,transition,30,39508,50,44,"{'average_energy<38000': 20, 'success_distance_passed=False': 6}"
+move_cost_x_world_size,move_cost,600,world_size,35,50,8,8/50,transition,28,33968,49,14,"{'average_energy<38000': 42, 'success_distance_passed=False': 36, 'alive_count<24': 2, 'component_count!=1': 1, 'resource_reached=False': 1}"
+move_cost_x_world_size,move_cost,600,world_size,45,50,0,0/50,collapse,16,18220,28,11,"{'alive_count<24': 24, 'component_count!=1': 22, 'average_energy<38000': 50, 'resource_reached=False': 22, 'success_distance_passed=False': 39}"
+move_cost_x_world_size,move_cost,600,world_size,60,50,0,0/50,collapse,5,6065,9,0,"{'alive_count<24': 41, 'component_count!=1': 41, 'average_energy<38000': 50, 'resource_reached=False': 41, 'success_distance_passed=False': 50}"
+move_cost_x_world_size,move_cost,750,world_size,25,50,25,25/50,transition,30,37050,50,41,"{'average_energy<38000': 25, 'success_distance_passed=False': 9}"
+move_cost_x_world_size,move_cost,750,world_size,35,50,1,1/50,transition,23,26813,40,11,"{'average_energy<38000': 49, 'success_distance_passed=False': 39, 'alive_count<24': 11, 'component_count!=1': 10, 'resource_reached=False': 10}"
+move_cost_x_world_size,move_cost,750,world_size,45,50,0,0/50,collapse,13,14531,24,6,"{'alive_count<24': 29, 'component_count!=1': 26, 'average_energy<38000': 50, 'resource_reached=False': 26, 'success_distance_passed=False': 44}"
+move_cost_x_world_size,move_cost,750,world_size,60,50,0,0/50,collapse,0,692,1,0,"{'alive_count<24': 49, 'component_count!=1': 49, 'average_energy<38000': 50, 'resource_reached=False': 49, 'success_distance_passed=False': 50}"
+max_bonds_x_damage_energy_loss,max_bonds,2,damage_energy_loss,14000,50,7,7/50,transition,26,31317,50,15,"{'average_energy<38000': 22, 'success_distance_passed=False': 35, 'alive_count<24': 13}"
+max_bonds_x_damage_energy_loss,max_bonds,2,damage_energy_loss,17000,50,5,5/50,transition,26,29846,50,13,"{'average_energy<38000': 36, 'success_distance_passed=False': 37, 'alive_count<24': 14}"
+max_bonds_x_damage_energy_loss,max_bonds,2,damage_energy_loss,21000,50,0,0/50,collapse,26,27563,50,13,"{'average_energy<38000': 50, 'success_distance_passed=False': 37, 'alive_count<24': 14}"
+max_bonds_x_damage_energy_loss,max_bonds,2,damage_energy_loss,25000,50,0,0/50,collapse,26,25136,50,13,"{'average_energy<38000': 50, 'success_distance_passed=False': 37, 'alive_count<24': 14}"
+max_bonds_x_damage_energy_loss,max_bonds,3,damage_energy_loss,14000,50,41,41/50,transition,29,42019,50,43,"{'average_energy<38000': 3, 'success_distance_passed=False': 7, 'alive_count<24': 1}"
+max_bonds_x_damage_energy_loss,max_bonds,3,damage_energy_loss,17000,50,35,35/50,transition,29,39858,50,39,"{'success_distance_passed=False': 11, 'average_energy<38000': 9, 'alive_count<24': 1}"
+max_bonds_x_damage_energy_loss,max_bonds,3,damage_energy_loss,21000,50,21,21/50,transition,29,36551,50,38,"{'average_energy<38000': 29, 'success_distance_passed=False': 12, 'alive_count<24': 1}"
+max_bonds_x_damage_energy_loss,max_bonds,3,damage_energy_loss,25000,50,1,1/50,transition,29,32704,50,38,"{'average_energy<38000': 49, 'success_distance_passed=False': 12, 'alive_count<24': 1}"
+max_bonds_x_damage_energy_loss,max_bonds,4,damage_energy_loss,14000,50,50,50/50,stable,30,44542,50,50,{}
+max_bonds_x_damage_energy_loss,max_bonds,4,damage_energy_loss,17000,50,47,47/50,transition,30,41632,50,49,"{'average_energy<38000': 3, 'success_distance_passed=False': 1}"
+max_bonds_x_damage_energy_loss,max_bonds,4,damage_energy_loss,21000,50,26,26/50,transition,30,37895,50,49,"{'average_energy<38000': 24, 'success_distance_passed=False': 1}"
+max_bonds_x_damage_energy_loss,max_bonds,4,damage_energy_loss,25000,50,2,2/50,transition,30,34013,50,49,"{'average_energy<38000': 48, 'success_distance_passed=False': 1}"
+max_bonds_x_damage_energy_loss,max_bonds,5,damage_energy_loss,14000,50,50,50/50,stable,30,45050,50,50,{}
+max_bonds_x_damage_energy_loss,max_bonds,5,damage_energy_loss,17000,50,45,45/50,transition,30,42086,50,50,{'average_energy<38000': 5}
+max_bonds_x_damage_energy_loss,max_bonds,5,damage_energy_loss,21000,50,28,28/50,transition,30,38217,50,50,{'average_energy<38000': 22}
+max_bonds_x_damage_energy_loss,max_bonds,5,damage_energy_loss,25000,50,4,4/50,transition,30,34363,50,50,{'average_energy<38000': 46}
+max_bonds_x_world_size,max_bonds,2,world_size,25,50,7,7/50,transition,26,31317,50,15,"{'average_energy<38000': 22, 'success_distance_passed=False': 35, 'alive_count<24': 13}"
+max_bonds_x_world_size,max_bonds,2,world_size,35,50,1,1/50,transition,27,32587,50,1,"{'success_distance_passed=False': 49, 'average_energy<38000': 28, 'alive_count<24': 8}"
+max_bonds_x_world_size,max_bonds,2,world_size,45,50,1,1/50,transition,18,34517,39,4,"{'average_energy<38000': 39, 'success_distance_passed=False': 46, 'alive_count<24': 25, 'component_count!=1': 11, 'resource_reached=False': 11}"
+max_bonds_x_world_size,max_bonds,2,world_size,60,50,0,0/50,collapse,9,26898,21,2,"{'alive_count<24': 36, 'component_count!=1': 29, 'average_energy<38000': 46, 'resource_reached=False': 29, 'success_distance_passed=False': 48}"
+max_bonds_x_world_size,max_bonds,3,world_size,25,50,41,41/50,transition,29,42019,50,43,"{'average_energy<38000': 3, 'success_distance_passed=False': 7, 'alive_count<24': 1}"
+max_bonds_x_world_size,max_bonds,3,world_size,35,50,13,13/50,transition,29,39512,50,19,"{'success_distance_passed=False': 31, 'average_energy<38000': 11}"
+max_bonds_x_world_size,max_bonds,3,world_size,45,50,8,8/50,transition,23,30323,39,10,"{'average_energy<38000': 18, 'success_distance_passed=False': 40, 'alive_count<24': 11, 'component_count!=1': 11, 'resource_reached=False': 11}"
+max_bonds_x_world_size,max_bonds,3,world_size,60,50,0,0/50,collapse,12,16081,21,0,"{'alive_count<24': 29, 'component_count!=1': 29, 'average_energy<38000': 37, 'resource_reached=False': 29, 'success_distance_passed=False': 50}"
+max_bonds_x_world_size,max_bonds,4,world_size,25,50,50,50/50,stable,30,44542,50,50,{}
+max_bonds_x_world_size,max_bonds,4,world_size,35,50,24,24/50,transition,29,39688,50,31,"{'success_distance_passed=False': 19, 'alive_count<24': 1, 'average_energy<38000': 8}"
+max_bonds_x_world_size,max_bonds,4,world_size,45,50,12,12/50,transition,22,29647,39,17,"{'average_energy<38000': 17, 'success_distance_passed=False': 33, 'alive_count<24': 13, 'component_count!=1': 11, 'resource_reached=False': 11}"
+max_bonds_x_world_size,max_bonds,4,world_size,60,50,0,0/50,collapse,12,16195,21,1,"{'alive_count<24': 29, 'component_count!=1': 29, 'average_energy<38000': 33, 'resource_reached=False': 29, 'success_distance_passed=False': 49}"
+max_bonds_x_world_size,max_bonds,5,world_size,25,50,50,50/50,stable,30,45050,50,50,{}
+max_bonds_x_world_size,max_bonds,5,world_size,35,50,32,32/50,transition,29,40103,50,35,"{'success_distance_passed=False': 15, 'average_energy<38000': 4}"
+max_bonds_x_world_size,max_bonds,5,world_size,45,50,21,21/50,transition,23,30951,39,22,"{'success_distance_passed=False': 28, 'alive_count<24': 11, 'component_count!=1': 11, 'average_energy<38000': 14, 'resource_reached=False': 11}"
+max_bonds_x_world_size,max_bonds,5,world_size,60,50,1,1/50,transition,12,16271,21,2,"{'alive_count<24': 29, 'component_count!=1': 29, 'average_energy<38000': 34, 'resource_reached=False': 29, 'success_distance_passed=False': 48}"
+resource_absorb_rate_x_world_size,resource_absorb_rate,7000,world_size,25,50,50,50/50,stable,30,45307,50,50,{}
+resource_absorb_rate_x_world_size,resource_absorb_rate,7000,world_size,35,50,31,31/50,transition,29,40241,50,35,"{'success_distance_passed=False': 15, 'alive_count<24': 1, 'average_energy<38000': 5}"
+resource_absorb_rate_x_world_size,resource_absorb_rate,7000,world_size,45,50,17,17/50,transition,22,29901,39,21,"{'average_energy<38000': 18, 'success_distance_passed=False': 29, 'alive_count<24': 13, 'component_count!=1': 11, 'resource_reached=False': 11}"
+resource_absorb_rate_x_world_size,resource_absorb_rate,7000,world_size,60,50,1,1/50,transition,12,16235,21,1,"{'alive_count<24': 29, 'component_count!=1': 29, 'average_energy<38000': 33, 'resource_reached=False': 29, 'success_distance_passed=False': 49}"
+resource_absorb_rate_x_world_size,resource_absorb_rate,14000,world_size,25,50,50,50/50,stable,30,44542,50,50,{}
+resource_absorb_rate_x_world_size,resource_absorb_rate,14000,world_size,35,50,24,24/50,transition,29,39688,50,31,"{'success_distance_passed=False': 19, 'alive_count<24': 1, 'average_energy<38000': 8}"
+resource_absorb_rate_x_world_size,resource_absorb_rate,14000,world_size,45,50,12,12/50,transition,22,29647,39,17,"{'average_energy<38000': 17, 'success_distance_passed=False': 33, 'alive_count<24': 13, 'component_count!=1': 11, 'resource_reached=False': 11}"
+resource_absorb_rate_x_world_size,resource_absorb_rate,14000,world_size,60,50,0,0/50,collapse,12,16195,21,1,"{'alive_count<24': 29, 'component_count!=1': 29, 'average_energy<38000': 33, 'resource_reached=False': 29, 'success_distance_passed=False': 49}"
+resource_absorb_rate_x_world_size,resource_absorb_rate,21000,world_size,25,50,50,50/50,stable,30,44208,50,50,{}
+resource_absorb_rate_x_world_size,resource_absorb_rate,21000,world_size,35,50,20,20/50,transition,29,39590,50,28,"{'average_energy<38000': 13, 'success_distance_passed=False': 22, 'alive_count<24': 1}"
+resource_absorb_rate_x_world_size,resource_absorb_rate,21000,world_size,45,50,13,13/50,transition,22,29435,39,18,"{'success_distance_passed=False': 32, 'average_energy<38000': 19, 'alive_count<24': 13, 'component_count!=1': 11, 'resource_reached=False': 11}"
+resource_absorb_rate_x_world_size,resource_absorb_rate,21000,world_size,60,50,0,0/50,collapse,12,16316,21,1,"{'alive_count<24': 29, 'component_count!=1': 29, 'average_energy<38000': 32, 'resource_reached=False': 29, 'success_distance_passed=False': 49}"
+repair_cost_x_max_bonds,repair_cost,175,max_bonds,2,50,7,7/50,transition,26,31443,50,16,"{'average_energy<38000': 24, 'success_distance_passed=False': 34, 'alive_count<24': 11, 'component_count!=1': 3}"
+repair_cost_x_max_bonds,repair_cost,175,max_bonds,3,50,42,42/50,transition,29,42152,50,44,"{'average_energy<38000': 3, 'success_distance_passed=False': 6, 'alive_count<24': 1}"
+repair_cost_x_max_bonds,repair_cost,175,max_bonds,4,50,50,50/50,stable,30,44629,50,50,{}
+repair_cost_x_max_bonds,repair_cost,175,max_bonds,5,50,50,50/50,stable,30,45103,50,50,{}
+repair_cost_x_max_bonds,repair_cost,350,max_bonds,2,50,7,7/50,transition,26,31317,50,15,"{'average_energy<38000': 22, 'success_distance_passed=False': 35, 'alive_count<24': 13}"
+repair_cost_x_max_bonds,repair_cost,350,max_bonds,3,50,41,41/50,transition,29,42019,50,43,"{'average_energy<38000': 3, 'success_distance_passed=False': 7, 'alive_count<24': 1}"
+repair_cost_x_max_bonds,repair_cost,350,max_bonds,4,50,50,50/50,stable,30,44542,50,50,{}
+repair_cost_x_max_bonds,repair_cost,350,max_bonds,5,50,50,50/50,stable,30,45050,50,50,{}
+repair_cost_x_max_bonds,repair_cost,700,max_bonds,2,50,5,5/50,transition,24,29758,50,13,"{'average_energy<38000': 32, 'success_distance_passed=False': 37, 'alive_count<24': 14}"
+repair_cost_x_max_bonds,repair_cost,700,max_bonds,3,50,39,39/50,transition,29,41735,50,41,"{'average_energy<38000': 4, 'success_distance_passed=False': 9, 'alive_count<24': 1}"
+repair_cost_x_max_bonds,repair_cost,700,max_bonds,4,50,50,50/50,stable,30,44377,50,50,{}
+repair_cost_x_max_bonds,repair_cost,700,max_bonds,5,50,50,50/50,stable,30,44919,50,50,{}

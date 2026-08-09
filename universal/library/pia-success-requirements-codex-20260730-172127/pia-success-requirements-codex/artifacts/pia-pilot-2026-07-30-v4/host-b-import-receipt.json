@@ -1,0 +1,15 @@
+{
+  "authority_key_id": "pia-pilot-authority-v0.1",
+  "bundle_id": "pia-bundle-637e0662d2210959",
+  "controller_config_digest": "sha256:e1dc106345f5aecdc2ef1bbfe6b6fe29845e1ca1b926e2408c26acf173ae5931",
+  "destination_host_id": "pia-host-b",
+  "destination_model_id": "pia-model-b",
+  "export_digest": "sha256:20450f4c60f408de405f97ad97993b0e5528022cd9a159ab5d9260201460fa27",
+  "import_receipt_digest": "sha256:b8351a2c6896cea348d077cc9ef91e60066cf263444415aaa427c022b8150063",
+  "import_signature": "hmac-sha256:50234a0495d542421ed7ce5dd976364a08b62461ae0585a947828f0a5559bb29",
+  "schema_version": "fractalish.pia.host-import-receipt.v0.1",
+  "source_host_id": "pia-host-a",
+  "source_model_id": "pia-model-a",
+  "status": "IMPORTED_AND_CONTROLLER_VISIBLE",
+  "stored_content_digest": "sha256:32a7264de26293477ee78131d6a23201ba7556bfa566ddf85fa00e5e525bffe5"
+}

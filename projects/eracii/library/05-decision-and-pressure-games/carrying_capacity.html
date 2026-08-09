@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Carrying Capacity</title>
+<style>
+:root{
+  --bg:#06080c;--panel:#0e141c;--line:#243040;--text:#e8eef4;--muted:#8494a8;
+  --gold:#d4b56a;--blue:#5a9fd4;--green:#5cba84;--red:#e05a66;--amber:#d4924a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;line-height:1.45;min-height:100vh}
+button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+/* Canvas world */
+#world{position:fixed;inset:0;z-index:0;background:#04060a}
+#world canvas{display:block;width:100%;height:100%}
+
+/* HUD overlay */
+.hud{position:fixed;inset:0;z-index:10;pointer-events:none;display:flex;flex-direction:column}
+.hud > *{pointer-events:auto}
+
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:14px 20px;background:linear-gradient(180deg,#0a0e14ee,transparent);
+  backdrop-filter:blur(8px);
+}
+.brand{font-weight:800;letter-spacing:.18em;font-size:13px;color:#c0cad6}
+.stats{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;font-variant-numeric:tabular-nums}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat label{color:var(--muted);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.stat b{font-size:15px;font-weight:700}
+.stat b.ok{color:var(--green)}.stat b.warn{color:var(--amber)}.stat b.crit{color:var(--red)}
+
+.center-msg{
+  flex:1;display:flex;align-items:center;justify-content:center;padding:20px;
+  pointer-events:none;
+}
+.msg-card{
+  max-width:420px;text-align:center;padding:28px 32px;
+  background:#0c121ae8;border:1px solid #2a3848;border-radius:16px;
+  backdrop-filter:blur(12px);box-shadow:0 24px 60px #000a;
+  opacity:0;transform:translateY(12px);transition:.4s ease;
+  pointer-events:auto;
+}
+.msg-card.show{opacity:1;transform:none}
+.msg-card .phase{font-size:11px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;font-weight:800;margin-bottom:10px}
+.msg-card h1{font:700 26px/1.15 Georgia,serif;margin-bottom:10px;letter-spacing:-.02em}
+.msg-card p{font-size:14px;color:#a8b6c4;margin-bottom:18px}
+.msg-card .actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.msg-card .btn{
+  padding:10px 18px;border-radius:10px;font-weight:700;font-size:13px;
+  border:1px solid #3a4a5c;background:#121a24;transition:.2s;
+}
+.msg-card .btn:hover{border-color:#6a7a8c;background:#1a2430}
+.msg-card .btn.primary{background:linear-gradient(180deg,#e0c878,#b88830);color:#141008;border-color:#e8d090}
+.msg-card .btn.danger{border-color:#8a3a42;color:#f0a0a8;background:#1a1014}
+.msg-card .btn.nature{border-color:#3a6a4a;color:#90d0a8;background:#0e1a14}
+
+.bottombar{
+  padding:12px 20px 18px;background:linear-gradient(0deg,#0a0e14ee,transparent);
+  display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;
+}
+.pressure-row{display:flex;gap:8px;flex-wrap:wrap}
+.p-chip{
+  padding:6px 12px;border-radius:999px;font-size:11px;font-weight:650;
+  border:1px solid #2a3848;background:#0e1620;color:#9aabbc;
+  transition:.25s;
+}
+.p-chip.hot{border-color:var(--red);color:#f0a0a8;background:#1a1014;box-shadow:0 0 16px #e05a6630}
+.p-chip.warm{border-color:var(--amber);color:#e8c090;background:#1a140e}
+.legend{font-size:11px;color:var(--muted);max-width:280px;text-align:right}
+
+/* End states */
+.end-overlay{
+  position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
+  background:#04060ae0;backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:.6s;
+  padding:24px;
+}
+.end-overlay.show{opacity:1;pointer-events:auto}
+.end-card{
+  max-width:480px;padding:36px 32px;border-radius:18px;text-align:center;
+  background:#0c121a;border:1px solid #2a3848;box-shadow:0 30px 80px #000c;
+}
+.end-card.balance{border-color:#3a6a4a}
+.end-card.collapse{border-color:#8a3a42}
+.end-card .tag{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;margin-bottom:12px}
+.end-card.balance .tag{color:var(--green)}
+.end-card.collapse .tag{color:var(--red)}
+.end-card h2{font:700 28px/1.15 Georgia,serif;margin-bottom:12px}
+.end-card p{font-size:14px;color:#a8b6c4;margin-bottom:10px;line-height:1.5}
+.end-card .takeaway{font:600 15px/1.4 Georgia,serif;color:var(--gold);margin:18px 0 22px;padding-top:16px;border-top:1px solid #2a3848}
+.end-card .btn{padding:11px 20px;border-radius:10px;font-weight:700;font-size:13px;border:1px solid #3a4a5c;background:#121a24}
+.end-card .btn:hover{border-color:#6a7a8c}
+.end-card .btn.primary{background:linear-gradient(180deg,#e0c878,#b88830);color:#141008;border-color:#e8d090}
+
+@media(max-width:520px){
+  .topbar{padding:10px 12px}.stats{gap:10px}.stat b{font-size:13px}
+  .msg-card{padding:20px 18px}.msg-card h1{font-size:22px}
+  .bottombar{padding:10px 12px 14px}.legend{text-align:left;max-width:100%}
+}
+</style>
+</head>
+<body>
+<canvas id="world"></canvas>
+
+<div class="hud">
+  <div class="topbar">
+    <div class="brand">CARRYING CAPACITY</div>
+    <div class="stats">
+      <div class="stat"><label>Population</label><b id="popVal">12</b></div>
+      <div class="stat"><label>Resources</label><b id="resVal" class="ok">94%</b></div>
+      <div class="stat"><label>Stress</label><b id="stressVal" class="ok">4%</b></div>
+      <div class="stat"><label>Year</label><b id="yearVal">0</b></div>
+    </div>
+  </div>
+
+  <div class="center-msg">
+    <div class="msg-card show" id="msgCard">
+      <div class="phase" id="msgPhase">Beginning</div>
+      <h1 id="msgTitle">A small population finds open ground.</h1>
+      <p id="msgBody">They multiply. Nothing resists them yet. Tap when you are ready to watch what growth does when nothing slows it.</p>
+      <div class="actions">
+        <button class="btn primary" id="btnStart">Let them grow</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottombar">
+    <div class="pressure-row" id="pressureRow">
+      <span class="p-chip" id="chipFood">Food</span>
+      <span class="p-chip" id="chipSpace">Space</span>
+      <span class="p-chip" id="chipConflict">Conflict</span>
+      <span class="p-chip" id="chipDisease">Disease</span>
+    </div>
+    <div class="legend" id="legend">Agents move, feed, and reproduce. Color shifts with stress.</div>
+  </div>
+</div>
+
+<div class="end-overlay" id="endOverlay">
+  <div class="end-card" id="endCard">
+    <div class="tag" id="endTag"></div>
+    <h2 id="endTitle"></h2>
+    <p id="endBody1"></p>
+    <p id="endBody2"></p>
+    <div class="takeaway" id="endTake"></div>
+    <button class="btn primary" id="btnAgain">Run it again</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const canvas = document.getElementById('world');
+const ctx = canvas.getContext('2d');
+let W, H, dpr;
+
+function resize(){
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ---------- Simulation state ----------
+const agents = [];
+const food = [];
+let year = 0;
+let running = false;
+let phase = 'intro'; // intro | boom | pressure | crisis | balance | collapse
+let lastTick = 0;
+let decisionPending = false;
+let resourceBase = 1;
+let carryingHint = 180; // soft target density for this viewport
+
+const $ = id => document.getElementById(id);
+
+function rand(a, b){ return a + Math.random() * (b - a); }
+function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+function spawnAgent(x, y, energy){
+  agents.push({
+    x: x ?? rand(40, W - 40),
+    y: y ?? rand(40, H - 40),
+    vx: rand(-0.6, 0.6),
+    vy: rand(-0.6, 0.6),
+    energy: energy ?? rand(0.55, 1),
+    age: 0,
+    size: rand(2.2, 3.4)
+  });
+}
+
+function spawnFood(n){
+  for(let i = 0; i < n; i++){
+    food.push({
+      x: rand(20, W - 20),
+      y: rand(20, H - 20),
+      life: rand(80, 200)
+    });
+  }
+}
+
+function initWorld(){
+  agents.length = 0;
+  food.length = 0;
+  year = 0;
+  resourceBase = 1;
+  for(let i = 0; i < 12; i++) spawnAgent();
+  spawnFood(90);
+  updateHUD();
+}
+
+initWorld();
+
+// ---------- Phases & narrative ----------
+function setMsg(phaseName, title, body, buttons){
+  phase = phaseName;
+  $('msgPhase').textContent = phaseName === 'intro' ? 'Beginning' :
+    phaseName === 'boom' ? 'Expansion' :
+    phaseName === 'pressure' ? 'Pressure' :
+    phaseName === 'crisis' ? 'Crisis' : phaseName;
+  $('msgTitle').textContent = title;
+  $('msgBody').textContent = body;
+  const actions = $('msgCard').querySelector('.actions');
+  actions.innerHTML = '';
+  (buttons || []).forEach(b => {
+    const btn = document.createElement('button');
+    btn.className = 'btn ' + (b.cls || '');
+    btn.textContent = b.label;
+    btn.onclick = b.fn;
+    actions.appendChild(btn);
+  });
+  $('msgCard').classList.add('show');
+}
+
+function hideMsg(){ $('msgCard').classList.remove('show'); }
+
+function startGrowth(){
+  hideMsg();
+  running = true;
+  phase = 'boom';
+  decisionPending = false;
+}
+
+function offerPressureChoice(){
+  running = false;
+  decisionPending = true;
+  setMsg('pressure',
+    'The ground is full. Food thins. Young compete with the old.',
+    'Growth has nowhere left to go. What happens next is decided by how hard the system pushes back — or how far the population refuses to stop.',
+    [
+      { label: 'Nature pushes back', cls: 'nature', fn: () => choosePath('balance') },
+      { label: 'Nothing stops them', cls: 'danger', fn: () => choosePath('collapse') }
+    ]
+  );
+}
+
+function choosePath(path){
+  hideMsg();
+  decisionPending = false;
+  running = true;
+  phase = path === 'balance' ? 'balance_run' : 'collapse_run';
+  if(path === 'balance'){
+    // strengthen natural feedback: less food regen, higher stress mortality, slower birth
+    resourceBase = 0.55;
+  } else {
+    // population ignores limits longer — food collapses harder later
+    resourceBase = 0.9;
+  }
+}
+
+function endBalance(){
+  running = false;
+  phase = 'balance';
+  $('endCard').className = 'end-card balance';
+  $('endTag').textContent = 'Equilibrium';
+  $('endTitle').textContent = 'The population stopped growing. It did not vanish.';
+  $('endBody1').textContent = 'Disease, hunger, and competition cut the excess. Births fell into line with deaths. Resources recovered enough to hold a stable number.';
+  $('endBody2').textContent = 'That is how forests, herds, and cities that last actually work: pressure is not an error message. It is the feedback that keeps the whole from eating itself.';
+  $('endTake').textContent = 'Stated rules (“grow forever”) meet real limits. The doctrine that survives is the one that bends with the carrying capacity — the same way a late bus forces the schedule to change, or the city dies of its own gridlock.';
+  $('endOverlay').classList.add('show');
+}
+
+function endCollapse(){
+  running = false;
+  phase = 'collapse';
+  $('endCard').className = 'end-card collapse';
+  $('endTag').textContent = 'Collapse';
+  $('endTitle').textContent = 'They took everything. Then there was nothing left to take.';
+  $('endBody1').textContent = 'Food did not recover in time. Stress and disease finished what hunger started. The last agents moved over empty ground until they stopped.';
+  $('endBody2').textContent = 'Overshoot is not dramatic from the inside until the moment the buffer is gone. Then the cascade is short.';
+  $('endTake').textContent = 'A doctrine that treats limits as temporary obstacles does not get a warning label. It gets an empty field. Nature’s other answer — when feedback is ignored — is extinction of the excess.';
+  $('endOverlay').classList.add('show');
+}
+
+$('btnStart').onclick = startGrowth;
+$('btnAgain').onclick = () => {
+  $('endOverlay').classList.remove('show');
+  initWorld();
+  setMsg('intro',
+    'A small population finds open ground.',
+    'They multiply. Nothing resists them yet. Tap when you are ready to watch what growth does when nothing slows it.',
+    [{ label: 'Let them grow', cls: 'primary', fn: startGrowth }]
+  );
+};
+
+// ---------- Simulation step ----------
+function step(dt){
+  if(!running) return;
+
+  year += dt * 0.35;
+  const pop = agents.length;
+  const density = pop / Math.max(1, (W * H) / 12000);
+
+  // Food regen scales with remaining space and resourceBase
+  const foodTarget = Math.floor(70 * resourceBase * (1 - density * 0.35));
+  if(food.length < foodTarget && Math.random() < 0.4 * resourceBase){
+    spawnFood(1 + Math.floor(Math.random() * 2));
+  }
+
+  // Age & move agents
+  for(let i = agents.length - 1; i >= 0; i--){
+    const a = agents[i];
+    a.age += dt;
+    a.energy -= dt * 0.018;
+
+    // Seek nearest food if hungry
+    let nearest = null, nd = 1e9;
+    for(const f of food){
+      const dx = f.x - a.x, dy = f.y - a.y;
+      const d = dx*dx + dy*dy;
+      if(d < nd){ nd = d; nearest = f; }
+    }
+    if(nearest && a.energy < 0.85){
+      const dx = nearest.x - a.x, dy = nearest.y - a.y;
+      const d = Math.sqrt(nd) || 1;
+      a.vx += (dx / d) * 0.04;
+      a.vy += (dy / d) * 0.04;
+    } else {
+      a.vx += rand(-0.03, 0.03);
+      a.vy += rand(-0.03, 0.03);
+    }
+
+    // Mild separation to avoid total pile-up
+    for(let j = 0; j < Math.min(8, agents.length); j++){
+      const o = agents[(i + 1 + j) % agents.length];
+      if(o === a) continue;
+      const dx = a.x - o.x, dy = a.y - o.y;
+      const d2 = dx*dx + dy*dy;
+      if(d2 < 140 && d2 > 0){
+        a.vx += dx * 0.002;
+        a.vy += dy * 0.002;
+      }
+    }
+
+    const sp = Math.hypot(a.vx, a.vy) || 1;
+    const maxSp = 1.35;
+    if(sp > maxSp){ a.vx *= maxSp/sp; a.vy *= maxSp/sp; }
+
+    a.x += a.vx * 60 * dt;
+    a.y += a.vy * 60 * dt;
+    if(a.x < 8){ a.x = 8; a.vx *= -0.6; }
+    if(a.x > W-8){ a.x = W-8; a.vx *= -0.6; }
+    if(a.y < 8){ a.y = 8; a.vy *= -0.6; }
+    if(a.y > H-8){ a.y = H-8; a.vy *= -0.6; }
+
+    // Eat
+    for(let fi = food.length - 1; fi >= 0; fi--){
+      const f = food[fi];
+      const dx = f.x - a.x, dy = f.y - a.y;
+      if(dx*dx + dy*dy < 50){
+        a.energy = Math.min(1.2, a.energy + 0.35);
+        food.splice(fi, 1);
+        break;
+      }
+    }
+
+    // Reproduce when energetic and population not yet crushing
+    const birthChance = phase === 'collapse_run' ? 0.012 : (phase === 'balance_run' ? 0.0045 : 0.009);
+    if(a.energy > 0.75 && a.age > 2.5 && Math.random() < birthChance * dt * 60 * (1.1 - density * 0.4)){
+      a.energy -= 0.28;
+      spawnAgent(a.x + rand(-12,12), a.y + rand(-12,12), 0.45);
+    }
+
+    // Death: starvation, age, density stress, disease under high stress
+    const stress = clamp((density - 0.5) * 1.4 + (1 - resourceBase) * 0.5, 0, 1);
+    let death = 0;
+    if(a.energy <= 0) death = 1;
+    if(a.age > 28 + rand(0, 10)) death = 1;
+    if(stress > 0.45 && Math.random() < stress * 0.015 * dt * 60) death = 1;
+    if(phase === 'balance_run' && stress > 0.3 && Math.random() < 0.02 * dt * 60) death = 1;
+    if(phase === 'collapse_run' && a.energy < 0.25 && Math.random() < 0.03 * dt * 60) death = 1;
+
+    if(death) agents.splice(i, 1);
+  }
+
+  // Food decay
+  for(let i = food.length - 1; i >= 0; i--){
+    food[i].life -= dt * 30;
+    if(food[i].life <= 0) food.splice(i, 1);
+  }
+
+  // Phase transitions
+  if(phase === 'boom' && pop > 95 && !decisionPending){
+    offerPressureChoice();
+  }
+  if(phase === 'balance_run'){
+    if(pop > 30 && pop < 95 && year > 18){
+      // stable band held for a bit
+      const stress = clamp((density - 0.5) * 1.4, 0, 1);
+      if(stress < 0.55 && Math.random() < 0.008) endBalance();
+    }
+    if(year > 45 && pop > 20 && pop < 120) endBalance();
+  }
+  if(phase === 'collapse_run'){
+    if(pop < 8 && year > 12) endCollapse();
+    if(pop === 0) endCollapse();
+  }
+
+  updateHUD();
+}
+
+function updateHUD(){
+  const pop = agents.length;
+  $('popVal').textContent = pop;
+  const density = pop / Math.max(1, (W * H) / 12000);
+  const resPct = clamp(Math.round((food.length / 90) * 100 * resourceBase), 0, 100);
+  const stress = clamp(Math.round(((density - 0.4) * 120 + (100 - resPct) * 0.4)), 0, 100);
+
+  const rv = $('resVal');
+  rv.textContent = resPct + '%';
+  rv.className = resPct > 55 ? 'ok' : resPct > 25 ? 'warn' : 'crit';
+
+  const sv = $('stressVal');
+  sv.textContent = stress + '%';
+  sv.className = stress < 30 ? 'ok' : stress < 60 ? 'warn' : 'crit';
+
+  $('yearVal').textContent = Math.floor(year);
+
+  // Pressure chips
+  setChip('chipFood', resPct < 35 ? 'hot' : resPct < 60 ? 'warm' : '');
+  setChip('chipSpace', density > 1.1 ? 'hot' : density > 0.7 ? 'warm' : '');
+  setChip('chipConflict', stress > 55 ? 'hot' : stress > 30 ? 'warm' : '');
+  setChip('chipDisease', stress > 65 ? 'hot' : stress > 40 ? 'warm' : '');
+}
+
+function setChip(id, cls){
+  const el = $(id);
+  el.className = 'p-chip' + (cls ? ' ' + cls : '');
+}
+
+// ---------- Draw ----------
+function draw(){
+  ctx.fillStyle = '#06080c';
+  ctx.fillRect(0, 0, W, H);
+
+  // faint resource field
+  ctx.globalAlpha = 0.35;
+  for(const f of food){
+    ctx.beginPath();
+    ctx.fillStyle = '#3a6a48';
+    ctx.arc(f.x, f.y, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // agents
+  for(const a of agents){
+    const stressTint = clamp(1 - a.energy, 0, 1);
+    const g = Math.floor(140 - stressTint * 80);
+    const r = Math.floor(90 + stressTint * 120);
+    const b = Math.floor(110 - stressTint * 40);
+    ctx.beginPath();
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.arc(a.x, a.y, a.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // soft vignette
+  const grd = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.25, W/2, H/2, Math.max(W,H)*0.75);
+  grd.addColorStop(0, 'transparent');
+  grd.addColorStop(1, '#00000055');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, W, H);
+}
+
+// ---------- Loop ----------
+function frame(t){
+  const dt = Math.min(0.05, (t - lastTick) / 1000) || 0.016;
+  lastTick = t;
+  step(dt);
+  draw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

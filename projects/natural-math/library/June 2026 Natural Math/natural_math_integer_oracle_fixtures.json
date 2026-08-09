@@ -1,0 +1,1220 @@
+{
+  "suite": "Natural Math v5 integer oracle fixtures",
+  "spec": {
+    "title": "Natural Math v5 - Status Frozen Int",
+    "path": "C:\\Users\\big_b\\Downloads\\Natural Math v5 - Status Frozen Int.txt",
+    "sha256": "E5AB47D41B82F6AF573866BE637BF3B0054D96C7F45A613EC6CAE2124AD84C7B"
+  },
+  "covered_sections": [
+    "2 Integer Number Rule",
+    "2A Entry Points",
+    "3 Node Record",
+    "4 Node Types And Occupancy",
+    "5 Parameters",
+    "6 Validation Rules",
+    "7 Helper Rules",
+    "8 Randomness",
+    "10 Integer Gradient Choice",
+    "11 Contact And Decisions",
+    "12 One Full run_step",
+    "13 Movement And Blocking",
+    "14 Bifurcation",
+    "15 Child Direction Table",
+    "16 Pressure",
+    "17 Bonding"
+  ],
+  "defaults_override": {},
+  "fixtures": [
+    {
+      "name": "empty_list_returns_empty",
+      "flags": {},
+      "nodes": [],
+      "expected_nodes": [],
+      "expected_random_draws": []
+    },
+    {
+      "name": "energy_below_tau_restrict_dies_before_pressure",
+      "flags": {},
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 4999,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 4999,
+          "pressure": 0,
+          "alive": false,
+          "type": "inert",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": []
+    },
+    {
+      "name": "duplicate_live_position_contact_death",
+      "flags": {},
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10000,
+          "pressure": 0,
+          "alive": false,
+          "type": "inert",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10000,
+          "pressure": 0,
+          "alive": false,
+          "type": "inert",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": []
+    },
+    {
+      "name": "adjacent_live_nodes_sense_and_pressure",
+      "flags": {},
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [1, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 8800,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [1, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 8800,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": []
+    },
+    {
+      "name": "integer_gradient_successful_extend",
+      "flags": {},
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [2, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 20000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [1, 0, 0],
+          "direction": [1, 0, 0],
+          "energy": 9500,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [3, 0, 0],
+          "direction": [1, 0, 0],
+          "energy": 19500,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": []
+    },
+    {
+      "name": "fallback_extend_with_seeded_rng",
+      "flags": {
+        "rng_seed": 11,
+        "params": {
+          "gamma_fallback_ppm": 1000000
+        }
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [0, 1, 0],
+          "direction": [0, 1, 0],
+          "energy": 9500,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": [474354]
+    },
+    {
+      "name": "blocked_fallback_target_pays_sense_and_conflict_pressure",
+      "flags": {
+        "rng_seed": 11,
+        "params": {
+          "gamma_fallback_ppm": 1000000
+        }
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [1, 0, 0],
+          "energy": 10000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [1, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 0,
+          "pressure": 0,
+          "alive": false,
+          "type": "wall",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [1, 0, 0],
+          "energy": 8800,
+          "pressure": 6035,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [1, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 0,
+          "pressure": 0,
+          "alive": false,
+          "type": "wall",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": [474354]
+    },
+    {
+      "name": "contested_unblocked_fallback_target_high_energy_wins",
+      "flags": {
+        "rng_seed": 7,
+        "params": {
+          "gamma_fallback_ppm": 1000000,
+          "r_sq": 2
+        }
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [-1, 0, 0],
+          "direction": [1, 0, 0],
+          "energy": 10000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [1, 0, 0],
+          "direction": [-1, 0, 0],
+          "energy": 12000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [-1, 0, 0],
+          "direction": [1, 0, 0],
+          "energy": 8800,
+          "pressure": 6035,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [0, 0, 0],
+          "direction": [-1, 0, 0],
+          "energy": 11500,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": [339563, 993908]
+    },
+    {
+      "name": "bifurcation_successful_split_from_fallback_extend",
+      "flags": {
+        "rng_seed": 11,
+        "params": {
+          "gamma_fallback_ppm": 1000000
+        }
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [1, 0, 0],
+          "energy": 30000,
+          "pressure": 12000,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [1, 0, 0],
+          "energy": 0,
+          "pressure": 12000,
+          "alive": false,
+          "type": "branch",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [0, 1, 0],
+          "direction": [0, 1, 0],
+          "energy": 8250,
+          "pressure": 1785,
+          "alive": true,
+          "type": "tip",
+          "parent_id": 0,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 2,
+          "pos": [0, 0, 1],
+          "direction": [0, 0, 1],
+          "energy": 8250,
+          "pressure": 1785,
+          "alive": true,
+          "type": "tip",
+          "parent_id": 0,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": [474354]
+    },
+    {
+      "name": "bifurcation_pressure_below_threshold_moves_normally",
+      "flags": {
+        "rng_seed": 11,
+        "params": {
+          "gamma_fallback_ppm": 1000000
+        }
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [1, 0, 0],
+          "energy": 30000,
+          "pressure": 11999,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [1, 0, 0],
+          "direction": [1, 0, 0],
+          "energy": 29500,
+          "pressure": 11984,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": [474354]
+    },
+    {
+      "name": "bifurcation_energy_threshold_must_be_strictly_greater",
+      "flags": {
+        "rng_seed": 11,
+        "params": {
+          "gamma_fallback_ppm": 1000000
+        }
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [1, 0, 0],
+          "energy": 23500,
+          "pressure": 12000,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [1, 0, 0],
+          "direction": [1, 0, 0],
+          "energy": 23000,
+          "pressure": 11985,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": [474354]
+    },
+    {
+      "name": "bifurcation_child_position_blocked_by_frozen_occupancy",
+      "flags": {
+        "rng_seed": 11,
+        "params": {
+          "gamma_fallback_ppm": 1000000
+        }
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [1, 0, 0],
+          "energy": 30000,
+          "pressure": 12000,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [0, 1, 0],
+          "direction": [0, 1, 0],
+          "energy": 0,
+          "pressure": 0,
+          "alive": false,
+          "type": "wall",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [1, 0, 0],
+          "direction": [1, 0, 0],
+          "energy": 29500,
+          "pressure": 11985,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [0, 1, 0],
+          "direction": [0, 1, 0],
+          "energy": 0,
+          "pressure": 0,
+          "alive": false,
+          "type": "wall",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": [474354]
+    },
+    {
+      "name": "bifurcation_child_position_outside_boundary_moves_normally",
+      "flags": {
+        "rng_seed": 11,
+        "params": {
+          "gamma_fallback_ppm": 1000000
+        }
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [100, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 30000,
+          "pressure": 12000,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [100, 1, 0],
+          "direction": [0, 1, 0],
+          "energy": 29500,
+          "pressure": 11985,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": [474354]
+    },
+    {
+      "name": "bifurcation_reserved_child_position_blocks_later_split",
+      "flags": {
+        "rng_seed": 7,
+        "params": {
+          "gamma_fallback_ppm": 1000000,
+          "r_sq": 2
+        }
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [1, 0, 0],
+          "energy": 30000,
+          "pressure": 12000,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [0, 1, -1],
+          "direction": [1, 0, 0],
+          "energy": 30000,
+          "pressure": 12000,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [1, 0, 0],
+          "energy": 0,
+          "pressure": 12000,
+          "alive": false,
+          "type": "branch",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [1, 1, -1],
+          "direction": [1, 0, 0],
+          "energy": 29500,
+          "pressure": 11985,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 2,
+          "pos": [0, 1, 0],
+          "direction": [0, 1, 0],
+          "energy": 8250,
+          "pressure": 1785,
+          "alive": true,
+          "type": "tip",
+          "parent_id": 0,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 3,
+          "pos": [0, 0, 1],
+          "direction": [0, 0, 1],
+          "energy": 8250,
+          "pressure": 1785,
+          "alive": true,
+          "type": "tip",
+          "parent_id": 0,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": [339563, 993908]
+    },
+    {
+      "name": "bonding_adjacent_pair_forms_after_pressure_and_equalizes_energy",
+      "flags": {
+        "allow_bonding": true
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [1, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 14001,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10800,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [1],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [1, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10801,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [0],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": []
+    },
+    {
+      "name": "bonding_strict_rejects_distance_equal_to_threshold",
+      "flags": {
+        "allow_bonding": true,
+        "bonding_strict": true,
+        "rng_seed": 11,
+        "params": {
+          "gamma_fallback_ppm": 0,
+          "r_sq": 2
+        }
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [2, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 8800,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [2, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 8800,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": [474354, 907796]
+    },
+    {
+      "name": "bonding_non_strict_allows_distance_equal_to_threshold",
+      "flags": {
+        "allow_bonding": true,
+        "rng_seed": 11,
+        "params": {
+          "gamma_fallback_ppm": 0,
+          "r_sq": 2
+        }
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [2, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 8800,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [1],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [2, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 8800,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [0],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": [474354, 907796]
+    },
+    {
+      "name": "bonding_max_live_degree_blocks_extra_pairs",
+      "flags": {
+        "allow_bonding": true,
+        "params": {
+          "max_bonds": 1
+        }
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [1, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 14000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 2,
+          "pos": [0, 1, 0],
+          "direction": [0, 1, 0],
+          "energy": 18000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10800,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [1],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [1, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10800,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [0],
+          "signal_type": 0
+        },
+        {
+          "id": 2,
+          "pos": [0, 1, 0],
+          "direction": [0, 1, 0],
+          "energy": 16800,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": []
+    },
+    {
+      "name": "bonding_historical_dead_bonds_do_not_count_against_live_capacity",
+      "flags": {
+        "allow_bonding": true,
+        "params": {
+          "max_bonds": 1
+        }
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [2, 3, 4, 5],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [1, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 12000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 2,
+          "pos": [20, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 0,
+          "pressure": 0,
+          "alive": false,
+          "type": "inert",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 3,
+          "pos": [21, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 0,
+          "pressure": 0,
+          "alive": false,
+          "type": "inert",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 4,
+          "pos": [22, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 0,
+          "pressure": 0,
+          "alive": false,
+          "type": "inert",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 5,
+          "pos": [23, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 0,
+          "pressure": 0,
+          "alive": false,
+          "type": "inert",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 9800,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [1, 2, 3, 4, 5],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [1, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 9800,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [0],
+          "signal_type": 0
+        },
+        {
+          "id": 2,
+          "pos": [20, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 0,
+          "pressure": 0,
+          "alive": false,
+          "type": "inert",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 3,
+          "pos": [21, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 0,
+          "pressure": 0,
+          "alive": false,
+          "type": "inert",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 4,
+          "pos": [22, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 0,
+          "pressure": 0,
+          "alive": false,
+          "type": "inert",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 5,
+          "pos": [23, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 0,
+          "pressure": 0,
+          "alive": false,
+          "type": "inert",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": []
+    },
+    {
+      "name": "bonding_collapse_positions_keeps_bonded_duplicate_live_nodes_alive",
+      "flags": {
+        "allow_bonding": true,
+        "bond_collapse_positions": true
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10000,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [1, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 14001,
+          "pressure": 0,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [],
+          "signal_type": 0
+        }
+      ],
+      "expected_nodes": [
+        {
+          "id": 0,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10800,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [1],
+          "signal_type": 0
+        },
+        {
+          "id": 1,
+          "pos": [0, 0, 0],
+          "direction": [0, 1, 0],
+          "energy": 10801,
+          "pressure": 1785,
+          "alive": true,
+          "type": "seed",
+          "parent_id": null,
+          "bonds": [0],
+          "signal_type": 0
+        }
+      ],
+      "expected_random_draws": []
+    }
+  ]
+}

@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guardian Intake Checkpoint — Evaluation Demo</title>
+<style>
+:root{
+  --bg:#0a0d12;--panel:#111722;--panel2:#171f2c;--text:#eaf0f7;
+  --muted:#92a0b3;--line:#293447;--accent:#68d8ff;--good:#54d88b;
+  --hold:#f2c45e;--bad:#ff6d7a;--shadow:0 14px 40px rgba(0,0,0,.35)
+}
+*{box-sizing:border-box} body{margin:0;background:
+radial-gradient(circle at 15% 0%,#152337 0,transparent 34%),
+linear-gradient(180deg,#090c11,#0b1018 72%,#080b10);
+color:var(--text);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,
+BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+button{font:inherit}.watermark{position:fixed;right:16px;top:12px;z-index:30;
+border:1px solid rgba(104,216,255,.45);color:#aeeaff;background:rgba(7,14,22,.84);
+padding:7px 11px;border-radius:999px;font-size:11px;font-weight:800;
+letter-spacing:.14em;backdrop-filter:blur(8px)}
+.shell{max-width:1440px;margin:auto;padding:22px}
+header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;
+margin-bottom:16px}.brand{display:flex;gap:13px}.mark{width:43px;height:43px;
+display:grid;place-items:center;border:1px solid #35506c;border-radius:12px;
+background:linear-gradient(145deg,#17283b,#0d141d);box-shadow:var(--shadow);
+font-weight:900;color:var(--accent);font-size:19px}.eyebrow{color:var(--accent);
+font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase}
+h1{font-size:23px;line-height:1.1;margin:4px 0 5px}.sub{color:var(--muted);max-width:740px}
+.status{border:1px solid var(--line);background:rgba(17,23,34,.84);
+border-radius:12px;padding:9px 12px;text-align:right}.status strong{display:block}
+.status span{color:var(--muted);font-size:12px}
+.grid{display:grid;grid-template-columns:minmax(250px,.78fr) minmax(430px,1.5fr)
+minmax(310px,1fr);gap:14px}.panel{border:1px solid var(--line);
+background:linear-gradient(180deg,rgba(20,28,40,.96),rgba(13,19,28,.96));
+border-radius:16px;box-shadow:var(--shadow);min-width:0}.panel-head{padding:13px 15px;
+border-bottom:1px solid var(--line);display:flex;align-items:center;
+justify-content:space-between;gap:10px}.panel-head h2{font-size:13px;margin:0;
+letter-spacing:.06em;text-transform:uppercase}.small{font-size:11px;color:var(--muted)}
+.panel-body{padding:14px}.cases{display:grid;gap:9px}.case{width:100%;text-align:left;
+border:1px solid var(--line);border-radius:12px;background:#111925;color:var(--text);
+padding:11px 12px;cursor:pointer;transition:.18s}.case:hover,.case.active{
+border-color:#4f7ca0;background:#172638;transform:translateY(-1px)}
+.case b{display:block;font-size:13px}.case span{color:var(--muted);font-size:11px}
+.run{width:100%;margin-top:12px;border:0;border-radius:12px;padding:12px;
+font-weight:850;letter-spacing:.04em;color:#061018;
+background:linear-gradient(90deg,#6bdcff,#76efb2);cursor:pointer}
+.run:disabled{opacity:.5;cursor:not-allowed}.code{background:#080c12;border:1px solid #232e3e;
+border-radius:12px;padding:12px;white-space:pre-wrap;overflow:auto;height:315px;
+font:11.5px/1.48 ui-monospace,SFMono-Regular,Consolas,monospace;color:#cbd9e8}
+.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:12px}
+.step{border:1px solid var(--line);border-radius:11px;padding:9px 7px;text-align:center;
+color:#718097;background:#0d131c;font-size:10px;font-weight:750;transition:.25s}
+.step.active{color:#dff7ff;border-color:#4fb7d9;background:#143042;
+box-shadow:0 0 0 2px rgba(104,216,255,.08)}
+.step.done{color:#bff5d5;border-color:#337655;background:#112a20}
+.checks{display:grid;gap:7px}.check{display:grid;grid-template-columns:28px 1fr auto;
+align-items:center;gap:9px;border:1px solid var(--line);border-radius:11px;
+background:#0d141e;padding:9px}.icon{width:23px;height:23px;border-radius:50%;
+display:grid;place-items:center;font-size:11px;font-weight:900;background:#222d3c}
+.check.pending{opacity:.48}.check.pass .icon{background:#173d2b;color:var(--good)}
+.check.fail .icon{background:#48212a;color:var(--bad)}
+.check.hold .icon{background:#493b1d;color:var(--hold)}
+.check b{font-size:12px}.check p{margin:1px 0 0;color:var(--muted);font-size:10.5px}
+.tag{border:1px solid var(--line);padding:3px 7px;border-radius:999px;
+font-size:9px;color:var(--muted)}.decision{display:grid;place-items:center;
+border:1px solid var(--line);border-radius:14px;min-height:116px;text-align:center;
+margin-bottom:11px;background:#0b1119}.decision strong{font-size:28px;letter-spacing:.06em}
+.decision small{display:block;color:var(--muted);margin-top:2px}
+.decision.good{border-color:#2e8255;background:#0f251b}.decision.good strong{color:var(--good)}
+.decision.hold{border-color:#8b6e2f;background:#271f10}.decision.hold strong{color:var(--hold)}
+.decision.bad{border-color:#8d3743;background:#291319}.decision.bad strong{color:var(--bad)}
+.receipt{border:1px solid var(--line);border-radius:12px;background:#090e15;
+padding:11px;font:10.5px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;
+min-height:208px;overflow-wrap:anywhere}.receipt .key{color:#7c93aa}.receipt .val{color:#d9e7f5}
+.ledger{display:flex;gap:8px;overflow:auto;padding-bottom:5px;margin-top:10px}
+.node{min-width:108px;border:1px solid var(--line);background:#101824;
+border-radius:10px;padding:8px;font-size:9px}.node b{display:block;font-size:10px}
+.node span{color:var(--muted)}.node:after{content:"→";float:right;margin-right:-15px;
+margin-top:-28px;color:#526278}.node:last-child:after{content:""}
+.notice{margin-top:14px;border:1px solid #3a4657;border-radius:12px;
+background:rgba(12,17,25,.9);padding:10px 12px;color:#a9b4c3;font-size:11px}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:9px}.legend span{font-size:10px;
+color:var(--muted)}.dot{width:7px;height:7px;border-radius:50%;display:inline-block;
+margin-right:4px}.details{margin-top:10px}.details summary{cursor:pointer;color:#b9c9da;
+font-weight:700}.details p{color:var(--muted);font-size:11px}
+@media(max-width:1100px){.grid{grid-template-columns:290px 1fr}.right{grid-column:1/-1}
+.right .panel-body{display:grid;grid-template-columns:1fr 1.25fr;gap:12px}}
+@media(max-width:760px){.shell{padding:14px}.grid{grid-template-columns:1fr}
+.right{grid-column:auto}.right .panel-body{display:block}.flow{grid-template-columns:1fr}
+.step{text-align:left}.code{height:245px}header{display:block}.status{text-align:left;margin-top:10px}
+.watermark{position:static;display:inline-block;margin:10px 14px 0}}
+</style>
+</head>
+<body>
+<div class="watermark">GUARDIAN COMMUNITY DEMO · EVALUATION ONLY</div>
+<div class="shell">
+<header>
+  <div class="brand">
+    <div class="mark">G</div>
+    <div><div class="eyebrow">Manifest-first intake boundary</div>
+      <h1>Guardian Code Intake Checkpoint</h1>
+      <div class="sub">A visual explanation of how an untrusted Python artifact moves through manifest validation, static policy checks, decision, receipt creation, and a tamper-evident ledger.</div>
+    </div>
+  </div>
+  <div class="status"><strong>Visual Demonstration</strong><span>Built-in samples · No submitted code executes</span></div>
+</header>
+
+<div class="grid">
+<section class="panel">
+ <div class="panel-head"><h2>1 · Select Artifact</h2><span class="small">Untrusted input</span></div>
+ <div class="panel-body">
+  <div class="cases" id="cases"></div>
+  <button class="run" id="run">Run Intake Checkpoint</button>
+  <div class="legend">
+   <span><i class="dot" style="background:var(--good)"></i>pass</span>
+   <span><i class="dot" style="background:var(--hold)"></i>review</span>
+   <span><i class="dot" style="background:var(--bad)"></i>block</span>
+  </div>
+ </div>
+</section>
+
+<section class="panel">
+ <div class="panel-head"><h2>2 · Inspect Without Executing</h2><span class="small" id="artifactName">clean_local_math.py</span></div>
+ <div class="panel-body">
+  <div class="flow" id="flow">
+   <div class="step">READ BYTES</div><div class="step">MANIFEST GATE</div>
+   <div class="step">POLICY CHECKS</div><div class="step">DECISION</div>
+   <div class="step">RECEIPT + LEDGER</div>
+  </div>
+  <pre class="code" id="code"></pre>
+  <div class="checks" id="checks"></div>
+ </div>
+</section>
+
+<section class="panel right">
+ <div class="panel-head"><h2>3 · Result and Evidence</h2><span class="small">Policy-bound receipt</span></div>
+ <div class="panel-body">
+  <div>
+   <div class="decision" id="decision"><div><strong>READY</strong><small>Select a sample and run intake</small></div></div>
+   <div class="receipt" id="receipt"><span class="key">receipt:</span> <span class="val">waiting for scan</span></div>
+  </div>
+  <div>
+   <div class="small" style="font-weight:800;margin:2px 0 6px">LEDGER CHAIN</div>
+   <div class="ledger" id="ledger"><div class="node"><b>GENESIS</b><span>000000000000…</span></div></div>
+   <details class="details"><summary>What this visual proves</summary>
+    <p>It shows the order and meaning of Guardian’s intake process. It does not reproduce the full frozen Python analyzer in browser JavaScript. The packaged Guardian CLI is the authoritative scanner.</p>
+   </details>
+  </div>
+ </div>
+</section>
+</div>
+
+<div class="notice"><b>Security limitation:</b> Guardian may miss harmful, unsafe, or newly developed content. It helps identify risks based on checks performed at the time of scanning, but results are informational only and do not guarantee safety. A pass does not mean the content is completely safe.</div>
+</div>
+
+<script>
+const samples=[
+ {id:"clean",name:"Clean local calculation",file:"clean_local_math.py",outcome:"LET IN",tone:"good",
+  sub:"Valid manifest · local-only behavior",
+  code:`# --- MANIFEST BEGIN ---
+# name: Local Calculator
+# version: 1.0.0
+# purpose: Add two integers locally
+# dependencies: stdlib
+# --- MANIFEST END ---
+
+def add(a, b):
+    return a + b`,
+  checks:[
+   ["Manifest schema","pass","Complete and unambiguous"],
+   ["Python syntax","pass","Valid source structure"],
+   ["Network access","pass","No configured network evidence"],
+   ["File mutation","pass","No direct write operation"],
+   ["Process execution","pass","No shell, eval, exec, or loader evidence"],
+   ["Hardcoded secrets","pass","No configured pattern found"]
+  ]},
+ {id:"write",name:"Local report writer",file:"report_writer.py",outcome:"HOLD",tone:"hold",
+  sub:"Declared code contains a direct write",
+  code:`# --- MANIFEST BEGIN ---
+# name: Report Writer
+# version: 1.0.0
+# purpose: Write a local report
+# dependencies: stdlib
+# --- MANIFEST END ---
+
+with open("report.txt", "w") as handle:
+    handle.write("example")`,
+  checks:[
+   ["Manifest schema","pass","Complete and unambiguous"],
+   ["Python syntax","pass","Valid source structure"],
+   ["Network access","pass","No configured network evidence"],
+   ["File mutation","hold","Write-capable open mode detected"],
+   ["Process execution","pass","No configured execution evidence"],
+   ["Hardcoded secrets","pass","No configured pattern found"]
+  ]},
+ {id:"unsafe",name:"Unsafe process and network",file:"unsafe_runner.py",outcome:"REJECT",tone:"bad",
+  sub:"Network import · shell call · secret",
+  code:`# --- MANIFEST BEGIN ---
+# name: Unsafe Runner
+# version: 1.0.0
+# purpose: Demonstrate a blocked artifact
+# dependencies: requests
+# --- MANIFEST END ---
+
+import os
+import requests
+API_KEY = "abcdefgh12345678"
+os.system("echo unsafe")`,
+  checks:[
+   ["Manifest schema","pass","Complete and unambiguous"],
+   ["Python syntax","pass","Valid source structure"],
+   ["Network access","fail","Network-capable module detected"],
+   ["File mutation","pass","No direct write operation"],
+   ["Process execution","fail","os.system call detected"],
+   ["Hardcoded secrets","fail","Configured secret pattern detected"]
+  ]},
+ {id:"missing",name:"Missing manifest",file:"unidentified_script.py",outcome:"HOLD",tone:"hold",
+  sub:"Code is not admitted without identity",
+  code:`def harmless():
+    return "No manifest"`,
+  checks:[
+   ["Manifest schema","hold","Canonical manifest is absent"],
+   ["Python syntax","pass","Valid source structure"],
+   ["Network access","pass","No configured network evidence"],
+   ["File mutation","pass","No direct write operation"],
+   ["Process execution","pass","No configured execution evidence"],
+   ["Hardcoded secrets","pass","No configured pattern found"]
+  ]}
+];
+let selected=0,running=false,ledger=[];
+const $=s=>document.querySelector(s);
+function renderCases(){
+ $("#cases").innerHTML=samples.map((s,i)=>`<button class="case ${i===selected?"active":""}" data-i="${i}"><b>${s.name}</b><span>${s.sub}</span></button>`).join("");
+ document.querySelectorAll(".case").forEach(b=>b.onclick=()=>{if(running)return;selected=+b.dataset.i;renderCases();renderSelected();});
+}
+function renderSelected(){
+ const s=samples[selected];$("#artifactName").textContent=s.file;$("#code").textContent=s.code;
+ $("#checks").innerHTML=s.checks.map(c=>`<div class="check pending"><div class="icon">·</div><div><b>${c[0]}</b><p>Waiting for policy evaluation</p></div><span class="tag">PENDING</span></div>`).join("");
+ $("#decision").className="decision";$("#decision").innerHTML="<div><strong>READY</strong><small>Run the intake checkpoint</small></div>";
+ $("#receipt").innerHTML='<span class="key">receipt:</span> <span class="val">waiting for scan</span>';
+ [...document.querySelectorAll(".step")].forEach(x=>x.className="step");
+}
+async function digest(text){const data=new TextEncoder().encode(text);const hash=await crypto.subtle.digest("SHA-256",data);return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,"0")).join("")}
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+async function run(){
+ if(running)return;running=true;$("#run").disabled=true;
+ const s=samples[selected],steps=[...document.querySelectorAll(".step")],checks=[...document.querySelectorAll(".check")];
+ steps[0].classList.add("active");await pause(350);steps[0].className="step done";
+ steps[1].classList.add("active");await pause(420);steps[1].className="step done";
+ steps[2].classList.add("active");
+ for(let i=0;i<checks.length;i++){await pause(180);const c=s.checks[i];checks[i].className="check "+c[1];checks[i].querySelector(".icon").textContent=c[1]==="pass"?"✓":c[1]==="hold"?"!":"×";checks[i].querySelector("p").textContent=c[2];checks[i].querySelector(".tag").textContent=c[1].toUpperCase()}
+ await pause(220);steps[2].className="step done";steps[3].classList.add("active");await pause(350);
+ $("#decision").className="decision "+s.tone;$("#decision").innerHTML=`<div><strong>${s.outcome}</strong><small>${s.outcome==="LET IN"?"Configured checks passed":s.outcome==="HOLD"?"Manual review required":"Admission blocked"}</small></div>`;
+ steps[3].className="step done";steps[4].classList.add("active");
+ const fileHash=await digest(s.code),policyHash=await digest("Guardian visual policy v0.6"),prev=ledger.length?ledger[ledger.length-1].hash:"0".repeat(64);
+ const receiptBase=JSON.stringify({file:fileHash,policy:policyHash,outcome:s.outcome,previous:prev});
+ const slipHash=await digest(receiptBase);
+ const receipt={id:"visual-"+String(ledger.length+1).padStart(3,"0"),file:s.file,outcome:s.outcome,fileHash,policyHash,previous:prev,hash:slipHash};
+ ledger.push(receipt);
+ $("#receipt").innerHTML=`<span class="key">slip_id:</span> <span class="val">${receipt.id}</span><br>
+<span class="key">artifact:</span> <span class="val">${receipt.file}</span><br>
+<span class="key">outcome:</span> <span class="val">${receipt.outcome}</span><br>
+<span class="key">file_sha256:</span> <span class="val">${fileHash}</span><br>
+<span class="key">policy_sha256:</span> <span class="val">${policyHash}</span><br>
+<span class="key">previous:</span> <span class="val">${prev}</span><br>
+<span class="key">slip_sha256:</span> <span class="val">${slipHash}</span>`;
+ renderLedger();await pause(300);steps[4].className="step done";running=false;$("#run").disabled=false;
+}
+function renderLedger(){
+ $("#ledger").innerHTML='<div class="node"><b>GENESIS</b><span>000000000000…</span></div>'+ledger.map(r=>`<div class="node"><b>${r.id}</b><span>${r.outcome}<br>${r.hash.slice(0,12)}…</span></div>`).join("");
+ $("#ledger").scrollLeft=$("#ledger").scrollWidth;
+}
+$("#run").onclick=run;renderCases();renderSelected();
+</script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+NATURAL MATH / CNTM PYTHON COLLECTION AUDIT
+========================================================================================
+Source archive: Natural math python zip.zip
+Files in archive: 83
+
+KEY FINDING
+----------------------------------------------------------------------------------------
+cntm_domain_application_v3_0f.py is genuine cumulative v3.0F source.
+It contains the v2.4 foundation, then CNTM Domain Application v3.0, then the v3.0F
+adversarial qualification and infrastructure-freeze section. Its unchanged top header
+identifies the embedded foundation, not the complete cumulative file.
+SHA-256: b65f5b88054b3a897d0ce0f577daf803c5f2f296349d7614be547e5d3e72287d
+
+KEEPER CHECK
+----------------------------------------------------------------------------------------
+PRESENT  natural_math_v10_3_2_ONLINE_STANDALONE.py
+PRESENT  natural_math_v12_0_RC3_ADAPTER_SUBSTITUTION.py
+PRESENT  natural_math_v12_0_RC16_AUTHORITY_SET_PARTITIONS_QUORUM_EPOCH_RECOVERY.py
+PRESENT  natural_math_v12_0_RC17_FORGED_EVIDENCE_CONFLICTING_TRANSITION_CERTIFICATES.py
+PRESENT  natural_math_v12_0_RC18_MULTI_POOL_TRANSITION_GRAPHS_DEPENDENCY_SAFE_RECOVERY.py
+PRESENT  natural_math_v12_0_RC19_BOUNDED_LIVENESS_REPEATED_CONFLICT_LEASE_CHURN.py
+PRESENT  natural_math_v12_0_RC20_INTEGRATED_ADVERSARIAL_CAMPAIGN_COMPOSED_FAULT_MATRIX.py
+PRESENT  natural_math_v12_0_RC21_FINAL_COMPATIBILITY_REPLAY_RELEASE_FREEZE.py
+PRESENT  cntm_finite_ternary_v1_3f.py
+PRESENT  cntm_application_layer_v2_0.py
+MISSING  cntm_application_layer_v2_1.py
+PRESENT  cntm_application_layer_v2_2.py
+PRESENT  cntm_application_layer_v2_3.py
+PRESENT  cntm_application_layer_v2_4.py
+PRESENT  cntm_domain_application_v3_0.py
+PRESENT  cntm_domain_application_v3_0f.py
+PRESENT  cntm_3d_persistence_v0_1.py
+PRESENT  cntm_3d_persistence_v0_2.py
+PRESENT  cntm_3d_persistence_v0_3.py
+PRESENT  cntm_3d_persistence_v0_4.py
+PRESENT  cntm_3d_persistence_v0_5.py
+
+EXACT DUPLICATES
+----------------------------------------------------------------------------------------
+61d65185d9fc35a5a32f466bc4932af2f39fa1bd37bddab775129bbdb475a2ae  ::  nm_v381_mutual_deficit_bonding.py | scream simulation for nodes.py
+856fa3a632d455d4c14ef5b743f61c0b333ca50b3012b9d2243a04822c013308  ::  adapter_regression.py | adapter_regression.py.py
+
+SYNTAX WARNINGS
+----------------------------------------------------------------------------------------
+Bifurcation.py: IndentationError: unexpected indent (Bifurcation.py, line 1)
+Bonding.py: IndentationError: unexpected indent (Bonding.py, line 1)
+Death.py: IndentationError: unexpected indent (Death.py, line 1)
+Metabolism.py: IndentationError: unexpected indent (Metabolism.py, line 1)
+Move.py: IndentationError: unexpected indent (Move.py, line 1)
+NIGHT CONSERVATION.py: IndentationError: unexpected indent (NIGHT CONSERVATION.py, line 7)
+Pressure.py: IndentationError: unexpected indent (Pressure.py, line 1)
+Stored consumption.py: IndentationError: unexpected indent (Stored consumption.py, line 1)
+SymLan-Governed Natural Math Persistence v1.0.py: SyntaxError: unmatched ')' (SymLan-Governed Natural Math Persistence v1.0.py, line 702)
+
+COMPLETE INVENTORY
+----------------------------------------------------------------------------------------
+SIZE     SHA-256                                                          STATUS       FILENAME
+3531     5f7896a426271886e186d34fd09753809917897bc6cbed401acfdca644cc0f65  SYNTAX_OK  3.1 Natural Math Domain.py
+4469     c6e3861e82deed950c2dd9711993e95f63251d3800f34d3aa9ef9e942b1320cb  SYNTAX_OK  3.2 SymLan Resonance Domain.py
+21808    856fa3a632d455d4c14ef5b743f61c0b333ca50b3012b9d2243a04822c013308  SYNTAX_OK  adapter_regression.py
+21808    856fa3a632d455d4c14ef5b743f61c0b333ca50b3012b9d2243a04822c013308  SYNTAX_OK  adapter_regression.py.py
+160      a2028a5e96411d442300cd5bcc84d3e4e5fd6169bc52c0860b9018df9ab1a4dc  IndentationError: unexpected indent (Bifurcation.py, line 1)  Bifurcation.py
+305      1f0ab919023f4353dd0dbcf6c0c98296607f8aebb61e1da44833719784da127e  IndentationError: unexpected indent (Bonding.py, line 1)  Bonding.py
+9790     c7eb04a377e8a4f23ffdf51b7451e05416e799186fb7b6d2b870481f1c6cb915  SYNTAX_OK  build_natural_math_v5_consolidated.py
+17738    c016fe76d7c97ab0840618b6aa090b42172dcda1ef3f5beb3d279a9636fb1e8c  SYNTAX_OK  Cluster Energy Network v7.2.1.py
+45293    1077dd8caca8bf695de1937186db07235617be360c1e7d1edb50ccd5c1c8833f  SYNTAX_OK  cntm_3d_persistence_v0_1.py
+57290    dd1fe04b23759a7335012c1bb4a19fd9c495b236adbf4505bdbd8a269b816a78  SYNTAX_OK  cntm_3d_persistence_v0_2.py
+73940    bbef7f5d4d92f13c6fcaa4240eafe4441aad741e50ea75095fe9277669675e9e  SYNTAX_OK  cntm_3d_persistence_v0_3.py
+83690    89ca84f667caa615d6b5ce516e3fb238409450b96a5aa9495a9d07d831e56599  SYNTAX_OK  cntm_3d_persistence_v0_4.py
+90800    bc32dcd643c3919b4b9d2d475418630553cd982ddafc36deb66f4519e7f59978  SYNTAX_OK  cntm_3d_persistence_v0_5.py
+80405    548a45ccddf557c825d169010899ccc0665fd90a862ff414c7f912f2ad56a5a4  SYNTAX_OK  cntm_application_layer_v2_0.py
+88159    da84cf8ee88ae15e84ce3c6b231112c89acacf258ff4e198a0e11ac75409fb2a  SYNTAX_OK  cntm_application_layer_v2_2.py
+90622    9ff7dd9ea51b1d29e82eb51829e28fb4fd999070e18642aaa0dd98238aeaec9d  SYNTAX_OK  cntm_application_layer_v2_3.py
+99782    895bc3e3208b15902cb77ea9b0be3d58f5563f5b8cd115dc3f0544df5684e6dd  SYNTAX_OK  cntm_application_layer_v2_4.py
+118313   93683d4d645f109eea073bb76b85d7652ebdcb521108ac810539f0d7600aa8bc  SYNTAX_OK  cntm_domain_application_v3_0.py
+137096   b65f5b88054b3a897d0ce0f577daf803c5f2f296349d7614be547e5d3e72287d  SYNTAX_OK  cntm_domain_application_v3_0f.py
+69188    5da5b735340efb0820c56a58d2a8103fe10bd53cba819a6054f135f126ea1955  SYNTAX_OK  cntm_finite_ternary_v1_3f.py
+14372    faab8d0ddd8df044e294904422ac8e53880de47ff1b3ffe628f6ef13e3bef267  SYNTAX_OK  crystal_starter.py
+105      2afaf97a40dcf4ade685d60f1ffa745fdced78d9140fa8e79a53cb1cf220397a  IndentationError: unexpected indent (Death.py, line 1)  Death.py
+12382    b2d48e5618fb3a944a35d79659f69e6308d76202bed5dc62777988ac8bcc4e47  SYNTAX_OK  deepseek_python.py
+8383     ab56c4d61118f9ab88cd989c5214e85aa234e25f36f9c051e04a35b4589e9238  SYNTAX_OK  encoder_message_decoder.py
+6329     b75dce640be45d21fadfd0462c7376d8c0a5f7128a5fc8f7c21f787730fc36fd  SYNTAX_OK  encoder_message_decoder_poc.py
+19808    c644181458117b272655a574259402a421647cb82255b74b1d01387162f13742  SYNTAX_OK  Generational Accumulation (Paired Control) Natural Math v0.6.7.py
+8827     801085c72c3711ab94143a47eaf7144ac9f2fcc10370d060a22c73ffb74986cc  SYNTAX_OK  jacobian_conjecture_verification.py
+9858     d27fc15ceb4923e0d5401ff1192e52ad1b63eea5e1525c91c866811fad219142  SYNTAX_OK  main.py
+138      2ca27a64ecd0b8c3caaa9f202b78a04a3cb90ac88627aa485728dd0e53341e33  IndentationError: unexpected indent (Metabolism.py, line 1)  Metabolism.py
+17403    5a20d58b459a8b9f0dce8cba0c311f71b160021fdb3c7bfaf11950bd27bed2fb  SYNTAX_OK  Monkey Banana Amoebas forage.py
+18258    c5dda74b5837f4b967002f0bccd1382042ac9922e871b1534a19c1f4ef29a2b5  SYNTAX_OK  Monte Carlo runner.py
+19173    8a88ffd2149ddd226fc2c9bfb633da9c54df13d3358cf94ea897f87523a3927a  SYNTAX_OK  Monte Carlo runnerer.py
+104      659ceda32708b884fafa9ee7975c32e857c273addc82b981081afe444aabf8d1  IndentationError: unexpected indent (Move.py, line 1)  Move.py
+22269    925b6a392178da18382de880d89426f3ee13906f5e76d4ea9de1b2dc919a4521  SYNTAX_OK  Must test on laptop.py
+40831    8babf8eb8592be161aeeeca0a920dfaa245489327affc9f63845355ce0f82994  SYNTAX_OK  Natural Math Full Implementation v1.0.py
+76132    9c567a6f424bd0bf9c4672621de70c7230cb415599a5a1738a290ff4257c20c6  SYNTAX_OK  Natural Math v10.3.2 — Stable Exploration Core.py
+31406    dbd1816a9ec70764bd226d21eab4bd4bc2f896bcccf892dda866227aaea22068  SYNTAX_OK  Natural Math v6.1 Full v5 Oracle Regression.py
+31816    c968f7f37ffe9a4165cbb44374993d6b9bd08cf061a0897d8c53874682f75dd1  SYNTAX_OK  natural_math_base_v1_0_frozen_reference.py
+73379    24f1e87133d7280186e76e40c9c7c237dbf443b01ae2e1fdb21d085f9c0ebd25  SYNTAX_OK  natural_math_boundary_mapping_v10_3_COMPUTER_FULL(2).py
+45610    56e7221b3570588b15c3de9017ce7f1dcd052b8f6e8e2d16339312cb5763e9f7  SYNTAX_OK  natural_math_cluster_oracle_runner.py
+51714    180a38df5d1552f46f29306feef2ab4158f7a4e39a5c3022b5c12360215669d9  SYNTAX_OK  natural_math_cluster_oracle_runner_directed_flow_edges.py
+30207    ebed813ff310cbb09da0fcad65161aacd39460b677f21a94396d6dee40c25999  SYNTAX_OK  natural_math_integer_oracle_runner.py
+19440    a12d0cb999d6496572a1d25a3a826bf8afadc302d96e99fb90573bd168cacad8  SYNTAX_OK  natural_math_persistence_tests.py
+6707     a7b4e345ad49ee83e6a837e05d59f8c933d8ca455c18c63a24b1e829ce452424  SYNTAX_OK  natural_math_scale_gate_4_runner.py
+11649    5bdf864bcf743cc3471519d2fcb92bb79dd65fa1a2087079731863933ad19635  SYNTAX_OK  natural_math_scale_gate_5_runner.py
+20736    120d962ee6ad854805eaf7b08c535d1e3f33dd6e8d54c70d7442ed2479cf6590  SYNTAX_OK  natural_math_scale_gate_6_runner.py
+9903     6347076578a6c6d3f22c83d37a5b29300f62d8b0420ecaa1a2279ec86a83be20  SYNTAX_OK  natural_math_scale_gate_7_8_runner.py
+2745     813f3a7e3eee38b0fd218139132882d312dbaf028c4d652aef84ed140573fd5c  SYNTAX_OK  natural_math_scale_gate_7_runner.py
+2825     767fc81d1eb0ef39f990b4447ca9e0ffdd0315ca2ca3ad0f55504a5c91299191  SYNTAX_OK  natural_math_scale_gate_8_runner.py
+9362     5d29df61f4986b8f69e1e44ab7818247e7bf3a61328100f01f001154c9adf632  SYNTAX_OK  natural_math_scale_gate_runner.py
+57311    82ea928e4ea37e26089a12802d00423c509dee3b00178864eb225d68856783dd  SYNTAX_OK  Natural_Math_Seed_and_Grow_Crystal_v6_INSTRUMENTED_VACUUM.py
+24105    3fdd78bd7b1627815176d853ee0dba5c7b9047a7904e9b004acfdd36da4259cf  SYNTAX_OK  natural_math_Stage_5_frozen.py
+25453    e34d8730c5be417a0a6ab43de74328c73a5eaf4c812e6eaf6f32ad0c38f92ce9  SYNTAX_OK  natural_math_v0_6_9_fixed_goal_second_stage.py
+79413    480d9cdd8115867878d90a97afe51537f25b50a04602da5c34e2cea2a5b51bd6  SYNTAX_OK  natural_math_v10_3_2_ONLINE_STANDALONE.py
+13619    262fa239368083b24684e6199f2f6deb26cd8dc952f127ad0b79e4b7d2483595  SYNTAX_OK  natural_math_v12_0_RC16_AUTHORITY_SET_PARTITIONS_QUORUM_EPOCH_RECOVERY.py
+16050    d134288199f8ac2d2b13f260b92de14b525e03b65838b3702b2b0584427a5a36  SYNTAX_OK  natural_math_v12_0_RC17_FORGED_EVIDENCE_CONFLICTING_TRANSITION_CERTIFICATES.py
+15541    7532e1fabc12c01c7cb73964f95f00108560000474e12e4eadaaa26c76e93116  SYNTAX_OK  natural_math_v12_0_RC18_MULTI_POOL_TRANSITION_GRAPHS_DEPENDENCY_SAFE_RECOVERY.py
+10505    8b36e5e02f149211f614427a8d989e6332d9a937ade25487f8a87fd17f608c7e  SYNTAX_OK  natural_math_v12_0_RC19_BOUNDED_LIVENESS_REPEATED_CONFLICT_LEASE_CHURN.py
+14553    d499d3b8707495735544e3fa855ca4fa43632c1303f7baa2a10ec7538f2f42b7  SYNTAX_OK  natural_math_v12_0_RC20_INTEGRATED_ADVERSARIAL_CAMPAIGN_COMPOSED_FAULT_MATRIX.py
+11415    97c75d0035b2844287e902a0df9bbbb804d37691be02512e0ab98c119106b863  SYNTAX_OK  natural_math_v12_0_RC21_FINAL_COMPATIBILITY_REPLAY_RELEASE_FREEZE.py
+25888    921d94819cc81b28fd3e0c102706432336bfbafc32eb427b2951b20766f21e53  SYNTAX_OK  natural_math_v12_0_RC3_ADAPTER_SUBSTITUTION.py
+19931    e85f4973ccc9523f095b2be31ce7f4bee55425a3df761605e8e4419cfc6e58bf  SYNTAX_OK  natural_math_v53_v3.py
+31011    c728bff0abe876c517594bf98bf4ee0864bfddb5a20551095d9017e25108f500  SYNTAX_OK  natural_math_v61_adapter_harness_gate4.py
+38060    16c49c25574da97d2374de348f4a80bcad0960b2c8d7c3ccc8bcf1ff1f18f0d9  SYNTAX_OK  natural_math_v61_gate6.py
+28749    7fa59fd9ab332dd0434fad5d20b4d491eaff92cb96502429e593c2ecd9b06b93  SYNTAX_OK  natural_math_v6_15_s8c_cap25_frozen.py
+31087    3f68005945b23ebf1cf037e6c864e530b6bdbce49610c0bc911ea32d64f675ec  SYNTAX_OK  natural_math_v6_18_s10_2a_scout_audit_scream.py
+45343    c6f461c36a1ce4f1fd8176316eaa66895959cd7cc21a7634a69b11974157601f  SYNTAX_OK  Natural_Math_v6_1_Full_v5_Oracle_Regression.py
+836      2621ec09b427f65be9127d5fa4d9ecd08e39b1cea94133cbdebb5e30153fe507  IndentationError: unexpected indent (NIGHT CONSERVATION.py, line 7)  NIGHT CONSERVATION.py
+6146     61d65185d9fc35a5a32f466bc4932af2f39fa1bd37bddab775129bbdb475a2ae  SYNTAX_OK  nm_v381_mutual_deficit_bonding.py
+270      28e1873fb3644f6b247326829435f9c2e809ec0679c4d5ef446fac06b34bd6b0  IndentationError: unexpected indent (Pressure.py, line 1)  Pressure.py
+17012    5a7e075e22ab3878fd7b854e1e48acbae3eb171b422840b62c7897d171e8609e  SYNTAX_OK  python3 natural_math_trail_memory.py
+14557    0d4e81135e48b5a7a8b2b13d8568d0b8cacf15be86ec4adad937da1d6a3d2114  SYNTAX_OK  Qwen_python_20260719_m5rngmdab CONFIGURATOR v0.4.py
+15538    8654a6ed890f751c0ec7b93cf1c74f3372789f7dde661ad3f4f85cd42cb149fa  SYNTAX_OK  Roles (A3) Validation Script — Final Version.py
+26191    18224edde4621352231e439c33f02664d03555ff89916a5c16f6c63b5436af81  SYNTAX_OK  s10_2c_clean.py
+32418    c5b94e188f3b70611b791f93256693d072cd3bfde4d2ce2bdea908afb06d4666  SYNTAX_OK  s10_5_diagnostic.py
+6146     61d65185d9fc35a5a32f466bc4932af2f39fa1bd37bddab775129bbdb475a2ae  SYNTAX_OK  scream simulation for nodes.py
+22064    ce088c3e076e4c6687189f9146a58a918729b2751e0704e72bb2f9ceb284d45f  SYNTAX_OK  stage10_to_specificity_poc.py
+272      e281861145327300373025617f843d9304bdd396bd057af7249c343a8227f79e  IndentationError: unexpected indent (Stored consumption.py, line 1)  Stored consumption.py
+136125   7790755099c2deff0c4b6918175235cacb6c416f61a8ace43a6f57666ebb1b3c  SyntaxError: unmatched ')' (SymLan-Governed Natural Math Persistence v1.0.py, line 702)  SymLan-Governed Natural Math Persistence v1.0.py
+25090    3e430aab48cd7627a265c488520cd072c0a61f98628e85af3425f7493b20a666  SYNTAX_OK  symlan_governed_persistence_v1 (1).py
+24795    98f9317727154cca3614f4d85b998fe671150f8174a03b23d8dc6beef3891c1f  SYNTAX_OK  symlan_governed_persistence_v1.py
+6346     bba0df5a8bd954d3f062f2ccef5a0705a92a9a8785b34d6b778d86a90097f114  SYNTAX_OK  Tuple.py
+10492    14d3f4b5ff9aef2aff9341d4439da1f487818cc956c62fbc6932757b1c4c3567  SYNTAX_OK  Universal Pattern Test Harness.py

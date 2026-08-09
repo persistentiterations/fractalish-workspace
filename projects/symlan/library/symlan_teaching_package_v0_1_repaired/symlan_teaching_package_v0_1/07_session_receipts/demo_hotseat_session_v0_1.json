@@ -1,0 +1,173 @@
+{
+  "schema_version": "symlan.hotseat_session.v0.1",
+  "hal_profile": "spatial_temporal.projected_3space.v0.1",
+  "initial_state_digest": "fnv1a32:708e17e0",
+  "initial_state": {
+    "schema_version": "symlan.playable_state.v0.1",
+    "hal_profile": "spatial_temporal.projected_3space.v0.1",
+    "gate": {
+      "outcome": "proceed",
+      "T_obs": 1.007559,
+      "focus_pair": [
+        "Alpha",
+        "basin_center"
+      ]
+    },
+    "board": {
+      "width": 7,
+      "height": 5,
+      "adjacency": "orthogonal4"
+    },
+    "slice": {
+      "S": 1,
+      "S_max": 64
+    },
+    "clock": {
+      "turn_node": "Alpha",
+      "round": 1,
+      "discovery_closed": true
+    },
+    "nodes": [
+      {
+        "id": "Alpha",
+        "cell": {
+          "x": 2,
+          "y": 4
+        },
+        "status": "active"
+      },
+      {
+        "id": "Beta",
+        "cell": {
+          "x": 5,
+          "y": 1
+        },
+        "status": "active"
+      },
+      {
+        "id": "basin_center",
+        "cell": {
+          "x": 3,
+          "y": 2
+        },
+        "status": "active"
+      }
+    ],
+    "vocabulary": {
+      "id": "V",
+      "status": "resolved",
+      "states": [
+        {
+          "state_id": "S1"
+        }
+      ]
+    },
+    "receipts_tip": "GENESIS"
+  },
+  "events": [
+    {
+      "n": 1,
+      "type": "stay",
+      "actor": "Alpha",
+      "detail": {},
+      "gate": "proceed",
+      "S_after": 1,
+      "prev": "GENESIS",
+      "hash": "local:e2e4f002"
+    },
+    {
+      "n": 2,
+      "type": "move",
+      "actor": "Beta",
+      "detail": {
+        "from": {
+          "x": 5,
+          "y": 1
+        },
+        "to": {
+          "x": 5,
+          "y": 2
+        }
+      },
+      "gate": "proceed",
+      "S_after": 2,
+      "prev": "local:e2e4f002",
+      "hash": "local:b3059db9"
+    },
+    {
+      "n": 3,
+      "type": "move",
+      "actor": "Alpha",
+      "detail": {
+        "from": {
+          "x": 2,
+          "y": 4
+        },
+        "to": {
+          "x": 2,
+          "y": 3
+        }
+      },
+      "gate": "proceed",
+      "S_after": 3,
+      "prev": "local:b3059db9",
+      "hash": "local:f8d29af9"
+    },
+    {
+      "n": 4,
+      "type": "stay",
+      "actor": "Beta",
+      "detail": {},
+      "gate": "proceed",
+      "S_after": 3,
+      "prev": "local:f8d29af9",
+      "hash": "local:6be26aa1"
+    },
+    {
+      "n": 5,
+      "type": "strike_hold_blocked",
+      "actor": "Alpha",
+      "detail": {
+        "target": "basin_center"
+      },
+      "gate": "hold",
+      "S_after": 3,
+      "prev": "local:6be26aa1",
+      "hash": "local:e0d78a84"
+    }
+  ],
+  "final_tip": "local:e0d78a84",
+  "final_snapshot": {
+    "nodes": [
+      {
+        "id": "Alpha",
+        "cell": {
+          "x": 2,
+          "y": 3
+        },
+        "status": "active"
+      },
+      {
+        "id": "Beta",
+        "cell": {
+          "x": 5,
+          "y": 2
+        },
+        "status": "active"
+      },
+      {
+        "id": "basin_center",
+        "cell": {
+          "x": 3,
+          "y": 2
+        },
+        "status": "active"
+      }
+    ],
+    "slice_S": 3,
+    "turn_node": "Beta",
+    "round": 3,
+    "gate_outcome": "proceed"
+  },
+  "claim_boundary": "toy session log only"
+}

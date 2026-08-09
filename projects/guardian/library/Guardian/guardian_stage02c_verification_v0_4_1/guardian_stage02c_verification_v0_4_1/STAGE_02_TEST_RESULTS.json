@@ -1,0 +1,43 @@
+{
+  "stage": "Stage 02 Analyzer Correctness Hardening",
+  "version": "0.4.0",
+  "compile_passed": true,
+  "all_unittests_passed": true,
+  "tests_run": 53,
+  "sample_results": [
+    {
+      "file": "clean.py",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "passed": true
+    },
+    {
+      "file": "hold_file_write.py",
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "passed": true
+    },
+    {
+      "file": "reject_unsafe.py",
+      "expected_exit": 3,
+      "actual_exit": 3,
+      "passed": true
+    },
+    {
+      "file": "missing_manifest.py",
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "passed": true
+    }
+  ],
+  "all_sample_regressions_passed": true,
+  "ledger_replay_passed": true,
+  "ledger_replay_output": "Ledger replay passed. Chain integrity confirmed.",
+  "known_limits": [
+    "No complete control-flow or data-flow analysis",
+    "No complete de-obfuscation",
+    "No runtime sandboxing",
+    "Dynamic values may remain unresolved"
+  ],
+  "stage_02_freeze_passed": true
+}

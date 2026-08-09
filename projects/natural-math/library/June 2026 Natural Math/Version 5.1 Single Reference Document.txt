@@ -1,0 +1,404 @@
+**Natural Math v3.8.1 — Signal-Based Coordination Extension with Crystal Growth Variant**
+
+**Version 5.1 | Single Reference Document**
+
+---
+
+## Part 0: Document Purpose and Scope
+
+This document consolidates two extensions to Natural Math v3.8.1 into one self-contained reference:
+
+- **Extension A (Coordination & Bonding):** Fixed-node signal-based attraction/repulsion with bonding lock, producing persistent small clusters ("the stick").
+- **Extension B (Crystal Growth Variant):** Flexible-bond, open-finite-energy, surface-growth version that produces emergent crystalline structures.
+
+All terms are defined exactly once. No symbol carries two meanings. Where a term is reused from the core specification, its provenance is declared.
+
+**Mathematical Frame:** All quantities remain in ℤ or ℚ (integers or rationals). All operations are Turing-computable. No reals, no limits, no infinities.
+
+---
+
+## Part 1: Shared Foundations (Retained from Natural Math v3.8.1)
+
+These definitions are identical in both extensions and the core specification.
+
+### 1.1 Geometry
+
+Quadrance between two positions:
+
+\[
+Q(\mathbf{p}_1, \mathbf{p}_2) = \|\mathbf{p}_1 - \mathbf{p}_2\|^2 \tag{1.1}
+\]
+
+Distance:
+
+\[
+d(\mathbf{p}_1, \mathbf{p}_2) = \sqrt{Q(\mathbf{p}_1, \mathbf{p}_2)} \tag{1.2}
+\]
+
+Positions are in ℤ² or ℤ³ (Extension A) or ℚ² (Extension B). Sense radius \(R\) bounds local neighbourhoods.
+
+### 1.2 Node Structure
+
+Each node has:
+- **id:** unique integer identifier
+- **pos:** position vector
+- **energy:** \(E_i \in \mathbb{Q}_{\ge 0}\), finite resource per node
+- **type_sig:** \(s_i \in \{-1, 0, +1\}\) (defined in Part 2)
+
+### 1.3 Energy
+
+\(E_0\) = initial energy per node (shared parameter). Energy is never created within the system. Total energy (nodes + external reservoir) is non-increasing:
+
+\[
+\sum_i E_i(t) + E_{\text{res}}(t) \le \sum_i E_i(0) + E_{\text{res}}(0) \tag{1.3}
+\]
+
+---
+
+## Part 2: Signal Type System (Both Extensions)
+
+### 2.1 Type Assignment
+
+Each node carries a signal type:
+
+\[
+s_i \in \{-1, 0, +1\} \tag{2.1}
+\]
+
+- \(+1\) and \(-1\) are complementary polarities.
+- \(0\) is neutral.
+- Bonding occurs only between complementary types (\(s_i = -s_j\), both non-zero).
+
+### 2.2 Energy Deficit
+
+\[
+\delta_i = \max\left(0, \frac{E_0 - E_i}{E_0}\right) \tag{2.2}
+\]
+
+- \(\delta_i = 0\): full capacity.
+- \(\delta_i = 1\): fully depleted.
+- **Distress threshold:** \(\delta_i > 0.8\) triggers repulsive signalling.
+- **Complementary threshold:** \(\delta_i \le 0.6\) permits attraction.
+
+---
+
+## Part 3: Extension A — Coordination and Bonding ("The Stick")
+
+### 3.1 Signal Encoding
+
+\[
+\sigma_i = 
+\begin{cases}
++\alpha_{\text{comp}}, & s_i \neq 0,\ \delta_i \le 0.6,\ \text{complement nearby} \\
+-\beta_{\text{distress}}, & \delta_i > 0.8 \\
+-\gamma_{\text{default}}, & \text{otherwise}
+\end{cases} \tag{3.1}
+\]
+
+Parameters: \(\alpha_{\text{comp}} = 60,\ \beta_{\text{distress}} = 100,\ \gamma_{\text{default}} = 10\).
+
+### 3.2 Signal Transmission
+
+Signal from node \(i\) arrives at node \(j\) with:
+
+\[
+\text{attenuation}_{i \to j} = \exp(-\lambda \cdot d_{ij}) \tag{3.2}
+\]
+
+\[
+\text{delay}_{i \to j} = \frac{d_{ij}}{v_s} \tag{3.3}
+\]
+
+Parameters: \(\lambda = 0.1,\ v_s = 2.0\). Only nodes within \(R\) are considered.
+
+### 3.3 Weighted Decoding
+
+Effective force on node \(j\) from node \(i\):
+
+\[
+F_{i \to j} = \frac{\sigma_i}{Q(\mathbf{p}_i, \mathbf{p}_j) + \varepsilon} \times 
+\begin{cases}
+3, & s_i = -s_j \ \text{and}\ s_i \neq 0 \\
+1, & \text{otherwise}
+\end{cases} \tag{3.4}
+\]
+
+Net social force vector:
+
+\[
+\mathbf{F}_j = \sum_{i \neq j} F_{i \to j} \cdot \frac{\mathbf{p}_i - \mathbf{p}_j}{d_{ij}} \tag{3.5}
+\]
+
+Movement gradient (replaces core COMPUTE_GRADIENT):
+
+\[
+\mathbf{g}_j = \frac{\mathbf{F}_j}{\|\mathbf{F}_j\|}, \quad \|\mathbf{F}_j\| > 0 \tag{3.6}
+\]
+
+### 3.4 Bonding (Position Lock)
+
+When complementary nodes satisfy \(0 < Q(\mathbf{p}_i, \mathbf{p}_j) \le 4\) and both have free bond slots (\(\text{max\_bonds} = 3\)):
+
+1. Energy equalisation:
+   \[
+   E_i' = E_j' = \frac{E_i + E_j}{2} \tag{3.7}
+   \]
+2. Position lock:
+   \[
+   \mathbf{p}_j \leftarrow \mathbf{p}_i \tag{3.8}
+   \]
+3. Bond registration: each records partner's ID.
+
+### 3.5 Energy Dynamics
+
+Fixed cost per step:
+
+\[
+\Delta E_{\text{step}} = \eta = 0.5 \tag{3.9}
+\]
+
+External reservoir (open finite):
+
+\[
+\frac{dE_i}{dt}\bigg|_{\text{ext}} = \kappa,\quad E_{\text{res}} > 0 \tag{3.10}
+\]
+
+\[
+\frac{dE_{\text{res}}}{dt} = -\sum_{\text{feeding}} \kappa,\quad E_{\text{res}} \ge 0 \tag{3.11}
+\]
+
+### 3.6 Emergent Behavior
+
+Produces persistent clusters of 2–4 nodes ("the stick"). Bonded pairs resist dispersal. No extended lattice forms.
+
+---
+
+## Part 4: Extension B — Crystal Growth Variant (v5.1)
+
+Extension B modifies the bonding and growth rules to permit emergent crystalline structures while retaining the signal-type system (Part 2).
+
+### 4.1 Bonding (Flexible Spring)
+
+**Replaces** Equation 3.8 (position lock). Bonded nodes are maintained at an equilibrium distance:
+
+\[
+\text{stretch}_{ij} = d_{ij} - B_{\text{target}} \tag{4.1}
+\]
+
+\[
+\text{correction}_{ij} = 
+\begin{cases}
+0, & |\text{stretch}_{ij}| \le s_{\text{slack}} \\
+c_{\text{spring}} \cdot \text{stretch}_{ij} \cdot \frac{\mathbf{p}_j - \mathbf{p}_i}{d_{ij}}, & \text{otherwise}
+\end{cases} \tag{4.2}
+\]
+
+Positions updated symmetrically:
+
+\[
+\mathbf{p}_i \leftarrow \mathbf{p}_i + \frac{1}{2}\text{correction}_{ij},\quad
+\mathbf{p}_j \leftarrow \mathbf{p}_j - \frac{1}{2}\text{correction}_{ij} \tag{4.3}
+\]
+
+Parameters:
+- \(B_{\text{target}}\) = equilibrium bond distance (default 2.0)
+- \(B_{\text{min}}\) = minimum allowed (default 1.0)
+- \(B_{\text{max}}\) = maximum allowed (default 3.5)
+- \(s_{\text{slack}}\) = slack zone half-width (default 0.3)
+- \(c_{\text{spring}}\) = spring constant (default 0.3)
+- \(\text{max\_bonds}\) = maximum bonds per node (default 4)
+
+Bonding eligibility: \(B_{\text{min}} < d_{ij} \le B_{\text{max}}\), complementary types, free bond slots on both nodes.
+
+### 4.2 Angle Constraint (Directional Bonding)
+
+A new bond must satisfy a minimum angle from all existing bonds on both endpoints:
+
+\[
+\theta_{\text{new, existing}} \ge \theta_{\text{min}} \tag{4.4}
+\]
+
+Default \(\theta_{\text{min}} = 50^\circ\).
+
+### 4.3 Surface Detection
+
+A node is on the crystal surface if it has fewer than 3 bonds, or if the largest angular gap between its bonds exceeds \(120^\circ\):
+
+\[
+\text{is\_surface}(i) =
+\begin{cases}
+\text{True}, & |\text{bonds}_i| < 3 \\
+\text{True}, & \max\_\text{gap}(\text{bonds}_i) > 2.1\ \text{rad} \\
+\text{False}, & \text{otherwise}
+\end{cases} \tag{4.5}
+\]
+
+### 4.4 Bifurcation (Growth)
+
+Only surface nodes can bifurcate. Conditions:
+
+\[
+E_i \ge E_{\text{bifurc\_min}} \quad\text{and}\quad P_i \ge P_{\text{bifurc}} \tag{4.6}
+\]
+
+Child placement:
+
+\[
+\mathbf{p}_{\text{child}} = \mathbf{p}_i + B_{\text{target}} \cdot \hat{\mathbf{d}}_{\text{growth}} \tag{4.7}
+\]
+
+where \(\hat{\mathbf{d}}_{\text{growth}}\) is the direction toward the energy source (sun). Child inherits complementary type:
+
+\[
+s_{\text{child}} = -s_{\text{parent}} \tag{4.8}
+\]
+
+Energy split:
+
+\[
+E_i' = 0.6 \cdot E_i,\quad E_{\text{child}} = 0.4 \cdot E_0 \tag{4.9}
+\]
+
+Cooldown: a node cannot bifurcate within \(C_{\text{bifurc}}\) steps of its last bifurcation.
+
+Parameters:
+- \(E_{\text{bifurc\_min}}\) = 30
+- \(P_{\text{bifurc}}\) = 2
+- \(C_{\text{bifurc}}\) = 15
+
+### 4.5 Pressure Accumulation
+
+\[
+P_i(t+1) = (P_i(t) + \Delta P_{\text{baseline}}) \cdot \beta + |\text{bonds}_i| \cdot w_{\text{bond}} \tag{4.10}
+\]
+
+Parameters: \(\Delta P_{\text{baseline}} = 2.0,\ \beta = 0.85,\ w_{\text{bond}} = 0.2\).
+
+### 4.6 External Energy Source (Moving Sun)
+
+The energy source moves along a semicircular arc:
+
+\[
+\mathbf{p}_{\text{sun}}(t) = \begin{cases}
+(R_{\text{sun}} \cos \theta(t),\ H_{\text{sun}} \sin \theta(t)), & t_{\text{dawn}} \le t \le t_{\text{dusk}} \\
+\text{inactive}, & \text{otherwise}
+\end{cases} \tag{4.11}
+\]
+
+where \(\theta(t) = -\pi/2 + (t - t_{\text{dawn}}) \cdot \omega_{\text{sun}}\).
+
+Energy delivered to node at position \(\mathbf{p}\):
+
+\[
+\dot{E}_{\text{in}}(\mathbf{p}, t) = I_{\text{sun}} \cdot \max(0, \sin \theta(t)) \cdot \exp\left(-\frac{d(\mathbf{p}, \mathbf{p}_{\text{sun}})}{L_{\text{falloff}}}\right) \tag{4.12}
+\]
+
+Parameters: \(I_{\text{sun}} = 4.0,\ R_{\text{sun}} = 25,\ H_{\text{sun}} = 15,\ \omega_{\text{sun}} = 0.03,\ L_{\text{falloff}} = 20\).
+
+### 4.7 Per-Node Energy Storage
+
+**Replaces** the global reservoir (Eq. 3.10–3.11). Each node has a stored reserve \(S_i\):
+
+\[
+S_i(t+1) = \min\left(S_i(t) + \eta_{\text{store}} \cdot (E_i - E_0),\ S_{\text{max}}\right) \quad\text{when } E_i > E_0 \tag{4.13}
+\]
+
+\[
+E_i(t+1) = E_i(t) + \min(S_i(t), r_{\text{draw}}) \quad\text{when sun intensity} < \epsilon \tag{4.14}
+\]
+
+Parameters: \(S_{\text{max}} = 80,\ \eta_{\text{store}} = 0.5,\ r_{\text{draw}} = 2.0,\ \epsilon = 0.1\).
+
+### 4.8 Death
+
+\[
+\text{alive}_i = \begin{cases}
+\text{False}, & E_i < \tau \\
+\text{True}, & \text{otherwise}
+\end{cases} \tag{4.15}
+\]
+
+Parameter: \(\tau = 3\).
+
+### 4.9 Emergent Behavior
+
+Produces extended crystalline structures through surface growth toward energy source. Bond angle constraints enforce lattice regularity. Flexible bonds permit thermal vibration without structural collapse. Energy storage enables survival through dark periods.
+
+---
+
+## Part 5: Term Origin Table (Complete)
+
+This table resolves every term to exactly one definition. No symbol carries two meanings.
+
+### 5.1 Terms Shared With Natural Math v3.8.1 Core
+
+| Term | Symbol | Core Reference | Meaning in Extensions | Changed? |
+|------|--------|---------------|----------------------|----------|
+| Quadrance | \(Q\) | Section 2 | Squared Euclidean distance | No |
+| Energy | \(E_i\) | Section 5.1 | Finite resource per node. Fuel + survival state. Does NOT drive movement gradient. | Role narrowed |
+| Initial energy | \(E_0\) | Section 5.1 | Starting energy per node | No |
+| Sense radius | \(R\) | Section 4 | Local neighbourhood bound | No |
+| Pressure | \(P_i\) | Section 6 | Accumulated growth trigger | No |
+| Death threshold | \(\tau\) | Parameter Table | Minimum energy for survival | No |
+| Bifurcation | — | Section 7 | Node division (simplified in Ext B) | Simplified |
+| \(\beta\) | — | Section 6 | Pressure decay factor | No |
+| \(\Delta P_{\text{baseline}}\) | — | Section 6 | Baseline pressure increment | No |
+
+### 5.2 Terms Defined in Extension A (Coordination)
+
+| Term | Symbol | Equation | Meaning | Used in Ext B? |
+|------|--------|----------|---------|----------------|
+| Signal type | \(s_i\) | 2.1 | Complementarity tag \(\in \{-1,0,+1\}\) | Yes |
+| Energy deficit | \(\delta_i\) | 2.2 | Fractional energy depletion | Simplified |
+| Signal strength | \(\sigma_i\) | 3.1 | Broadcast signal value | Simplified |
+| Social force | \(\mathbf{F}_j\) | 3.5 | Net decoded signal vector | Replaced |
+| Movement gradient | \(\mathbf{g}_j\) | 3.6 | Normalised force direction | Replaced |
+| Bond energy equalisation | — | 3.7 | Average on bond | Yes |
+| Position lock | — | 3.8 | Snap to same position | **Replaced** by 4.1–4.3 |
+| Global reservoir | \(E_{\text{res}}\) | 3.10–3.11 | External energy pool | **Replaced** by 4.13–4.14 |
+
+### 5.3 Terms New in Extension B (Crystal Growth)
+
+| Term | Symbol | Equation | Meaning | Origin |
+|------|--------|----------|---------|--------|
+| Bond target distance | \(B_{\text{target}}\) | 4.1 | Equilibrium spring length | New — replaces Eq. 3.8 |
+| Bond angle minimum | \(\theta_{\text{min}}\) | 4.4 | Directional constraint | From V6 |
+| Surface detection | — | 4.5 | Identifies growth-eligible nodes | From V6 |
+| Child direction | \(\hat{\mathbf{d}}_{\text{growth}}\) | 4.7 | Toward energy source | Modified from V6 |
+| Sun position | \(\mathbf{p}_{\text{sun}}\) | 4.11 | Moving external source | New |
+| Per-node storage | \(S_i\) | 4.13–4.14 | Individual energy reserve | New — replaces Eq. 3.10–3.11 |
+
+### 5.4 Omitted Terms (From Core, Not Used)
+
+These core terms have no equivalent in either extension and are explicitly removed:
+
+- Contact inhibition (\(\iota\))
+- Conflict resolution (Phase 8)
+- SENSE/EXTEND/RESTRICT decision phases
+- 3D integer lattice constraint
+- Axis-aligned movement restriction
+- Role system (P/I/C from V6)
+- Identity vectors
+- Patch fields
+- Shell computation
+- Chemotaxis gradient
+- Energy transport between bonded nodes
+
+---
+
+## Part 6: Parameter Summary
+
+| Parameter | Symbol | Extension A Default | Extension B Default |
+|-----------|--------|-------------------|-------------------|
+| Initial energy | \(E_0\) | 10.0 | 200.0 |
+| Sense radius | \(R\) | 10.0 | 15.0 |
+| Max bonds | max_bonds | 3 | 4 |
+| Bond target distance | \(B_{\text{target}}\) | N/A (position snap) | 2.0 |
+| Bond angle minimum | \(\theta_{\text{min}}\) | N/A | 50° |
+| Death threshold | \(\tau\) | N/A | 3.0 |
+| Bifurcation min energy | \(E_{\text{bifurc\_min}}\) | N/A | 30.0 |
+| Bifurcation pressure threshold | \(P_{\text{bifurc}}\) | N/A | 2.0 |
+| Sun intensity | \(I_{\text{sun}}\) | N/A | 4.0 |
+| Storage max | \(S_{\text{max}}\) | N/A | 80.0 |
+| Step cost | \(\eta\) | 0.5 | 0.5 |
+

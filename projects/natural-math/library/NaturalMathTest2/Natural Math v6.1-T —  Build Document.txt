@@ -1,0 +1,448 @@
+# Natural Math v6.1-T — Technical Specification
+
+## Build Document for Simulations
+
+**Version:** 1.0  
+**Date:** 2026-06-27  
+**Status:** FROZEN  
+
+---
+
+## 1. Overview
+
+Natural Math v6.1-T is a simulation engine for natural mathematics based on **ternary logic** and **integer arithmetic**. It models agents (nodes) that exist in a 3D grid world, interact through bonds, move toward resources, and can bifurcate to create new nodes.
+
+This document provides everything needed to build a compatible simulation from scratch.
+
+---
+
+## 2. Data Model
+
+### 2.1 Node Record
+
+Each node is represented by the following fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | integer | Unique identifier (non-negative) |
+| `pos` | tuple(int, int, int) | Position in 3D space (x, y, z) |
+| `direction` | tuple(int, int, int) | Current movement direction (one of 6 axis directions or zero) |
+| `energy` | integer | Energy level (non-negative) |
+| `pressure` | integer | Pressure accumulation (non-negative) |
+| `alive` | boolean | Whether the node is active |
+| `type` | string | Node type: `"seed"`, `"tip"`, `"branch"`, `"inert"`, `"wall"` |
+| `parent_id` | integer or null | ID of parent node (null for seeds) |
+| `bonds` | set of integers | Set of bonded node IDs |
+| `signal_type` | integer | Signal type identifier |
+
+### 2.2 Node Types
+
+| Type | Alive | Description |
+|------|-------|-------------|
+| `seed` | Yes | Original node, can move and bifurcate |
+| `tip` | Yes | Child node from bifurcation, can move and bifurcate |
+| `branch` | No | Parent node after bifurcation, inactive but preserved |
+| `inert` | No | Dead node, preserved for history |
+| `wall` | No | Static obstacle, never alive |
+
+### 2.3 Direction Vectors
+
+Valid direction vectors are 3D axis directions or zero:
+
+```
+(1, 0, 0), (-1, 0, 0)
+(0, 1, 0), (0, -1, 0)
+(0, 0, 1), (0, 0, -1)
+(0, 0, 0)
+```
+
+---
+
+## 3. Parameters
+
+All parameters are integers and must be positive where indicated:
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `tau` | 5000 | Energy death threshold (nodes below this die) |
+| `iota_sq` | 1 | Contact detection radius (squared) |
+| `r_sq` | 625 | Sensing radius (squared) |
+| `eps_extend` | 500 | Energy cost to move/extend |
+| `eps_sense` | 1200 | Energy cost to sense |
+| `eps_spawn` | 4000 | Energy cost to spawn child |
+| `eps_split` | 9000 | Energy cost to split during bifurcation |
+| `E0` | 1600000 | Baseline energy (deficit reference) |
+| `P_bifurcate` | 12000 | Pressure threshold for bifurcation |
+| `beta_num` | 85 | Pressure decay numerator |
+| `beta_den` | 100 | Pressure decay denominator |
+| `delta_P_baseline` | 2100 | Baseline pressure increase |
+| `delta_P_conflict` | 5000 | Conflict pressure increase |
+| `gamma_fallback_ppm` | 300000 | Fallback probability (parts per million) |
+| `deficit_strength` | 15000 | Deficit mode strength |
+| `suffering_strength` | -50000 | Suffering strength (POC scream mode) |
+| `bond_distance_sq` | 4 | Maximum distance for bonding (squared) |
+| `max_bonds` | 4 | Maximum live bonds per node |
+| `decay_cost` | 220 | Energy decay per cluster step |
+| `move_cost` | 300 | Energy cost to move |
+| `rest_gain` | 220 | Energy gain from resting |
+| `trade_rate_num` | 18 | Energy transfer numerator |
+| `trade_rate_den` | 100 | Energy transfer denominator |
+| `trade_cost` | 25 | Cost per energy transfer |
+| `repair_cost` | 350 | Energy cost for repair action |
+| `repair_prob_ppm` | 700000 | Repair success probability (ppm) |
+| `repair_ignores_distance` | False | Whether repair ignores distance |
+| `resource_absorb_rate` | 14000 | Energy absorbed per node per step |
+| `resource_radius_sq` | 4 | Resource absorption radius |
+| `critical_energy` | 30000 | Critical energy threshold |
+| `low_energy_cutoff` | 38000 | Low energy cutoff |
+| `success_max_distance_sq_num` | 9 | Success distance numerator |
+| `success_max_distance_sq_den` | 4 | Success distance denominator |
+| `gini_threshold_num` | 7 | Gini threshold numerator |
+| `gini_threshold_den` | 100 | Gini threshold denominator |
+| `world_size` | 25 | World grid size (x and y) |
+| `damage_energy_loss` | 14000 | Energy lost from damage |
+| `damage_bond_break_ppm` | 180000 | Bond break probability from damage (ppm) |
+
+---
+
+## 4. Core Algorithms
+
+### 4.1 Distance Calculation
+
+```python
+def qdist(a: tuple[int, int, int], b: tuple[int, int, int]) -> int:
+    return sum((a[i] - b[i]) ** 2 for i in range(3))
+```
+
+### 4.2 Energy Deficit
+
+```python
+def deficit(energy: int, params: dict) -> int:
+    return max(0, params["E0"] - energy)
+```
+
+### 4.3 Sign Function
+
+```python
+def sign(value: int) -> int:
+    if value > 0: return 1
+    if value < 0: return -1
+    return 0
+```
+
+### 4.4 Live Degree
+
+```python
+def live_degree(node: dict, live_by_id: dict) -> int:
+    return sum(1 for bonded_id in node["bonds"] if bonded_id in live_by_id)
+```
+
+### 4.5 Gradient Direction
+
+The gradient direction is calculated by finding the direction that maximizes the energy gradient toward higher-energy nodes:
+
+```python
+def gradient_direction(node, live_nodes, params, use_deficit=False, use_poc_scream=False):
+    scores = [[0, 1], [0, 1], [0, 1]]
+    
+    for other in live_nodes:
+        if other["id"] == node["id"]:
+            continue
+        
+        dist = qdist(node["pos"], other["pos"])
+        if not (1 <= dist <= params["r_sq"]):
+            continue
+        
+        # Calculate effective energy
+        if use_poc_scream:
+            if other["energy"] < 2 * params["tau"]:
+                effective = params["suffering_strength"]
+            else:
+                effective = other["energy"] - node["energy"]
+        else:
+            effective = other["energy"] - node["energy"]
+            if use_deficit:
+                effective -= (
+                    params["deficit_strength"]
+                    * deficit(node["energy"], params)
+                    * deficit(other["energy"], params)
+                ) // (params["E0"] * params["E0"])
+        
+        # Accumulate scores for each axis
+        for axis in range(3):
+            c_num = effective * (other["pos"][axis] - node["pos"][axis])
+            c_den = dist
+            old_num, old_den = scores[axis]
+            scores[axis] = [old_num * c_den + c_num * old_den, old_den * c_den]
+    
+    if all(score[0] == 0 for score in scores):
+        return (0, 0, 0)
+    
+    # Choose best axis
+    best = 0
+    for axis in (1, 2):
+        if abs(scores[axis][0]) * scores[best][1] > abs(scores[best][0]) * scores[axis][1]:
+            best = axis
+    
+    direction = [0, 0, 0]
+    direction[best] = 1 if scores[best][0] > 0 else -1
+    return tuple(direction)
+```
+
+### 4.6 Fallback Direction
+
+```python
+def fallback_direction(node):
+    if node["direction"] == (0, 0, 0):
+        return (0, 1, 0)
+    return node["direction"]
+```
+
+### 4.7 Child Directions
+
+```python
+def child_directions(direction):
+    if direction in {(1,0,0), (-1,0,0)}:
+        return (0,1,0), (0,0,1)
+    if direction in {(0,1,0), (0,-1,0)}:
+        return (1,0,0), (0,0,1)
+    if direction in {(0,0,1), (0,0,-1)}:
+        return (1,0,0), (0,1,0)
+    return (1,0,0), (0,1,0)
+```
+
+---
+
+## 5. Engine API
+
+### 5.1 run_step
+
+The main engine entry point:
+
+```python
+def run_step(
+    nodes: list[dict],
+    params: dict,
+    *,
+    use_deficit: bool = False,
+    use_poc_scream: bool = False,
+    allow_bonding: bool = False,
+    bond_collapse_positions: bool = False,
+    bonding_strict: bool = False,
+    rng: TraceRng | None = None
+) -> list[dict]
+```
+
+### 5.2 Step Execution Flow
+
+1. **Validation**: Check parameters and node consistency
+2. **Position Check**: Kill nodes outside world boundaries
+3. **Energy Check**: Kill nodes below tau threshold
+4. **Decision Phase**: For each live node:
+   - Check contact (distance < iota_sq) → die
+   - Check sense boundary (distance == iota_sq) → sense
+   - Calculate gradient → extend toward higher energy
+   - Fallback with RNG if no gradient
+5. **Sense Phase**: Deduct sense cost from sensing nodes
+6. **Movement Phase**: 
+   - Check bifurcation candidates
+   - Resolve movement conflicts (highest energy wins)
+   - Deduct extend cost from moving nodes
+7. **Bifurcation Phase**: Create child nodes from parent
+8. **Pressure Update**: Add baseline pressure and decay
+9. **Bonding Phase** (optional): Form bonds between adjacent nodes
+
+---
+
+## 6. Random Number Generation
+
+The engine uses a deterministic RNG with trace capability:
+
+```python
+class TraceRng:
+    def __init__(self, seed: int):
+        self.inner = random.Random(seed)
+        self.draws: list[int] = []
+    
+    def randrange(self, a: int, b: int) -> int:
+        value = self.inner.randrange(a, b)
+        if a == 0 and b == 1000000:
+            self.draws.append(value)
+        return value
+```
+
+All random draws in the `[0, 1000000)` range are captured for reproducibility.
+
+---
+
+## 7. Cluster-Level Operations
+
+### 7.1 Cluster Step
+
+A cluster step includes decay, damage (at step 35), and resource absorption:
+
+```python
+def cluster_step(state, params, rng, step_index):
+    # Apply decay
+    for node in live_nodes:
+        node["energy"] -= params["decay_cost"]
+    
+    # Apply damage at step 35
+    if step_index == 35:
+        apply_damage(state["nodes"], params, rng)
+    
+    # Run action
+    metrics = compute_metrics(state["nodes"], state["resource_pos"], params)
+    action = select_cluster_action(metrics, state["resource_reached"], params)
+    apply_cluster_action(action, state, params, rng)
+    
+    # Absorb resource
+    apply_resource_absorption(state, params)
+```
+
+### 7.2 Cluster Actions
+
+| Action | Description |
+|--------|-------------|
+| `SEEK` | Move toward resource |
+| `REDISTRIBUTE` | Transfer energy between bonded nodes |
+| `REPAIR` | Attempt to form bonds between components |
+| `REST` | Gain energy |
+
+### 7.3 Action Selection Policy
+
+```python
+def select_cluster_action(metrics, resource_reached, params):
+    if metrics["component_count"] > 1:
+        return "REPAIR"
+    if metrics["min_energy"] < params["critical_energy"]:
+        return "REST" if resource_reached else "REDISTRIBUTE"
+    if metrics["average_energy"] < params["low_energy_cutoff"] and not resource_reached:
+        return "SEEK"
+    if metrics["average_energy"] < params["low_energy_cutoff"] and resource_reached:
+        return "SEEK" if not metrics["success_distance_passed"] else "REST"
+    if metrics["gini_over_threshold"]:
+        return "REDISTRIBUTE"
+    if not metrics["success_distance_passed"]:
+        return "SEEK"
+    return "REST"
+```
+
+---
+
+## 8. Metrics
+
+### 8.1 Cluster Metrics
+
+```python
+def compute_metrics(nodes, resource_pos, params):
+    return {
+        "alive_count": int,           # Number of live nodes
+        "component_count": int,       # Number of connected components
+        "average_energy": int,        # Average energy of live nodes
+        "min_energy": int,            # Minimum energy among live nodes
+        "center_sum": list,           # Sum of positions (x, y, z)
+        "center_denominator": int,    # Number of live nodes
+        "success_distance_passed": bool,  # Whether cluster is close to resource
+        "gini_num": int,              # Gini coefficient numerator
+        "gini_den": int,              # Gini coefficient denominator
+        "gini_over_threshold": bool,  # Whether Gini exceeds threshold
+    }
+```
+
+### 8.2 Gini Coefficient
+
+```python
+def calculate_gini(energies):
+    sorted_energies = sorted(energies)
+    total = sum(sorted_energies)
+    if total == 0:
+        return 0, 1
+    weighted = sum((i + 1) * value for i, value in enumerate(sorted_energies))
+    gini_num = 2 * weighted - (len(sorted_energies) + 1) * total
+    gini_den = len(sorted_energies) * total
+    return gini_num, gini_den
+```
+
+---
+
+## 9. Building a Simulation
+
+### 9.1 Basic Setup
+
+```python
+import natural_math_v61_engine as nm
+
+# Initialize parameters
+params = nm.DEFAULT_PARAMS.copy()
+
+# Create RNG with seed
+rng = nm.TraceRng(42)
+
+# Initialize nodes
+nodes = [
+    {
+        "id": 0,
+        "pos": (0, 0, 0),
+        "direction": (0, 1, 0),
+        "energy": 50000,
+        "pressure": 0,
+        "alive": True,
+        "type": "seed",
+        "parent_id": None,
+        "bonds": set(),
+        "signal_type": 0,
+    }
+]
+
+# Run a step
+result = nm.run_step(nodes, params, rng=rng)
+```
+
+### 9.2 Full Cluster Simulation
+
+```python
+# Initialize cluster
+state = nm.initialize_cluster(seed=42, params=params)
+
+# Run 140 steps
+for step in range(1, 141):
+    action = nm.cluster_step(state, params, rng, step)
+    print(f"Step {step}: {action}")
+    print(f"  Alive: {len([n for n in state['nodes'] if n['alive']])}")
+    print(f"  Energy: {state['nodes'][0]['energy']}")
+```
+
+---
+
+## 10. Validation
+
+The engine has been validated against 40 oracle fixtures:
+
+| Category | Count | Status |
+|----------|-------|--------|
+| Integer fixtures | 25 | ✅ PASS |
+| Cluster fixtures | 15 | ✅ PASS |
+| **Total** | **40** | **✅ PASS** |
+
+All fixtures can be run using the provided oracle runners.
+
+---
+
+## 11. Frozen Hash References
+
+| Artifact | SHA256 |
+|----------|--------|
+| Integer Oracle Runner | `EBED813FF310CBB09DA0FCAD65161AACD39460B677F21A94396D6DEE40C25999` |
+| Cluster Oracle Runner | `56E7221B3570588B15C3DE9017CE7F1DCD052B8F6E8E2D16339312CB5763E9F7` |
+| Integer Fixtures | `0E6BE599491AF2199A40DCA5D511C614E46A2679BD3B848CE7669E3FE300090F` |
+| Cluster Fixtures | `031B21ECD272ECB8E47A7AA517C6DFD9B4E97B3507254F2228B6EFC101AF0BC2` |
+| Gate 6 Harness | `16C49C25574DA97D2374DE348F4A80BCAD0960B2C8D7C3CCC8BCF1FF1F18F0D9` |
+
+---
+
+**END OF TECHNICAL SPECIFICATION**
+
+---
+
+*This document provides everything needed to build a compatible simulation of Natural Math v6.1-T.*

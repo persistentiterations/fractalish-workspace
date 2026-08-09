@@ -1,0 +1,1125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Eracii Arena — Readable Toybox Prototype</title>
+<style>
+:root{
+ --bg:#08090d;--ink:#f8f2e7;--muted:#aaa7a0;--panel:#12151c;--panel2:#191e28;
+ --line:#343948;--gold:#d7aa57;--blue:#4d8bd8;--red:#c64f5b;--green:#6bc690;
+ --accent:#d7aa57;--accent2:#4d8bd8;--board:#171b22;--board2:#202631
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#08090d;color:var(--ink);font:14px/1.4 Inter,Segoe UI,system-ui,sans-serif}
+body{
+ background:
+ radial-gradient(circle at 12% 0,color-mix(in srgb,var(--accent2) 26%,transparent),transparent 35rem),
+ radial-gradient(circle at 90% 0,color-mix(in srgb,var(--accent) 19%,transparent),transparent 34rem),
+ linear-gradient(180deg,#08090d,#0d1016 55%,#08090d);
+}
+button{font:inherit;color:inherit}
+button:focus-visible{outline:3px solid white;outline-offset:2px}
+.app{min-height:100dvh;display:flex;flex-direction:column}
+.topbar{
+ height:54px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 18px;
+ border-bottom:1px solid #2b303b;background:#080a0fe8;backdrop-filter:blur(12px);position:sticky;top:0;z-index:50
+}
+.brand{font-weight:950;letter-spacing:.18em;font-size:12px}.brand b{color:var(--gold)}
+.mode{font:700 13px Georgia,serif;color:var(--gold);letter-spacing:.08em}
+.top-actions{display:flex;justify-content:flex-end;gap:7px}
+.btn,.small-btn,.action,.roster-card{
+ border:1px solid var(--line);background:#171d27;border-radius:11px;cursor:pointer;
+ transition:transform .15s,border-color .15s,box-shadow .15s,filter .15s
+}
+.btn{padding:11px 17px;font-weight:850}.small-btn{padding:7px 10px;font-size:11px;font-weight:800}
+.primary{background:linear-gradient(180deg,#e0bd74,#c8953f);border-color:#f2d394;color:#1a1207}
+button:hover:not(:disabled){transform:translateY(-2px);border-color:var(--accent);box-shadow:0 9px 22px #0007}
+button:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.screen{display:none;flex:1}.screen.active{display:flex}
+.panel{background:linear-gradient(145deg,#11151d,#191e28);border:1px solid var(--line);border-radius:16px;box-shadow:0 22px 60px #0008}
+
+/* roster */
+#rosterScreen{padding:18px;justify-content:center;align-items:flex-start}
+.roster-shell{width:min(1450px,99vw);padding:22px}
+.hero{text-align:center;max-width:850px;margin:0 auto 18px}
+.hero .eyebrow{color:var(--gold);font-size:10px;letter-spacing:.2em;font-weight:900}
+.hero h1{font:700 clamp(32px,5vw,60px)/1 Georgia,serif;margin:8px 0}
+.hero p{color:var(--muted);margin:0}
+.pick-status{
+ display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;
+ background:#0b0f15;border:1px solid #292f3b;border-radius:13px;padding:10px 14px;margin-bottom:15px
+}
+.pick-slot{min-height:43px}.pick-slot.right{text-align:right}.pick-slot small{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.12em}
+.pick-slot b{font:700 17px Georgia,serif}.pick-vs{color:var(--gold);font-weight:950}
+.filters{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin:0 0 14px}
+.filter{padding:7px 10px;border:1px solid #343b48;border-radius:99px;background:#111721;color:#cdd2da;cursor:pointer;font-size:10px}
+.filter.active{background:var(--gold);color:#171006;border-color:var(--gold)}
+.roster{display:grid;grid-template-columns:repeat(6,minmax(145px,1fr));gap:11px}
+.roster-card{
+ position:relative;min-height:285px;padding:0;overflow:hidden;text-align:left;background:#0d1118
+}
+.roster-card.hidden{display:none}
+.roster-card .art{
+ height:195px;background:
+ linear-gradient(180deg,transparent 45%,#0d1118 100%),
+ var(--image),
+ radial-gradient(circle at 50% 25%,color-mix(in srgb,var(--lane) 65%,#fff),#131922 65%);
+ background-size:cover;background-position:center 12%;position:relative
+}
+.portrait-mark{position:absolute;inset:0;display:grid;place-items:center;font:700 52px Georgia,serif;color:#fff8;text-shadow:0 4px 12px #000;letter-spacing:.04em}.roster-card .art:after{
+ content:attr(data-crest);position:absolute;right:8px;top:8px;width:28px;height:28px;border-radius:50%;
+ background:#080b10d9;border:1px solid color-mix(in srgb,var(--lane) 70%,white);display:grid;place-items:center;
+ font-weight:950;color:var(--lane);box-shadow:0 4px 12px #0008
+}
+.roster-card .copy{padding:10px 11px 12px;border-top:3px solid var(--lane)}
+.roster-card .lane{font-size:8px;letter-spacing:.11em;color:var(--lane);text-transform:uppercase;font-weight:950}
+.roster-card h3{font:700 17px/1.05 Georgia,serif;margin:3px 0}
+.roster-card p{font-size:10px;color:#c4c9d1;margin:4px 0 7px;min-height:41px}
+.move-tag{font-size:9px;color:#0d1118;background:var(--lane);display:inline-block;padding:4px 6px;border-radius:6px;font-weight:850}
+.roster-card.player-pick{outline:3px solid #5b9dec;box-shadow:0 0 0 6px #4d8bd826}
+.roster-card.rival-pick{outline:3px solid #dc6875;box-shadow:0 0 0 6px #c64f5b24}
+.roster-footer{display:flex;justify-content:center;gap:10px;margin-top:16px}
+
+/* arena */
+#gameScreen{padding:8px;flex-direction:column;gap:7px;overflow:hidden;height:calc(100dvh - 54px)}
+.fighters{
+ flex:0 0 72px;display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;padding:7px 12px
+}
+.fighter{display:flex;gap:10px;align-items:center;min-width:0}.fighter.enemy{flex-direction:row-reverse;text-align:right}
+.mini-card{width:52px;height:60px;border-radius:9px;border:2px solid var(--lane);background:var(--image),linear-gradient(145deg,var(--lane),#121722);background-size:cover;background-position:center;flex:none;box-shadow:0 5px 14px #0008}
+.fighter h2{font:700 17px Georgia,serif;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fighter .lane-name{font-size:9px;color:var(--lane);text-transform:uppercase;letter-spacing:.1em;font-weight:900}
+.stats{display:flex;gap:9px;flex-wrap:wrap;font-size:10px;color:var(--muted)}.stats b{color:var(--ink)}
+.enemy .stats{justify-content:flex-end}.lean{font-size:10px;color:var(--gold);margin-top:2px}.vs{text-align:center;color:var(--gold);font-weight:950}.dots{display:flex;gap:3px;justify-content:center;margin-top:4px}.dot{width:5px;height:5px;border-radius:50%;background:#3b4250}.dot.done{background:var(--gold)}
+.banter{
+ flex:0 0 38px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:7px 13px;
+ border-left:3px solid var(--accent);background:linear-gradient(90deg,#0e131c,#171d28,#0e131c)
+}
+.quote{font:italic 12px Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.quote.enemy{text-align:right}.banter small{color:var(--muted);letter-spacing:.14em;font-size:8px}
+.arena-grid{flex:1;min-height:0;display:grid;grid-template-columns:210px minmax(460px,1fr) 225px;gap:7px}
+.side{display:flex;flex-direction:column;gap:7px;min-height:0}.box{padding:10px;overflow:hidden}.box h3{margin:0 0 6px;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.12em}
+.objective-list{display:grid;gap:6px}.objective-info{background:#0c1118;border:1px solid #29313f;border-radius:9px;padding:7px;font-size:10px}.objective-info b{color:var(--gold)}
+.preview{flex:1}.preview h2{font:700 19px Georgia,serif;color:var(--gold);margin:0 0 6px}.preview p{font-size:11px;color:#d8dde5}.preview .detail{font-size:9px;color:var(--muted);margin-top:7px}
+.ask{width:100%;padding:10px;text-align:left}.ask b{display:block;color:var(--gold)}.ask small{font-size:9px;color:var(--muted)}
+.log{flex:1;overflow:auto;background:#090d13;border-radius:9px;padding:7px;min-height:110px}.event{border-left:2px solid #465166;padding:4px 0 5px 7px;margin-bottom:5px;font-size:9px}.event b{display:block;color:#dfe4eb}.hash{font:8px monospace;color:#707c8d}
+.board-wrap{display:flex;justify-content:center;align-items:center;min-height:0}
+.board{
+ width:min(100%,calc((100dvh - 300px)*1.4));aspect-ratio:7/5;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(5,1fr);
+ gap:4px;padding:8px;border:1px solid #3b4350;border-radius:18px;background:
+ linear-gradient(90deg,#ffffff08 1px,transparent 1px),linear-gradient(#ffffff08 1px,transparent 1px),#0a0e14;
+ background-size:34px 34px;box-shadow:inset 0 0 55px #000,0 20px 45px #000a;position:relative
+}
+.board:before{content:"";position:absolute;inset:7px;border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);border-radius:13px;pointer-events:none}
+.cell{
+ position:relative;border:1px solid #313947;border-radius:8px;background:
+ radial-gradient(circle at 50% 28%,#ffffff08,transparent 55%),linear-gradient(145deg,var(--board),var(--board2));
+ display:grid;place-items:center;overflow:hidden;transition:.14s
+}
+.cell:nth-child(even){filter:brightness(.92)}
+.cell.legal{outline:3px solid #6bc690aa;cursor:pointer;filter:brightness(1.14)}
+.cell.legal:hover{transform:scale(1.045);outline-color:#9af2bd}
+.cell.threat{box-shadow:inset 0 0 0 3px #d85b676b}.cell.preview-cell{box-shadow:inset 0 0 0 3px #d7aa576b}
+.cell.objective{box-shadow:inset 0 0 28px #d7aa573c;animation:breathe 3s ease-in-out infinite}
+@keyframes breathe{50%{filter:brightness(1.13)}}
+.obj{position:absolute;top:4px;left:5px;font-size:7px;color:var(--gold);font-weight:950;letter-spacing:.08em}
+.owner{position:absolute;right:4px;bottom:4px;width:9px;height:9px;border-radius:50%}.owner.player{background:#4d8bd8}.owner.enemy{background:#c64f5b}
+.token{
+ width:66%;aspect-ratio:1;border-radius:50%;border:3px solid white;display:grid;place-items:center;z-index:4;
+ background:var(--image),linear-gradient(145deg,var(--lane),#151a23);background-size:cover;background-position:center;
+ box-shadow:0 8px 18px #000a;position:relative
+}
+.token:after{content:"";position:absolute;inset:-5px;border-radius:50%;border:2px solid var(--lane);opacity:.7}
+.token.active{animation:pulse 1.25s ease-in-out infinite}.token.low{filter:saturate(.6) brightness(.75)}
+@keyframes pulse{50%{box-shadow:0 0 0 8px color-mix(in srgb,var(--lane) 28%,transparent),0 8px 18px #000a}}
+.damage{position:absolute;z-index:12;font-size:22px;font-weight:950;color:white;text-shadow:0 3px 5px black;animation:float .8s forwards}
+@keyframes float{to{transform:translateY(-32px);opacity:0}}
+.action-dock{flex:0 0 86px;display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.action{padding:9px 7px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:#161c25}
+.action strong{font-size:13px}.action small{font-size:9px;color:var(--muted);line-height:1.15;margin-top:3px}
+.action[data-action=push]{border-bottom:3px solid #c64f5b}.action[data-action=read]{border-bottom:3px solid #4d8bd8}.action[data-action=block]{border-bottom:3px solid #6bc690}.action[data-action=signature]{border-bottom:3px solid #d7aa57}
+.action.ready{box-shadow:inset 0 0 0 1px #ffffff18}
+
+/* overlays */
+.overlay{display:none;position:fixed;inset:0;background:#000d;align-items:center;justify-content:center;padding:14px}.overlay.show{display:flex}
+#introOverlay{z-index:360}#galleryOverlay{z-index:340}#helpOverlay{z-index:210}#resultOverlay{z-index:260}#receiptOverlay{z-index:330}
+.modal{width:min(720px,96vw);max-height:88dvh;overflow:auto;padding:22px}.modal h2{font:700 31px Georgia,serif;margin:0 0 8px}.close{float:right}
+.help-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.help-item{background:#0a0f16;padding:10px;border-radius:9px}.help-item b{display:block;color:var(--gold)}
+.result{text-align:center}.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left;margin:13px 0}.result-card{background:#0b1017;padding:11px;border-radius:11px}
+.bar-row{display:grid;grid-template-columns:90px 1fr 22px;gap:6px;align-items:center;font-size:9px;margin:5px 0}.bar{height:7px;background:#252c37;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--gold)}
+.receipts{font:10px/1.5 ui-monospace,Consolas,monospace;background:#080c11;padding:10px;border-radius:9px;color:#c9d0da;overflow-wrap:anywhere}
+.thinking{animation:thinkflash .85s ease-out}@keyframes thinkflash{40%{filter:sepia(.45) brightness(1.18)}}
+body.finished #board{filter:brightness(.55) saturate(.7)}
+@media(max-width:1150px){.roster{grid-template-columns:repeat(4,1fr)}.arena-grid{grid-template-columns:180px 1fr 190px}}
+@media(max-width:800px){
+ .roster{grid-template-columns:repeat(2,1fr)}.arena-grid{grid-template-columns:1fr;grid-template-rows:auto 1fr auto}.side{display:grid;grid-template-columns:1fr 1fr}.objective-box,.log-box{display:none}
+ .board{width:min(98vw,calc((100dvh - 405px)*1.4))}.fighters{height:auto}.banter{grid-template-columns:1fr}.banter small,.quote.enemy{display:none}
+}
+@media(max-height:700px){.fighters{flex-basis:60px}.banter{flex-basis:32px}.action-dock{flex-basis:72px}.board{width:min(100%,calc((100dvh - 270px)*1.4))}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.power-wrap{margin-top:4px;display:grid;grid-template-columns:auto minmax(72px,150px) auto;gap:6px;align-items:center;font-size:9px;color:var(--muted)}
+.power-track{height:8px;border-radius:99px;background:#272e3a;overflow:hidden;border:1px solid #3b4350}
+.power-fill{height:100%;background:linear-gradient(90deg,var(--lane),color-mix(in srgb,var(--lane) 55%,white));transition:width .25s}
+.insight-click{cursor:pointer;border-bottom:1px dotted currentColor}
+.insight-click:hover{color:var(--gold)}
+.thought-card{margin-top:8px;padding:9px;border-left:3px solid var(--accent);border-radius:8px;background:#0b1119;color:#dce3eb;font-size:10px}
+.damage-chip{display:inline-block;margin-left:5px;padding:2px 5px;border-radius:5px;background:#4a1f25;color:#ffbec5;font-weight:900;font-size:8px}
+
+/* living arena prototype */
+.arena-picker{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:12px;color:var(--muted)}
+.arena-picker select{background:#0d131c;color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:8px 10px}
+.cell.blocked{background:#06080c;border-color:#191d25;box-shadow:inset 0 0 18px #000;opacity:.42}
+.cell.blocked:after{content:"×";color:#3c4350;font-size:18px}
+.cell.strain-low{box-shadow:inset 0 0 16px #5dc58f20}
+.cell.strain-mid{box-shadow:inset 0 0 19px #d7aa5738}
+.cell.strain-high{box-shadow:inset 0 0 24px #c64f5b55}
+.cell.strain-high:before{content:"";position:absolute;inset:10%;background:linear-gradient(130deg,transparent 46%,#e7778066 48%,transparent 51%),linear-gradient(35deg,transparent 50%,#e7778048 52%,transparent 54%);pointer-events:none}
+.cell.birth-extend{animation:birthExtend .32s ease-out}
+.cell.birth-restrict{animation:birthRestrict .32s ease-out}
+.cell.future{outline:3px dashed #d7aa57!important;filter:brightness(1.22)}
+@keyframes birthExtend{0%{transform:scale(.72);box-shadow:inset 0 0 32px #6bc690cc}100%{transform:scale(1)}}
+@keyframes birthRestrict{0%{box-shadow:inset 0 0 34px #c64f5bcc}100%{box-shadow:none}}
+.genesis-board{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:16px auto;width:min(520px,92vw)}
+.genesis-cell{aspect-ratio:1;border:1px solid var(--line);border-radius:7px;background:#080c12;display:grid;place-items:center;font:10px monospace;color:var(--muted)}
+.genesis-cell.on{background:#26342f;border-color:#6bc690;color:#d9ffe8}.genesis-cell.off{opacity:.35}.genesis-cell.hot{box-shadow:inset 0 0 18px #c64f5b88}.genesis-cell.calm{box-shadow:inset 0 0 14px #6bc69055}
+.arena-name{font:700 23px Georgia,serif;color:var(--gold);text-align:center}.arena-meta{text-align:center;color:var(--muted);font-size:11px}
+
+
+/* Depth prototype: visual 2.5D only; gameplay remains grid-based. */
+.board-wrap{perspective:950px;perspective-origin:50% 34%;padding:18px 8px 30px;overflow:visible}
+.board{transform:rotateX(49deg) rotateZ(-1deg);transform-style:preserve-3d;overflow:visible;box-shadow:0 44px 55px #000c,0 12px 0 #06080d;border-bottom:8px solid #080b10;transition:transform .35s ease}
+.board:hover{transform:rotateX(45deg) rotateZ(-1deg) translateY(-2px)}
+.cell{overflow:visible;transform-style:preserve-3d;transform:translateZ(var(--lift,7px));box-shadow:0 8px 0 #080b11,0 12px 15px #0008,inset 0 1px 0 #ffffff12}
+.cell:after{pointer-events:none}
+.cell.blocked{--lift:-3px;transform:translateZ(-3px);box-shadow:inset 0 0 18px #000;opacity:.3}
+.cell.objective{--lift:14px;box-shadow:0 13px 0 #0a0d13,0 18px 20px #0009,inset 0 0 28px #d7aa573c}
+.cell.strain-low{--lift:8px}.cell.strain-mid{--lift:11px}.cell.strain-high{--lift:15px;animation:tileTension 1.7s ease-in-out infinite}
+.cell.legal{transform:translateZ(calc(var(--lift,7px) + 6px)) scale(1.03)}
+.token{transform:rotateX(-49deg) translateZ(24px);transform-origin:center;box-shadow:0 16px 22px #000c}
+.token.enter-player{animation:legendEnterPlayer .65s cubic-bezier(.2,.85,.3,1)}
+.token.enter-enemy{animation:legendEnterEnemy .65s cubic-bezier(.2,.85,.3,1)}
+.obj{transform:rotateX(-49deg) translateZ(8px);transform-origin:left top;background:#0a0d12cc;padding:2px 4px;border-radius:4px}
+.owner{transform:rotateX(-49deg) translateZ(5px)}
+@keyframes tileTension{50%{filter:brightness(1.2);box-shadow:0 13px 0 #0a0d13,0 18px 20px #0009,inset 0 0 30px #c64f5b77}}
+@keyframes legendEnterPlayer{0%{opacity:0;transform:rotateX(-49deg) translate3d(-90px,-25px,70px) scale(.65)}100%{opacity:1;transform:rotateX(-49deg) translateZ(24px) scale(1)}}
+@keyframes legendEnterEnemy{0%{opacity:0;transform:rotateX(-49deg) translate3d(90px,-25px,70px) scale(.65)}100%{opacity:1;transform:rotateX(-49deg) translateZ(24px) scale(1)}}
+.arena-identity{display:flex;justify-content:center;gap:8px;align-items:center;font-size:10px;color:var(--muted);margin-top:-2px}
+.arena-identity b{color:var(--gold);font:700 14px Georgia,serif}
+.difficulty-badge{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:3px 7px;background:#0b1017}
+.good-flash{animation:goodFlash .8s ease-out}@keyframes goodFlash{35%{box-shadow:inset 0 0 0 3px #6bc690,0 0 28px #6bc69088}}
+@media(max-width:800px){.board{transform:rotateX(42deg) scale(.96)}.board:hover{transform:rotateX(42deg) scale(.96)}.token,.obj,.owner{transform:rotateX(-42deg) translateZ(18px)}}
+@media(prefers-reduced-motion:reduce){.board,.token,.cell{transform:none!important}.obj,.owner{transform:none!important}}
+
+
+/* Toybox Leap: tactile feedback, character presence, and one-step guidance. */
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 38%,transparent 0 22%,#0002 57%,#0008 100%);z-index:0}
+.app{position:relative;z-index:1}
+.roster-card{transform-style:preserve-3d;will-change:transform}
+.roster-card:hover{transform:translateY(-8px) rotateX(2deg) rotateY(-2deg);box-shadow:0 20px 36px #000b,0 0 0 1px var(--lane)}
+.roster-card:hover .portrait-mark{transform:scale(1.08);text-shadow:0 8px 18px #000,0 0 22px var(--lane)}
+.portrait-mark{transition:transform .25s,text-shadow .25s}
+.roster-card .hover-quote{position:absolute;left:9px;right:9px;bottom:91px;padding:7px 8px;border-radius:8px;background:#070a10e8;border:1px solid color-mix(in srgb,var(--lane) 55%,#fff);font:italic 10px Georgia,serif;color:#fff;opacity:0;transform:translateY(7px);transition:.2s;z-index:5}
+.roster-card:hover .hover-quote,.roster-card:focus-visible .hover-quote{opacity:1;transform:none}
+.guide-ribbon{position:relative;margin:0 auto;width:min(760px,96vw);padding:9px 46px 9px 14px;border:1px solid color-mix(in srgb,var(--accent) 60%,var(--line));border-radius:12px;background:linear-gradient(90deg,#0a0f17f5,#161e2bf5);box-shadow:0 10px 25px #0008;color:#f5f0e7;font-weight:850;text-align:center;letter-spacing:.01em;overflow:hidden}
+.guide-ribbon:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 18%,transparent),transparent);transform:translateX(-100%);animation:guideSweep 3s ease-in-out infinite}
+.guide-ribbon .guide-step{position:absolute;right:11px;top:50%;transform:translateY(-50%);width:25px;height:25px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:#111;font-size:11px}
+@keyframes guideSweep{60%,100%{transform:translateX(100%)}}
+.action{position:relative;min-height:82px;overflow:hidden;isolation:isolate;box-shadow:0 7px 0 #090c12,0 12px 20px #0008;transform:translateY(0)}
+.action:active:not(:disabled){transform:translateY(5px)!important;box-shadow:0 2px 0 #090c12,0 5px 9px #0008!important}
+.action-icon{font-size:23px;line-height:1;margin-bottom:4px;filter:drop-shadow(0 3px 4px #000)}
+.action.ready:before{content:"";position:absolute;inset:-70%;z-index:-1;background:conic-gradient(transparent 0 35%,#ffffff18 45%,transparent 55%);animation:actionSheen 3.2s linear infinite}
+.action[data-action=push]:hover .action-icon{animation:weaponLean .35s ease-in-out infinite alternate}
+.action[data-action=read]:hover .action-icon{animation:focusPulse .8s ease-in-out infinite alternate}
+.action[data-action=block]:hover .action-icon{animation:shieldSet .5s ease-in-out infinite alternate}
+.action[data-action=signature]:hover .action-icon{animation:specialGlow .6s ease-in-out infinite alternate}
+@keyframes actionSheen{to{transform:rotate(360deg)}}
+@keyframes weaponLean{to{transform:translateX(5px) rotate(8deg)}}
+@keyframes focusPulse{to{transform:scale(1.18);text-shadow:0 0 12px #78b7ff}}
+@keyframes shieldSet{to{transform:translateY(3px) scale(.96)}}
+@keyframes specialGlow{to{transform:scale(1.15) rotate(8deg);text-shadow:0 0 14px var(--gold)}}
+.rewind-btn{box-shadow:0 5px 0 #090c12}.rewind-btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 #090c12}
+.cell{cursor:default}
+.cell:not(.blocked):hover{filter:brightness(1.14);transform:translateZ(calc(var(--lift,7px) + 3px))}
+.cell.legal:before{content:"●";position:absolute;z-index:2;color:#baffd4;font-size:17px;text-shadow:0 0 10px #6bc690;animation:footprint 1s ease-in-out infinite}
+@keyframes footprint{50%{transform:translateY(-4px) scale(1.15);opacity:.65}}
+.cell.tile-ripple:before{content:"";position:absolute;inset:15%;border:2px solid #fff9;border-radius:50%;animation:rippleOut .55s ease-out;z-index:8}
+@keyframes rippleOut{to{inset:-18%;opacity:0}}
+.cell.hit-cell{animation:hitTile .38s ease-out!important}.cell.guard-cell{animation:guardTile .65s ease-out!important}.cell.read-cell{animation:readTile .8s ease-out!important}.cell.special-cell{animation:specialTile .9s ease-out!important}
+@keyframes hitTile{30%{transform:translateZ(calc(var(--lift,7px) - 5px)) rotateZ(-1deg);filter:brightness(1.8) saturate(1.5)}65%{transform:translateZ(calc(var(--lift,7px) + 5px)) rotateZ(1deg)}}
+@keyframes guardTile{45%{box-shadow:0 13px 0 #0a0d13,0 18px 20px #0009,inset 0 0 38px #6bc690cc}}
+@keyframes readTile{45%{box-shadow:0 13px 0 #0a0d13,0 18px 20px #0009,inset 0 0 44px #65a9ffcc}}
+@keyframes specialTile{35%{filter:brightness(2);box-shadow:0 13px 0 #0a0d13,0 20px 35px #d7aa57aa,inset 0 0 50px #d7aa57dd}}
+.token{font-weight:950;font-size:18px;transition:filter .15s}
+.token.token-hop{animation:tokenHop .55s cubic-bezier(.2,.8,.2,1)}
+.token.token-hit{animation:tokenHit .42s ease-out}.token.token-guard{animation:tokenGuard .65s ease-out}.token.token-read{animation:tokenRead .75s ease-out}.token.token-special{animation:tokenSpecial .95s ease-out}
+.token.waiting{animation:idleShift 2.4s ease-in-out infinite}
+@keyframes tokenHop{0%{opacity:.5;transform:rotateX(-49deg) translate3d(var(--hop-x,0),var(--hop-y,0),55px) scale(.72)}55%{transform:rotateX(-49deg) translate3d(0,-8px,55px) scale(1.08)}100%{opacity:1;transform:rotateX(-49deg) translateZ(24px)}}
+@keyframes tokenHit{25%{filter:brightness(2);transform:rotateX(-49deg) translate3d(9px,-2px,24px) rotate(9deg)}65%{transform:rotateX(-49deg) translate3d(-5px,2px,24px) rotate(-5deg)}}
+@keyframes tokenGuard{50%{transform:rotateX(-49deg) translateZ(18px) scale(1.08);box-shadow:0 0 0 12px #6bc69035,0 16px 22px #000c}}
+@keyframes tokenRead{50%{filter:brightness(1.6);box-shadow:0 0 0 15px #4d8bd82c,0 0 30px #4d8bd8aa}}
+@keyframes tokenSpecial{35%{transform:rotateX(-49deg) translateZ(48px) scale(1.2);filter:brightness(2);box-shadow:0 0 0 18px #d7aa5730,0 0 40px #d7aa57}}
+@keyframes idleShift{50%{transform:rotateX(-49deg) translate3d(0,-2px,26px) scale(1.02)}}
+.board.board-shake{animation:boardShake .38s ease-out}.board.board-rewind{animation:boardRewind .7s ease-in-out}
+@keyframes boardShake{25%{translate:-4px 2px}50%{translate:5px -1px}75%{translate:-2px 1px}}
+@keyframes boardRewind{45%{filter:hue-rotate(160deg) brightness(1.5);transform:rotateX(49deg) rotateZ(-2deg) scale(.96)}}
+.speech-bubble{position:absolute;z-index:60;max-width:180px;padding:7px 9px;border-radius:10px;background:#f8f2e7;color:#16110a;border:2px solid var(--lane,var(--gold));box-shadow:0 8px 18px #000b;font:italic 11px Georgia,serif;transform:rotateX(-49deg) translate3d(35px,-55px,75px);animation:bubbleIn 2.1s ease-out forwards;pointer-events:none}
+@keyframes bubbleIn{0%{opacity:0;scale:.7}12%,72%{opacity:1;scale:1}100%{opacity:0;translate:0 -15px}}
+.objective-monument{position:absolute;z-index:1;left:50%;top:50%;transform:translate(-50%,-50%) rotateX(-49deg) translateZ(8px);font-size:19px;filter:drop-shadow(0 4px 3px #000);opacity:.75}
+.cell.objective.claim-pop{animation:claimPop .75s ease-out}
+@keyframes claimPop{45%{transform:translateZ(calc(var(--lift,14px) + 12px)) scale(1.08);filter:brightness(1.7)}}
+.feedback-toast{position:fixed;left:50%;top:78px;transform:translateX(-50%);z-index:500;padding:10px 18px;border-radius:99px;background:#101720ec;border:1px solid var(--accent);box-shadow:0 12px 28px #000b;color:#fff;font-weight:950;letter-spacing:.04em;opacity:0;pointer-events:none}
+.feedback-toast.show{animation:toastPop 1.45s ease-out}
+@keyframes toastPop{0%{opacity:0;translate:0 -10px;scale:.8}18%,70%{opacity:1;translate:0 0;scale:1}100%{opacity:0;translate:0 -8px}}
+.fx-layer{position:fixed;inset:0;pointer-events:none;z-index:450;overflow:hidden}
+.confetti-bit{position:absolute;top:-20px;width:8px;height:14px;background:var(--c);animation:confettiFall 2.2s linear forwards}
+@keyframes confettiFall{to{translate:var(--drift) 110vh;rotate:720deg}}
+@media(max-width:800px){.guide-ribbon{font-size:12px}.action{min-height:74px}.action-icon{font-size:19px}.speech-bubble{transform:rotateX(-42deg) translate3d(18px,-50px,55px)}}
+
+
+/* Readability and playability corrections */
+.speech-stage{min-height:52px;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center;padding:0 10px;pointer-events:none}
+.speech-slot{min-height:44px;display:flex;align-items:center}.speech-slot.enemy{justify-content:flex-end}
+.speech-stage .speech-bubble{position:relative;inset:auto;max-width:min(330px,46vw);transform:none!important;animation:stageBubble 2.6s ease-out forwards;font-size:12px;line-height:1.35;margin:2px 0}
+@keyframes stageBubble{0%{opacity:0;transform:translateY(8px) scale(.94)}10%,78%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-5px)}}
+.combatants-strip{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin:0 8px;padding:7px 11px;border:1px solid var(--line);border-radius:12px;background:#0a0f16;font-size:12px}
+.combatants-strip .who{min-width:0}.combatants-strip .who.enemy{text-align:right}.combatants-strip small{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.12em}.combatants-strip b{font:700 15px Georgia,serif;color:var(--ink)}
+.token-name{position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%) rotateX(-49deg) translateZ(10px);white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis;background:#080b10e8;border:1px solid var(--lane);border-radius:99px;padding:2px 7px;color:#fff;font-size:9px;font-weight:900;box-shadow:0 4px 10px #000c;pointer-events:none}
+.objective-info{cursor:help;transition:.15s}.objective-info:hover{border-color:var(--gold);transform:translateY(-1px)}
+.objective-info .plain{display:block;color:#e4e8ee;margin-top:3px}.objective-info .example{display:none!important;display:block;color:var(--muted);margin-top:3px;font-size:9px}
+.legend-help{margin-top:8px;padding:8px;border-radius:9px;background:#0b1119;border-left:3px solid var(--accent);font-size:10px;color:#dfe5ed}
+.stat-key{display:grid;gap:5px;margin-top:7px}.stat-key div{font-size:10px;color:#d8dde5}.stat-key b{color:var(--gold)}
+.cell.objective .obj{font-size:8px;max-width:90%;white-space:normal;text-align:left;line-height:1.05}
+.cell.objective[data-purpose]:hover:after{content:attr(data-purpose);position:absolute;z-index:90;left:50%;bottom:110%;transform:translateX(-50%) rotateX(-49deg);width:180px;padding:7px 9px;border-radius:9px;background:#f8f2e7;color:#15110b;border:2px solid var(--gold);font:10px/1.3 system-ui,sans-serif;box-shadow:0 9px 20px #000c;pointer-events:none}
+@media(max-width:800px){
+ .speech-stage{grid-template-columns:1fr;min-height:48px}.speech-slot.enemy{display:none}.speech-stage .speech-bubble{max-width:96vw;font-size:11px}
+ .combatants-strip{font-size:10px}.combatants-strip b{font-size:12px}.token-name{transform:translateX(-50%) rotateX(-42deg) translateZ(7px);font-size:8px;max-width:80px}
+}
+
+
+/* Responsive desktop pass: keep the complete match inside the current viewport. */
+#gameScreen{
+  height:calc(100dvh - 54px);
+  min-height:0;
+  overflow:auto;
+  padding:6px;
+  gap:6px;
+}
+.fighters{flex:0 0 66px;padding:5px 10px}
+.banter{flex:0 0 34px;padding:5px 11px}
+.arena-grid{
+  flex:1 1 auto;
+  min-height:390px;
+  grid-template-columns:clamp(150px,15vw,190px) minmax(390px,1fr) clamp(160px,16vw,205px);
+  gap:6px;
+}
+.side{gap:6px}
+.box{padding:8px}
+.objective-info{padding:6px;font-size:9px}
+.objective-info .plain{display:block;margin-top:2px;color:#d4d9e1}
+.objective-info .example{display:none!important}
+.legend-help{font-size:10px;line-height:1.3;margin-top:6px}
+.stat-key{font-size:9px;line-height:1.35;margin-top:7px}
+.board-wrap{
+  min-width:0;
+  min-height:0;
+  padding:4px 3px 20px;
+  overflow:hidden;
+  perspective:900px;
+}
+.board{
+  width:min(100%,620px,calc((100dvh - 310px)*1.34));
+  max-width:620px;
+  min-width:0;
+  transform:rotateX(44deg) rotateZ(-1deg) scale(.92);
+  transform-origin:50% 44%;
+  gap:3px;
+  padding:7px;
+}
+.board:hover{transform:rotateX(44deg) rotateZ(-1deg) scale(.92)}
+.action-dock{flex:0 0 76px;gap:6px}
+.action{padding:7px 5px}
+.action strong{font-size:12px}.action small{font-size:8px}
+
+@media (max-width:1250px){
+  .arena-grid{grid-template-columns:155px minmax(360px,1fr) 165px}
+  .fighter h2{font-size:15px}
+  .mini-card{width:46px;height:54px}
+  .board{max-width:560px;width:min(100%,560px,calc((100dvh - 300px)*1.34))}
+}
+@media (max-height:820px) and (min-width:801px){
+  .fighters{flex-basis:58px}.banter{flex-basis:30px}
+  .arena-grid{min-height:330px}
+  .board{max-width:520px;width:min(100%,520px,calc((100dvh - 270px)*1.34));transform:rotateX(41deg) rotateZ(-1deg) scale(.88)}
+  .board:hover{transform:rotateX(41deg) rotateZ(-1deg) scale(.88)}
+  .action-dock{flex-basis:68px}
+  .objective-info{font-size:8px}
+}
+@media (max-width:980px) and (min-width:801px){
+  .arena-grid{grid-template-columns:145px minmax(330px,1fr) 150px}
+  .board{max-width:500px}
+  .preview .detail,.stat-key{display:none}
+}
+@media (max-width:800px){
+  #gameScreen{height:auto;min-height:calc(100dvh - 54px);overflow:visible}
+  .arena-grid{grid-template-columns:1fr;grid-template-rows:auto auto auto;min-height:0}
+  .side{display:grid;grid-template-columns:1fr 1fr}
+  .board-wrap{order:-1;min-height:330px;padding:4px 2px 18px}
+  .board{width:min(94vw,500px);max-width:500px;transform:rotateX(34deg) scale(.88)}
+  .board:hover{transform:rotateX(34deg) scale(.88)}
+}
+
+</style>
+
+<style id="viewport-bugfix-v2">
+/* Viewport-first battle layout: no page scrolling during a match. */
+html,body{height:100%;overflow:hidden}
+body{font-size:clamp(14px,1.05vw,17px)}
+.app{height:100dvh;min-height:0;overflow:hidden}
+.topbar{height:clamp(44px,6.5dvh,54px);min-height:44px;padding-inline:clamp(8px,1.5vw,18px)}
+#gameScreen{
+  box-sizing:border-box;
+  height:calc(100dvh - clamp(44px,6.5dvh,54px))!important;
+  min-height:0!important;
+  overflow:hidden!important;
+  padding:clamp(3px,.65dvh,7px)!important;
+  gap:clamp(3px,.65dvh,7px)!important;
+}
+.fighters{flex:0 0 clamp(54px,9dvh,72px);min-height:0;padding:clamp(4px,.8dvh,7px) clamp(7px,1vw,12px)}
+.banter{flex:0 0 clamp(28px,4.8dvh,38px);min-height:0;padding:4px 10px}
+.speech-stage{flex:0 0 clamp(38px,6.2dvh,52px);min-height:0;position:relative;z-index:160;padding:0 8px}
+.combatants-strip,.arena-identity{flex:0 0 auto;min-height:0}
+.guide-ribbon{flex:0 0 auto;width:min(720px,94vw);padding:clamp(7px,1dvh,10px) 44px clamp(7px,1dvh,10px) 12px;font-size:clamp(.88rem,1.25vw,1.05rem);z-index:120}
+.guide-ribbon .guide-step{width:28px;height:28px;font-size:.8rem}
+.arena-grid{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow:hidden;
+  grid-template-columns:clamp(140px,16vw,210px) minmax(0,1fr) clamp(150px,17vw,225px)!important;
+  gap:clamp(4px,.65vw,8px)!important;
+}
+.side{min-width:0;min-height:0;overflow:hidden;gap:clamp(4px,.6dvh,7px)}
+.side .box{padding:clamp(6px,.85dvh,10px)}
+.side .box h3{font-size:clamp(.68rem,.85vw,.82rem);margin-bottom:4px}
+.preview h2{font-size:clamp(1rem,1.45vw,1.2rem);margin-bottom:3px}
+.preview p,.preview .detail,#coachText,#passiveText{font-size:clamp(.76rem,.9vw,.9rem);line-height:1.3}
+.board-wrap{
+  min-width:0;min-height:0!important;overflow:hidden!important;
+  padding:clamp(2px,.5dvh,7px) 3px clamp(8px,1.4dvh,16px)!important;
+  perspective:900px;
+}
+.board{
+  --available-h: calc(100dvh - clamp(44px,6.5dvh,54px) - clamp(54px,9dvh,72px) - clamp(28px,4.8dvh,38px) - clamp(38px,6.2dvh,52px) - 150px);
+  width:min(100%,620px,calc(max(245px,var(--available-h))*1.4))!important;
+  max-width:100%!important;
+  max-height:none!important;
+  aspect-ratio:7/5;
+  gap:clamp(2px,.45dvh,4px)!important;
+  padding:clamp(5px,.8dvh,8px)!important;
+  transform:rotateX(42deg) rotateZ(-1deg) scale(.92)!important;
+  transform-origin:center center;
+}
+.board:hover{transform:rotateX(40deg) rotateZ(-1deg) scale(.93)!important}
+.cell{min-width:0;min-height:0;border-radius:clamp(5px,.7vw,8px)}
+.token{min-width:44px;min-height:44px;max-width:72%;touch-action:manipulation}
+.obj{font-size:clamp(.58rem,.75vw,.72rem);z-index:18;max-width:82%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.objective-monument{z-index:10}
+.action-dock{flex:0 0 clamp(62px,10dvh,84px)!important;min-height:0;gap:clamp(4px,.55vw,7px)!important}
+.action{min-height:56px!important;min-width:60px;padding:clamp(5px,.8dvh,9px) 5px!important}
+.action strong{font-size:clamp(.82rem,1vw,.98rem)}
+.action small{font-size:clamp(.68rem,.78vw,.8rem);line-height:1.12}
+.dots{gap:4px}.dot{width:7px;height:7px}
+.feedback-toast{top:clamp(52px,8dvh,78px);max-width:min(88vw,620px);font-size:clamp(.85rem,1.1vw,1rem);white-space:normal;text-align:center;z-index:1000}
+/* All dialogue is outside the transformed board and always above it. */
+.speech-stage .speech-bubble,.speech-bubble{
+  z-index:999!important;pointer-events:none!important;transform:none!important;
+  font-size:clamp(.82rem,1vw,.96rem)!important;line-height:1.3;
+}
+/* Effects are viewport overlays, never children of the 3D board. */
+.fx-layer{position:fixed!important;inset:0!important;z-index:950!important;pointer-events:none!important;transform:none!important}
+.damage.damage-overlay{position:fixed!important;z-index:999!important;pointer-events:none!important;transform:none!important;font-size:clamp(1.25rem,2.1vw,1.75rem)}
+
+@media (max-height:820px){
+  .banter{display:none}
+  .speech-stage{flex-basis:40px}
+  .fighters{flex-basis:58px}
+  .combatants-strip{padding-block:2px}
+  .arena-identity{padding-block:2px}
+  .side .objective-box{display:none}
+  .action-dock{flex-basis:64px!important}
+  .board{--available-h:calc(100dvh - 44px - 58px - 40px - 126px);width:min(100%,560px,calc(max(235px,var(--available-h))*1.4))!important}
+}
+@media (max-height:720px){
+  .speech-stage{display:none}
+  .fighters{flex-basis:52px}
+  .combatants-strip{display:none}
+  .arena-identity{font-size:.78rem}
+  .guide-ribbon{padding-block:6px}
+  .side .log-box,.side .objective-box{display:none!important}
+  .action-dock{flex-basis:58px!important}
+  .action small{display:none}
+  .board{--available-h:calc(100dvh - 44px - 52px - 104px);width:min(100%,520px,calc(max(225px,var(--available-h))*1.4))!important;transform:rotateX(38deg) scale(.88)!important}
+  .board:hover{transform:rotateX(38deg) scale(.89)!important}
+}
+@media (max-width:1050px){
+  .arena-grid{grid-template-columns:clamp(125px,15vw,165px) minmax(0,1fr) clamp(135px,16vw,175px)!important}
+  .objective-box,.log-box{display:none!important}
+}
+@media (max-width:800px){
+  body{font-size:16px}
+  #gameScreen{height:calc(100dvh - 44px)!important;overflow:hidden!important}
+  .fighters{flex-basis:64px}
+  .banter,.speech-stage,.combatants-strip,.side{display:none!important}
+  .arena-grid{display:flex!important;flex:1 1 auto!important;min-height:0!important;overflow:hidden!important}
+  .board-wrap{order:0!important;flex:1 1 auto;min-height:0!important;padding:0 2px 10px!important}
+  .board{width:min(96vw,calc((100dvh - 250px)*1.4),560px)!important;transform:rotateX(32deg) scale(.9)!important}
+  .board:hover{transform:rotateX(32deg) scale(.9)!important}
+  .guide-ribbon{width:96vw;font-size:1rem;padding-block:8px}
+  .action-dock{grid-template-columns:repeat(2,1fr)!important;flex-basis:132px!important;gap:5px!important}
+  .action{min-height:60px!important;font-size:1rem}
+  .action small{display:block;font-size:.78rem}
+  .token{min-width:44px;min-height:44px}
+  .obj{font-size:.7rem}
+}
+@media (max-width:480px){
+  .topbar{grid-template-columns:1fr auto}.mode{display:none}.top-actions{gap:3px}
+  .top-actions .small-btn{padding:6px 7px;font-size:.72rem}
+  .fighters{grid-template-columns:1fr auto 1fr;gap:5px;padding-inline:5px}
+  .mini-card{display:none}.fighter h2{font-size:.9rem}.stats{font-size:.72rem;gap:4px}
+  .board{width:min(97vw,calc((100dvh - 270px)*1.4))!important;transform:rotateX(27deg) scale(.88)!important}
+  .board:hover{transform:rotateX(27deg) scale(.88)!important}
+}
+</style>
+
+</head>
+<body>
+<div class="app">
+<header class="topbar">
+ <div class="brand">ERA<b>CII</b> ARENA</div>
+ <div id="modeTitle" class="mode">GALLERY SHOWCASE</div>
+ <div class="top-actions"><button id="logButton" class="small-btn" disabled>Battle Log</button><button id="helpButton" class="small-btn">How to Play</button></div>
+</header>
+
+<section id="rosterScreen" class="screen active">
+ <div class="panel roster-shell">
+  <div class="hero">
+   <div class="eyebrow">TWELVE LANES · TWELVE DISTINCT PLAY STYLES</div>
+   <h1>Choose your champion. Then choose who faces them.</h1>
+   <p>Tap anyone to see how they move. Pick your champion first, then choose a rival. The arena will wake up around them.</p>
+  </div>
+  <div class="pick-status">
+   <div class="pick-slot"><small>Your legend</small><b id="playerPick">Choose first</b></div>
+   <div class="pick-vs">VS</div>
+   <div class="pick-slot right"><small>Rival</small><b id="rivalPick">Choose second</b></div>
+  </div>
+  <div id="filters" class="filters"></div>
+  <div id="roster" class="roster"></div>
+  <div class="arena-picker">
+   <label for="arenaType">Arena style</label><select id="arenaType"><option value="compact">The Forge — close combat</option><option value="branched">The Wildroot — branching paths</option><option value="filament">The Spine — narrow routes</option><option value="porous">The Labyrinth — gaps and shortcuts</option></select>
+   <label for="difficulty">Challenge</label><select id="difficulty"><option value="beginner">Beginner — clear hints</option><option value="skilled" selected>Skilled — fair fight</option><option value="expert">Expert — full strategy</option></select>
+  </div>
+  <div class="roster-footer"><button id="galleryButton" class="btn">Meet the Legends</button><button id="clearButton" class="btn">Clear Picks</button><button id="startButton" class="btn primary" disabled>Enter the Arena</button></div>
+ </div>
+</section>
+
+<section id="gameScreen" class="screen">
+ <div class="panel fighters">
+  <div id="playerStatus" class="fighter"></div><div class="vs">VS<div id="roundDots" class="dots"></div></div><div id="enemyStatus" class="fighter enemy"></div>
+ </div>
+ <div class="panel banter"><div id="playerQuote" class="quote"></div><small>CLASH OF WILLS</small><div id="enemyQuote" class="quote enemy"></div></div><div id="speechStage" class="speech-stage"><div id="playerSpeech" class="speech-slot"></div><div id="enemySpeech" class="speech-slot enemy"></div></div><div id="combatantsStrip" class="combatants-strip"><div class="who"><small>You chose</small><b id="playerArenaName">Your legend</b></div><span>VERSUS</span><div class="who enemy"><small>Your rival</small><b id="enemyArenaName">Rival</b></div></div><div class="arena-identity"><b id="arenaIdentityName">The Forge</b><span id="arenaIdentityStyle">Close combat</span><span id="difficultyBadge" class="difficulty-badge">Skilled</span></div>
+ <div id="guideRibbon" class="guide-ribbon"><span id="guideText">Tap your champion.</span><span id="guideStep" class="guide-step">1</span></div><div class="arena-grid">
+  <aside class="side">
+   <div class="panel box"><h3>Legend Ability</h3><div id="passiveName" style="font:700 16px Georgia,serif;color:var(--gold)"></div><div id="passiveText" style="font-size:10px;color:#d3d9e2;margin-top:4px"></div><div id="legendPlainHelp" class="legend-help"></div><div class="stat-key"><div><b>Health</b> keeps you in the match.</div><div><b>Power</b> and <b>Focus</b> strengthen close attacks.</div><div><b>Guard</b> reduces the next hit.</div></div></div>
+   <div class="panel box objective-box"><h3>Arena Objectives</h3><div class="objective-list"><div class="objective-info" data-objective="FORUM"><b>FORUM</b><span class="plain">Gain 1 Focus for your next close attack.</span><span id="forumPlayerTip" class="example"></span></div><div class="objective-info" data-objective="STAGE"><b>STAGE</b><span class="plain">Gain 1 Power. Taylor gains 2.</span><span id="stagePlayerTip" class="example"></span></div><div class="objective-info" data-objective="WORKSHOP"><b>WORKSHOP</b><span class="plain">Refresh a used Special once; otherwise gain 1 Power and 1 Focus.</span><span id="workshopPlayerTip" class="example"></span></div></div></div>
+   <div class="panel box"><h3>Coach</h3><div id="coachText" style="font-size:10px;color:#d8dde5">Choose a safe route, then inspect the exact result before committing.</div></div><div class="panel box"><h3>Ask your legend</h3><button id="askButton" class="ask btn"><b id="askTitle">Ask for a turn</b><small id="askText">Two uses remaining.</small></button></div>
+  </aside>
+  <main class="board-wrap"><div id="board" class="board"></div></main>
+  <aside class="side">
+   <div class="panel box preview"><h3>Next move</h3><h2 id="previewTitle">Your turn</h2><p id="previewBody">Click your figure, then choose one highlighted destination.</p><div id="previewDetail" class="detail">The game previews actions before you commit.</div></div>
+   <div class="panel box log-box"><h3>Recent events</h3><div id="timeline" class="log"></div></div>
+  </aside>
+ </div>
+ <div style="display:flex;justify-content:center;gap:8px"><button id="undoButton" class="small-btn rewind-btn" disabled><span aria-hidden="true">↶</span> Rewind Move</button><div style="font-size:10px;color:var(--muted);align-self:center">Changed your mind? Rewind before you act.</div></div><div class="action-dock">
+  <button class="action" data-action="push" disabled><span class="action-icon" aria-hidden="true">⚔</span><strong>Attack</strong><small>Hit nearby, or gain Power from a distance</small></button>
+  <button class="action" data-action="read" disabled><span class="action-icon" aria-hidden="true">◉</span><strong>Study</strong><small>Gain Focus and reveal the rival’s plan</small></button>
+  <button class="action" data-action="block" disabled><span class="action-icon" aria-hidden="true">⬟</span><strong>Guard</strong><small>Reduce the next hit and recover 1 Health</small></button>
+  <button class="action" data-action="signature" disabled><span class="action-icon" aria-hidden="true">✦</span><strong>Special</strong><small>Your champion’s once-per-match move</small></button>
+ </div>
+</section>
+</div>
+<div id="feedbackToast" class="feedback-toast" aria-live="polite"></div><div id="fxLayer" class="fx-layer"></div>
+
+<div id="genesisOverlay" class="overlay"><div class="panel modal"><div class="eyebrow" style="color:var(--gold);text-align:center">THE ARENA AWAKENS</div><div id="genesisName" class="arena-name">The Forge</div><div id="genesisMeta" class="arena-meta">The ground is taking shape.</div><div id="genesisBoard" class="genesis-board"></div><div id="genesisReceipt" class="receipts" style="max-height:110px;overflow:auto"></div></div></div>
+<div id="introOverlay" class="overlay"><div class="panel modal"><div class="eyebrow" style="color:var(--gold)">FIRST MATCH</div><h2>Twelve minds. A living arena. No luck.</h2><p style="color:var(--muted)">Watch the arena settle, then move your legend and commit one action. The rival and the terrain follow deterministic rules.</p><div class="help-grid"><div class="help-item"><b>Move</b>Click your figure, then a highlighted destination.</div><div class="help-item"><b>Preview</b>Hover over any action to see exact damage and resource changes.</div><div class="help-item"><b>Read</b>The rival's current leaning is visible before it acts.</div><div class="help-item"><b>Undo</b>Change your destination before committing an action.</div></div><div style="text-align:center;margin-top:14px"><button class="btn primary" onclick="closeIntro()">Begin</button></div></div></div>
+<div id="galleryOverlay" class="overlay"><div class="panel modal"><button class="small-btn close" onclick="closeGallery()">Close</button><h2>Meet the Legends</h2><p style="color:var(--muted)">These are original abstract medallions, not copied portraits. Each card demonstrates a different movement system and category identity.</p><div id="galleryList" class="help-grid"></div></div></div>
+<div id="helpOverlay" class="overlay"><div class="panel modal"><button class="small-btn close" onclick="closeHelp()">Close</button><h2>How to Play</h2><div class="help-grid">
+ <div class="help-item"><b>1. Move</b>Click your figure, then a highlighted space. Each legend has a unique movement map.</div>
+ <div class="help-item"><b>2. Act</b>Choose one of the four large buttons after moving.</div>
+ <div class="help-item"><b>3. Read the rival</b>The rival's current leaning is visible above their card.</div>
+ <div class="help-item"><b>4. Win</b>Reduce the rival's Resolve to zero or lead after fourteen rounds.</div>
+ </div><p style="color:var(--muted)">The same arena and the same choices always produce the same result.</p></div></div>
+
+<div id="receiptOverlay" class="overlay"><div class="panel modal"><button class="small-btn close" onclick="closeReceipts()">Close</button><h2>Verified Battle Log</h2><p style="color:var(--muted)">Every important move and result is recorded.</p><div id="receiptList" class="receipts"></div></div></div>
+<div id="resultOverlay" class="overlay"><div id="resultCard" class="panel modal result"></div></div>
+
+<script>
+"use strict";
+const MAX_ROUND=14;
+let OBJ={};
+const ARENA_TEMPLATES={
+ compact:{name:"The Forge",open:["1,1","2,1","3,1","4,1","5,1","1,2","2,2","3,2","4,2","5,2","1,3","2,3","3,3","4,3","5,3"]},
+ branched:{name:"The Wildroot",open:["0,2","1,2","2,2","3,2","4,2","5,2","6,2","2,1","2,0","4,1","4,0","1,3","1,4","5,3","5,4"]},
+ filament:{name:"The Spine",open:["0,2","1,2","2,2","3,2","4,2","5,2","6,2","1,1","3,1","5,1","1,3","3,3","5,3"]},
+ porous:{name:"The Sieve",open:["0,1","1,1","3,1","5,1","6,1","0,2","2,2","3,2","4,2","6,2","0,3","1,3","3,3","5,3","6,3","2,0","4,4"]}
+};
+function arenaOpen(x,y){return !!g?.arena?.open?.has(K(x,y))}
+function topologyDegree(key,open){const [x,y]=key.split(",").map(Number);return [[1,0],[-1,0],[0,1],[0,-1]].reduce((n,[dx,dy])=>n+(open.has(K(x+dx,y+dy))?1:0),0)}
+function connectedArenaCells(open,start="0,2"){
+ const seen=new Set(),queue=[start];
+ while(queue.length){const k=queue.shift();if(seen.has(k)||!open.has(k))continue;seen.add(k);const[x,y]=k.split(",").map(Number);[[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{const n=K(x+dx,y+dy);if(open.has(n)&&!seen.has(n))queue.push(n)})}
+ return seen
+}
+function deriveObjectives(open){
+ // Objectives are chosen only from the road network both fighters can physically reach.
+ const reachable=connectedArenaCells(open);
+ const keys=[...reachable].filter(k=>k!=="0,2"&&k!=="6,2");
+ const ranked=keys.slice().sort((a,b)=>topologyDegree(b,reachable)-topologyDegree(a,reachable)||a.localeCompare(b));
+ const tips=keys.filter(k=>topologyDegree(k,reachable)<=1).sort();
+ const stage=ranked[0]||"3,2", forum=ranked.find(k=>k!==stage)||"2,2", workshop=tips.find(k=>k!==stage&&k!==forum)||ranked.at(-1)||"4,2";
+ return {[forum]:{name:"FORUM",type:"read"},[stage]:{name:"STAGE",type:"push"},[workshop]:{name:"WORKSHOP",type:"special"}}
+}
+function makeArena(type){
+ const t=ARENA_TEMPLATES[type]||ARENA_TEMPLATES.compact, open=new Set(t.open);
+ // Every arena keeps one clear road between the two starting sides.
+ // This prevents a legend's unusual movement from being trapped by the map.
+ for(let x=0;x<7;x++)open.add(K(x,2));
+ open.add("0,2");open.add("6,2");
+ const strain={};[...open].forEach(k=>{const d=topologyDegree(k,open);strain[k]=Math.max(0,4-d)});
+ return{type,name:t.name,open,strain,hash:hash(type+":"+[...open].sort().join("|"))}
+}
+const CHARACTERS=[
+ {id:"WAS",name:"George Washington",lane:"Foundations",crest:"F",color:"#c89f5a",role:"Measured founder",moveName:"Measured March",move:"orth1",moveText:"Moves one space in any straight direction.",passive:"Hold the Center",passiveText:"Brace is stronger while standing in the center column.",profile:{push:6,read:5,block:8,rest:6},labels:["Take Ground","Survey","Hold the Line"],signature:"Unify the Field",quote:["A cause survives only when people choose to hold it.","The center must not be abandoned."]},
+ {id:"ALE",name:"Alexander the Great",lane:"Military Commanders",crest:"M",color:"#bd5a49",role:"Relentless conqueror",moveName:"Cavalry Sweep",move:"knight",moveText:"Leaps in an L shape over intervening spaces.",passive:"Unbroken Press",passiveText:"Gains extra Momentum after moving closer to the rival.",profile:{push:10,read:3,block:4,rest:2},labels:["Conquer","Scout Ahead","Form Ranks"],signature:"World Without End",quote:["There are still worlds left to win.","Distance is an invitation."]},
+ {id:"SOC",name:"Socrates",lane:"Philosophers & Theorists",crest:"P",color:"#79a8d1",role:"Patient questioner",moveName:"Dialectic Step",move:"diag1",moveText:"Moves one space diagonally.",passive:"Question the Premise",passiveText:"Read reveals the rival's next action and grants extra Insight.",profile:{push:3,read:10,block:9,rest:5},labels:["Challenge","Question","Corner"],signature:"Expose Contradiction",quote:["Let us examine what victory means.","Your movement has already answered one question."]},
+ {id:"JUN",name:"Carl Jung",lane:"Psychologists & Mind Architects",crest:"Ψ",color:"#9878bd",role:"Pattern interpreter",moveName:"Mirror Walk",move:"mirror",moveText:"Moves to a space mirrored across the board center.",passive:"Balance the Opposites",passiveText:"Alternating actions restores Resolve after every second action.",profile:{push:4,read:9,block:7,rest:7},labels:["Confront","Interpret","Integrate"],signature:"Shadow Emerges",quote:["What is ignored returns in another form.","Every position casts a shadow."]},
+ {id:"CUR",name:"Marie Curie",lane:"Medical Pioneers",crest:"✦",color:"#6dbfa3",role:"Deliberate investigator",moveName:"Research Path",move:"rook2",moveText:"Moves one or two spaces in a straight line.",passive:"Accumulated Discovery",passiveText:"Three Read actions permanently strengthen all later attacks.",profile:{push:4,read:10,block:6,rest:6},labels:["Apply Discovery","Investigate","Contain"],signature:"Radium Breakthrough",quote:["Nothing should be feared; it should be understood.","Discovery rewards patience."]},
+ {id:"TUB",name:"Harriet Tubman",lane:"Spiritual & Humanitarian",crest:"H",color:"#d68b64",role:"Liberator and guide",moveName:"Underground Route",move:"tunnel",moveText:"Moves two spaces straight or one space diagonally.",passive:"Lead to Safety",passiveText:"Moving away while low on Resolve restores one Resolve.",profile:{push:7,read:7,block:8,rest:5},labels:["Break Through","Find a Route","Protect"],signature:"Freedom Passage",quote:["Every path matters when someone depends on it.","There is always a route forward."]},
+ {id:"LEE",name:"Bruce Lee",lane:"Stage & Screen Legends",crest:"S",color:"#e3a447",role:"Fluid performer",moveName:"Be Water",move:"queen1",moveText:"Moves one space in any direction.",passive:"Flow Without Form",passiveText:"Never repeating the previous action adds one damage.",profile:{push:9,read:7,block:6,rest:3},labels:["Attack","Read Motion","Redirect"],signature:"Intercepting Fist",quote:["Be water.","The rigid pattern breaks first."]},
+ {id:"ADA",name:"Ada Lovelace",lane:"Inventors & Systems Engineers",crest:"⚙",color:"#d28aa8",role:"Pattern engineer",moveName:"Analytical Path",move:"bishop2",moveText:"Moves one or two spaces diagonally.",passive:"Programmed Sequence",passiveText:"Press, Read, Brace in that order charges her signature early.",profile:{push:5,read:9,block:6,rest:5},labels:["Execute","Calculate","Gate"],signature:"Analytical Engine",quote:["The machine may compose patterns of any complexity.","A sequence becomes a system."]},
+ {id:"SER",name:"Serena Williams",lane:"Sports Stars",crest:"★",color:"#76b9e8",role:"Explosive competitor",moveName:"Baseline Sprint",move:"lateral",moveText:"Moves up to three spaces sideways or one space forward.",passive:"Power Return",passiveText:"Braceing against Press immediately returns one damage.",profile:{push:9,read:5,block:8,rest:4},labels:["Drive","Read the Serve","Return"],signature:"Championship Point",quote:["Pressure is part of the point.","The return can be stronger than the serve."]},
+ {id:"MRB",name:"MrBeast",lane:"Digital Creators",crest:"D",color:"#61c0d5",role:"Challenge architect",moveName:"Challenge Jump",move:"jump2",moveText:"Jumps exactly two spaces in any direction.",passive:"Raise the Stakes",passiveText:"Claiming an objective adds a second temporary bonus.",profile:{push:7,read:5,block:4,rest:6},labels:["Raise the Stakes","Check the Odds","Change the Rules"],signature:"Last to Leave",quote:["Every board needs a challenge.","The stakes just changed."]},
+ {id:"TAY",name:"Taylor Swift",lane:"Pop Icons",crest:"♪",color:"#c784cf",role:"Momentum strategist",moveName:"Era Shift",move:"ring",moveText:"Moves to any adjacent edge of the surrounding ring.",passive:"Own the Stage",passiveText:"The Stage grants two Momentum instead of one.",profile:{push:7,read:8,block:5,rest:6},labels:["Take the Stage","Read the Crowd","Rewrite"],signature:"Change the Era",quote:["Every ending can become a bridge.","The room always tells you what it needs."]},
+ {id:"RM",name:"RM",lane:"K-pop & Idol Wave",crest:"K",color:"#8c9ee8",role:"Adaptive leader",moveName:"Formation Shift",move:"formation",moveText:"Moves one straight space, or two diagonally toward the center.",passive:"Lead the Formation",passiveText:"Using all three standard actions grants two Momentum.",profile:{push:6,read:8,block:7,rest:5},labels:["Lead Forward","Read the Team","Reform"],signature:"Speak Yourself",quote:["Direction matters more when others can follow.","A voice can reorganize the whole room."]}
+];
+let playerId=null,rivalId=null,g=null,phase="ROSTER",legal=[],busy=false,filter="All";
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const K=(x,y)=>`${x},${y}`,inside=(x,y)=>x>=0&&x<7&&y>=0&&y<5;
+const dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
+const image=f=>`radial-gradient(circle at 50% 32%,color-mix(in srgb,${f.color} 72%,white),${f.color} 34%,#111722 72%)`;
+function hash(text){let h=2166136261;for(const c of text){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return("00000000"+(h>>>0).toString(16)).slice(-8)}
+function record(type,data,summary){
+ const prev=g.receipts.length?g.receipts.at(-1).hash:"GENESIS",n=g.receipts.length+1,h=hash(JSON.stringify({n,type,data,prev}));
+ g.receipts.push({n,type,data,summary,hash:h});renderTimeline()
+}
+function lanes(){return["All",...new Set(CHARACTERS.map(c=>c.lane))]}
+function renderFilters(){
+ $("#filters").innerHTML=lanes().map(l=>`<button class="filter ${l===filter?"active":""}" data-lane="${l}">${l}</button>`).join("");
+ $$(".filter").forEach(b=>b.onclick=()=>{filter=b.dataset.lane;renderFilters();renderRoster()})
+}
+function renderRoster(){
+ $("#roster").innerHTML=CHARACTERS.map(f=>`<button class="roster-card ${playerId===f.id?"player-pick":""} ${rivalId===f.id?"rival-pick":""} ${filter!=="All"&&filter!==f.lane?"hidden":""}" data-id="${f.id}" style="--lane:${f.color};--image:${image(f)}">
+  <div class="art" data-crest="${f.crest}"><span class="portrait-mark">${f.name.split(" ").map(x=>x[0]).join("").slice(0,2)}</span></div><div class="copy"><div class="lane">${f.lane}</div><h3>${f.name}</h3><p>${f.role}. ${f.passive}</p><span class="move-tag">${f.moveName}</span></div></button>`).join("");
+ $$(".roster-card").forEach(c=>c.onclick=()=>pick(c.dataset.id));
+}
+function pick(id){
+ if(!playerId){playerId=id}
+ else if(playerId===id){playerId=null;rivalId=null}
+ else if(!rivalId){rivalId=id}
+ else if(rivalId===id){rivalId=null}
+ else{rivalId=id}
+ updatePicks();renderRoster()
+}
+function updatePicks(){
+ $("#playerPick").textContent=playerId?CHARACTERS.find(c=>c.id===playerId).name:"Choose first";
+ $("#rivalPick").textContent=rivalId?CHARACTERS.find(c=>c.id===rivalId).name:"Choose second";
+ $("#startButton").disabled=!(playerId&&rivalId)
+}
+function clearPicks(){playerId=null;rivalId=null;updatePicks();renderRoster()}
+function theme(f){
+ document.documentElement.style.setProperty("--accent",f.color);
+ document.documentElement.style.setProperty("--accent2",CHARACTERS.find(c=>c.id===rivalId).color);
+}
+function unit(f,x,y){return{f,x,y,res:12,momentum:0,insight:0,guard:0,asks:2,last:null,special:false,history:[],discovery:0,workshopUsed:false}}
+function startGame(){
+ const p=CHARACTERS.find(c=>c.id===playerId),e=CHARACTERS.find(c=>c.id===rivalId);theme(p);
+ const arena=makeArena($("#arenaType").value);OBJ=deriveObjectives(arena.open);const difficulty=$("#difficulty").value;
+ g={round:1,turn:"player",over:false,arena,difficulty,player:unit(p,0,2),enemy:unit(e,6,2),owners:{},receipts:[],dialogue:{},undo:null,totalDamage:{player:0,enemy:0},counts:{player:{push:0,read:0,block:0,rest:0,signature:0},enemy:{push:0,read:0,block:0,rest:0,signature:0}}};
+ record("ARENA_SETTLED",{type:arena.type,name:arena.name,open:[...arena.open].sort(),objectives:OBJ,arenaHash:arena.hash},`${arena.name} settled with ${arena.open.size} playable cells`);
+ record("MATCH_OPEN",{player:p.id,rival:e.id,arenaHash:arena.hash,difficulty},"The match began");
+ $("#rosterScreen").classList.remove("active");$("#gameScreen").classList.add("active");$("#logButton").disabled=false;$("#modeTitle").textContent="ROUND 1 · GALLERY SHOWCASE";
+ buildBoard();enter("PLAYER_SELECT");render();speak("player",0);speak("enemy",1);message("Your turn","Click your figure, then choose a highlighted destination.",`${g.arena.name} · Match code ${g.arena.hash}`);showGenesis()
+}
+function buildBoard(){
+ $("#board").innerHTML=Array.from({length:35},(_,i)=>{const x=i%7,y=Math.floor(i/7),k=K(x,y),o=OBJ[k],open=g.arena.open.has(k),sv=g.arena.strain[k]??0,sc=sv>=3?"strain-high":sv===2?"strain-mid":"strain-low";const purpose=o?.type==="read"?"Forum: gain 1 Focus for your next close attack.":o?.type==="push"?"Stage: gain Power for stronger close attacks.":o?"Workshop: refresh a used Special once, or gain Power and Focus.":"";return`<div class="cell ${open?sc:"blocked"} ${o&&open?"objective":""}" data-x="${x}" data-y="${y}" data-key="${k}" data-purpose="${purpose}">${o&&open?`<span class="obj">${o.name}</span>`:""}</div>`}).join("");
+ $$(".cell").forEach(c=>c.onclick=()=>cellClick(c))
+}
+function offsets(u){
+ const m=u.f.move,dir=u===g.player?1:-1;
+ const basic=[[1,0],[-1,0],[0,1],[0,-1]];
+ let special=[];
+ if(m==="orth1")special=[];
+ else if(m==="knight")special=[[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]];
+ else if(m==="diag1")special=[[1,1],[1,-1],[-1,1],[-1,-1]];
+ else if(m==="rook2")special=[[2,0],[-2,0],[0,2],[0,-2]];
+ else if(m==="tunnel")special=[[2,0],[-2,0],[0,2],[0,-2],[1,1],[1,-1],[-1,1],[-1,-1]];
+ else if(m==="queen1")special=[[1,1],[1,-1],[-1,1],[-1,-1]];
+ else if(m==="bishop2")special=[[1,1],[1,-1],[-1,1],[-1,-1],[2,2],[2,-2],[-2,2],[-2,-2]];
+ else if(m==="lateral")special=[[2,0],[-2,0],[3,0],[-3,0],[0,dir]];
+ else if(m==="jump2")special=[[2,0],[-2,0],[0,2],[0,-2],[2,2],[2,-2],[-2,2],[-2,-2]];
+ else if(m==="ring")special=[[1,1],[1,-1],[-1,1],[-1,-1]];
+ else if(m==="formation")special=[[2,2],[2,-2],[-2,2],[-2,-2]];
+ return [...basic,...special];
+}
+function moves(u){
+ const normal=offsets(u).map(([dx,dy])=>K(u.x+dx,u.y+dy));
+ if(u.f.move==="mirror")normal.push(K(6-u.x,4-u.y));
+ return[...new Set(normal.filter(q=>{const[x,y]=q.split(",").map(Number);return inside(x,y)&&arenaOpen(x,y)&&!occupied(x,y)}))]
+}
+function occupied(x,y){return(g.player.x===x&&g.player.y===y)||(g.enemy.x===x&&g.enemy.y===y)}
+function clearMarks(){legal=[];$$(".cell").forEach(c=>c.classList.remove("legal","threat","preview-cell"))}
+function mark(list){legal=list;list.forEach(q=>$(`[data-key="${q}"]`)?.classList.add("legal"))}
+function enter(next){
+ phase=next;clearMarks();
+ const ready=next==="PLAYER_ACTION"&&g.turn==="player"&&!busy&&!g.over;
+ $$(".action").forEach(b=>{let ok=ready;if(b.dataset.action==="signature")ok=ready&&!g.player.special;b.disabled=!ok;b.classList.toggle("ready",ok)});
+ $("#askButton").disabled=!(next==="PLAYER_SELECT"&&g.turn==="player"&&!busy&&g.player.asks>0)
+}
+function cellClick(c){
+ if(!g||g.over||busy||g.turn!=="player")return;
+ const q=c.dataset.key;
+ if(phase==="PLAYER_SELECT"&&q===K(g.player.x,g.player.y)){enter("PLAYER_MOVE");const m=moves(g.player);mark(m);message("Choose a destination",`${g.player.f.moveName}: ${g.player.f.moveText}`,`${m.length} legal spaces are highlighted.`)}
+ else if(phase==="PLAYER_MOVE"&&legal.includes(q)){const[x,y]=q.split(",").map(Number);commitMove("player",x,y)}
+}
+function commitMove(side,x,y){
+ const u=g[side],before=dist(u,g[side==="player"?"enemy":"player"]),from=[u.x,u.y];if(side==="player")g.undo={from:[u.x,u.y],owners:JSON.parse(JSON.stringify(g.owners)),momentum:u.momentum,res:u.res};u.x=x;u.y=y;const after=dist(u,g[side==="player"?"enemy":"player"]);
+ if(u.f.id==="ALE"&&after<before)u.momentum=Math.min(5,u.momentum+1);
+ if(u.f.id==="TUB"&&u.res<=4&&after>before)u.res=Math.min(12,u.res+1);
+ record("MOVE",{round:g.round,side,from,to:[x,y],movement:u.f.moveName},`${u.f.name} used ${u.f.moveName}`);
+ claim(side);render();
+ if(side==="player"){enter("PLAYER_ACTION");$("#undoButton").disabled=false;message("Choose an action","Your position is committed.","Hover over an action to preview it.")}
+ else setTimeout(enemyAction,420)
+}
+function claim(side){
+ const u=g[side],q=K(u.x,u.y),o=OBJ[q];if(!o||g.owners[q]===side)return;
+ g.owners[q]=side;
+ let result="";
+ if(o.type==="read"){
+   u.insight=Math.min(3,u.insight+1);
+   result="gained 1 Focus for a stronger next Strike";
+ }else if(o.type==="push"){
+   const gain=u.f.id==="TAY"?2:1;
+   u.momentum=Math.min(5,u.momentum+gain);
+   result=`gained ${gain} Power`;
+ }else{
+   if(u.special&& !u.workshopUsed){u.special=false;u.workshopUsed=true;result="restored their Special move"}
+   else{u.momentum=Math.min(5,u.momentum+1);u.insight=Math.min(3,u.insight+1);result="gained 1 Power and 1 Focus"}
+ }
+ record("OBJECTIVE",{round:g.round,side,objective:o.name,result},`${u.f.name} claimed ${o.name} and ${result}.`)
+}
+function observe(side){
+ const me=g[side],other=g[side==="player"?"enemy":"player"];
+ return{adjacent:dist(me,other)===1,distance:dist(me,other),myRes:me.res,otherRes:other.res,myMomentum:me.momentum,otherMomentum:other.momentum,myInsight:me.insight,myBrace:me.guard,last:other.last,objective:OBJ[K(me.x,me.y)]?.name||null,moves:moves(me).length}
+}
+function scores(side){
+ const u=g[side],o=observe(side),s={push:u.f.profile.push,read:u.f.profile.read,block:u.f.profile.block,rest:u.f.profile.rest};
+ if(o.adjacent){s.push+=5;s.block+=3}else{s.read+=2;s.rest+=1}
+ if(o.myRes<=4){s.block+=5;s.rest+=4;s.push-=2}
+ if(o.otherRes<=4)s.push+=4;if(o.last==="push")s.block+=4;if(o.last==="block")s.read+=3;if(o.last==="read")s.push+=3;
+ if(o.myInsight>=2)s.push+=2;if(o.objective==="FORUM")s.read+=2;if(o.objective==="STAGE")s.push+=2;if(o.objective==="WORKSHOP"&&!u.special)s.read+=2;
+ return s
+}
+function decide(side){
+ const u=g[side],o=observe(side),order=["push","block","read","rest"];
+ let s;
+ if(side==="enemy"&&g.difficulty==="beginner"){
+  s={push:u.f.profile.push,read:u.f.profile.read,block:u.f.profile.block,rest:u.f.profile.rest};
+  if(o.adjacent)s.push+=3;else s.read+=1;
+  if(o.objective==="FORUM")s.read+=2;if(o.objective==="STAGE")s.push+=2;
+ }else if(side==="enemy"&&g.difficulty==="skilled"){
+  s={push:u.f.profile.push,read:u.f.profile.read,block:u.f.profile.block,rest:u.f.profile.rest};
+  if(o.adjacent){s.push+=4;s.block+=2}else{s.read+=2;s.rest+=1}
+  if(o.last==="push")s.block+=3;if(o.last==="block")s.read+=2;if(o.myRes<=4){s.block+=3;s.rest+=2}
+ }else{s=scores(side)}
+ const action=order.slice().sort((a,b)=>s[b]-s[a]||order.indexOf(a)-order.indexOf(b))[0];return{action,s,obs:o}
+}
+function label(u,a){return a==="push"?"Attack":a==="read"?"Study":a==="block"?"Guard":a==="rest"?"Recover":u.f.signature}
+function preview(a){
+ if(phase!=="PLAYER_ACTION")return;const u=g.player,o=g.enemy,obs=observe("player");let title=label(u,a),body="",detail="No random roll is used.";
+ if(a==="push"){const dmg=obs.adjacent?Math.max(1,2+u.momentum+u.insight-(o.guard?2:0)):0;body=obs.adjacent?`Exact result: ${dmg} Resolve damage. Momentum ${u.momentum}, Insight ${u.insight}, rival Brace ${o.guard}.`:`Exact result: +1 Momentum. No damage from this distance.`}
+ else if(a==="read"){const gain=u.f.id==="SOC"?2:1;body=`Exact result: +${gain} Insight${u.f.id==="CUR"?" and +1 Discovery":""}. Rival leaning: ${label(o,decide("enemy").action)}.`}
+ else if(a==="block"){const guard=u.f.id==="WAS"&&u.x===3?2:1;body=`Guard is ${guard}. The next hit is reduced, and you recover 1 Health.`}
+ else{body=signatureText(u.f);detail="Usable once per match."}
+ message(title,body,detail);clearMarks();$(`[data-key="${a==="push"?K(o.x,o.y):K(u.x,u.y)}"]`)?.classList.add(a==="push"?"threat":"preview-cell")
+}
+function signatureText(f){
+ const map={WAS:"Strengthens Brace and restores Resolve.",ALE:"Deals a heavy momentum-powered strike.",SOC:"Reads and counters the rival's selected plan.",JUN:"Copies the rival's strongest current resource.",CUR:"Converts accumulated discovery into damage.",TUB:"Moves to safety and restores Resolve.",LEE:"Delivers a fast strike that ignores Brace.",ADA:"Executes a three-part programmed action.",SER:"Returns pressure with a championship strike.",MRB:"Turns all objectives into bonus challenges.",TAY:"Fills Momentum and changes the match tempo.",RM:"Balances Insight, Brace, and Momentum."};return map[f.id]
+}
+function act(side,a,asked=false){
+ const u=g[side],other=g[side==="player"?"enemy":"player"],obs=observe(side),s=scores(side);let damage=0,summary="";const here=K(u.x,u.y),localStrain=g.arena.strain[here]||0;
+ if(a==="signature"){
+  u.special=true;g.counts[side].signature++;
+  if(u.f.id==="WAS"){u.guard=2;u.res=Math.min(12,u.res+2);summary=`${u.f.name} unified the field, restored 2 Resolve, and set a reinforced Brace.`}
+  else if(u.f.id==="ALE"){damage=3+u.momentum;u.momentum=0;summary=`${u.f.name} struck for ${damage} damage.`}
+  else if(u.f.id==="SOC"){damage=2+u.insight+(decide(side==="player"?"enemy":"player").action==="push"?2:0);summary=`${u.f.name} exposed the contradiction for ${damage} damage.`}
+  else if(u.f.id==="JUN"){u.momentum=Math.max(u.momentum,other.momentum);u.insight=Math.max(u.insight,other.insight);u.guard=Math.max(u.guard,other.guard);summary=`${u.f.name} integrated the rival's strongest state.`}
+  else if(u.f.id==="CUR"){damage=3+u.discovery+u.insight;summary=`${u.f.name} converted discovery into ${damage} damage.`}
+  else if(u.f.id==="TUB"){u.res=Math.min(12,u.res+3);u.guard=1;summary=`${u.f.name} opened a freedom passage and restored 3 Resolve.`}
+  else if(u.f.id==="LEE"){damage=4+u.insight;other.guard=0;summary=`${u.f.name} intercepted for ${damage} damage, ignoring Brace.`}
+  else if(u.f.id==="ADA"){u.insight=Math.min(3,u.insight+1);u.guard=1;damage=2;summary=`${u.f.name} executed a programmed sequence for ${damage} damage, Insight, and Brace.`}
+  else if(u.f.id==="SER"){damage=4+(other.last==="push"?2:0);summary=`${u.f.name} reached championship point for ${damage} damage.`}
+  else if(u.f.id==="MRB"){u.momentum=5;summary=`${u.f.name} raised every stake and filled Momentum.`}
+  else if(u.f.id==="TAY"){u.momentum=5;u.insight=Math.min(3,u.insight+1);summary=`${u.f.name} changed the era, filling Momentum and gaining Insight.`}
+  else{u.momentum=Math.max(u.momentum,3);u.insight=Math.max(u.insight,2);u.guard=1;summary=`${u.f.name} spoke clearly, balancing Momentum, Insight, and Brace.`}
+ }else{
+  g.counts[side][a]++;u.history.push(a);u.last=a;
+  if(a==="push"){
+   if(obs.adjacent){damage=Math.max(1,2+u.momentum+u.insight+Math.max(0,localStrain-1)-(other.guard?2:0));if(u.f.id==="LEE"&&u.history.at(-2)!=="push")damage++;other.guard=0;u.insight=0;u.momentum=Math.max(0,u.momentum-1);summary=`${u.f.name} applied ${damage} pressure.`}
+   else{u.momentum=Math.min(5,u.momentum+1);summary=`${u.f.name} advanced and gained Momentum.`}
+  }else if(a==="read"){
+   u.insight=Math.min(3,u.insight+(u.f.id==="SOC"?2:1)+(localStrain===0?1:0));if(u.f.id==="CUR")u.discovery=Math.min(3,u.discovery+1);summary=`${u.f.name} gained Insight${u.f.id==="CUR"?" and advanced a discovery":""}.`
+  }else if(a==="block"){u.guard=u.f.id==="WAS"&&u.x===3?2:1;g.arena.strain[here]=Math.max(0,localStrain-1);summary=`${u.f.name} prepared a Brace.`}
+  else{u.res=Math.min(12,u.res+1);u.momentum=Math.min(5,u.momentum+1);summary=`${u.f.name} regrouped, restoring Resolve and Momentum.`}
+  if(u.f.id==="JUN"&&u.history.length>=2&&u.history.at(-1)!==u.history.at(-2))u.res=Math.min(12,u.res+1);
+  if(u.f.id==="RM"&&["push","read","block"].every(x=>u.history.slice(-5).includes(x)))u.momentum=Math.min(5,u.momentum+2);
+ }
+ if(damage){g.totalDamage[side]+=damage;other.res=Math.max(0,other.res-damage);float(side==="player"?"enemy":"player",damage);if(other.f.id==="SER"&&other.guard&&a==="push"){u.res=Math.max(0,u.res-1)}}
+ record("ACTION",{round:g.round,side,action:a,label:label(u,a),scores:s,observation:obs,asked,result:{damage,playerResolve:g.player.res,enemyResolve:g.enemy.res}},summary);
+ render();
+ if(side==="player"&&g.difficulty==="beginner"){
+  const board=$("#board");board.classList.remove("good-flash");void board.offsetWidth;board.classList.add("good-flash");
+  message(damage>0?"Nice hit!":a==="read"?"Good read!":a==="block"?"Good defense!":"Good move!",summary,"You can see the exact result before every choice.");
+ }else message(label(u,a),summary,asked?"Your legend chose this turn from the current position.":"Move recorded.")
+}
+function playerAct(a){if(g.over||busy||phase!=="PLAYER_ACTION")return;$("#undoButton").disabled=true;g.undo=null;busy=true;enter("RESOLVING");act("player",a);setTimeout(()=>finish("player"),600)}
+function enemyMove(){
+ const list=moves(g.enemy);if(!list.length){enemyAction();return}
+ list.sort((a,b)=>moveScore(b)-moveScore(a)||a.localeCompare(b));const[x,y]=list[0].split(",").map(Number);commitMove("enemy",x,y)
+}
+function moveScore(q){const[x,y]=q.split(",").map(Number);let s=20-(Math.abs(x-g.player.x)+Math.abs(y-g.player.y))*2;if(OBJ[q])s+=5;if(Math.abs(x-g.player.x)+Math.abs(y-g.player.y)===1)s+=7;if(g.enemy.res<=4&&Math.abs(x-g.player.x)+Math.abs(y-g.player.y)===1)s-=4;return s}
+function enemyAction(){const d=decide("enemy");message(`${g.enemy.f.name} commits`,label(g.enemy,d.action),"The choice comes from the board state and character profile.");setTimeout(()=>{act("enemy",d.action);setTimeout(()=>finish("enemy"),600)},450)}
+function finish(side){
+ if(endCheck())return;busy=false;
+ if(side==="player"){g.turn="enemy";enter("ENEMY_TURN");render();const d=decide("enemy");message("Rival's turn",`${g.enemy.f.name} is leaning toward ${label(g.enemy,d.action)}.`,"The rival will move, then commit one action.");setTimeout(enemyMove,700)}
+ else{g.round++;g.turn="player";enter("PLAYER_SELECT");render();message("Your turn","Click your figure, then choose one highlighted destination.","Use the rival's visible leaning to plan ahead.")}
+}
+function askLegend(){
+ if(g.over||busy||phase!=="PLAYER_SELECT"||g.player.asks<=0)return;
+ g.player.asks--;record("ASK_FUTURE",{round:g.round,remaining:g.player.asks,enemyDecision:decide("enemy")},`${g.player.f.name} revealed the deterministic next turn`);render();flashFuture();
+}
+function moveScorePlayer(q){const[x,y]=q.split(",").map(Number);let s=18-(Math.abs(x-g.enemy.x)+Math.abs(y-g.enemy.y))*2;if(OBJ[q])s+=5;if(Math.abs(x-g.enemy.x)+Math.abs(y-g.enemy.y)===1&&g.player.res>4)s+=5;return s}
+function playerActAsked(a){busy=true;enter("RESOLVING");act("player",a,true);setTimeout(()=>finish("player"),650)}
+function endCheck(){
+ if(g.player.res<=0){endGame("The rival wins","Your Resolve reached zero.");return true}
+ if(g.enemy.res<=0){endGame("You win","The rival's Resolve reached zero.");return true}
+ if(g.round>MAX_ROUND){const score=s=>g[s].res+g[s].momentum+g[s].insight+Object.values(g.owners).filter(x=>x===s).length;endGame(score("player")>=score("enemy")?"You win":"The rival wins","The fourteen-round arena score decided the clash.");return true}
+ return false
+}
+function endGame(title,reason){
+ g.over=true;busy=false;document.body.classList.add("finished");record("MATCH_CLOSE",{title,reason},reason);render();
+ const report=side=>Object.entries(g.counts[side]).map(([k,v])=>`<div class="bar-row"><span>${k==="signature"?"Special":label(g[side],k)}</span><div class="bar"><i style="width:${Math.min(100,v*20)}%"></i></div><b>${v}</b></div>`).join("");
+ $("#resultCard").innerHTML=`<h2>${title}</h2><p>${reason}</p><div class="result-grid"><div class="result-card"><b>${g.player.f.name}</b><br><small>${g.player.f.lane}</small><p><b>${g.totalDamage.player}</b> total damage</p>${report("player")}</div><div class="result-card"><b>${g.enemy.f.name}</b><br><small>${g.enemy.f.lane}</small><p><b>${g.totalDamage.enemy}</b> total damage</p>${report("enemy")}</div></div><p style="color:var(--muted)">Replay: <b>Exact</b> · Match code: <b>${g.receipts.at(-1).hash}</b></p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn primary" onclick="rematch()">Rematch</button><button class="btn" onclick="returnRoster()">Choose New Legends</button><button class="btn" onclick="showReceipts()">View Battle Log</button></div>`;
+ $("#resultOverlay").classList.add("show")
+}
+function rematch(){$("#resultOverlay").classList.remove("show");$("#receiptOverlay").classList.remove("show");document.body.classList.remove("finished");startGame()}
+function returnRoster(){
+ $("#resultOverlay").classList.remove("show");$("#receiptOverlay").classList.remove("show");$("#helpOverlay").classList.remove("show");document.body.classList.remove("finished","thinking");
+ $("#gameScreen").classList.remove("active");$("#rosterScreen").classList.add("active");$("#logButton").disabled=true;$("#modeTitle").textContent="GALLERY SHOWCASE";g=null;phase="ROSTER";busy=false;clearPicks()
+}
+function render(){
+ if(!g)return;$("#modeTitle").textContent=`ROUND ${Math.min(g.round,MAX_ROUND)} · ${g.arena.name.toUpperCase()}`;
+ $("#arenaIdentityName").textContent=g.arena.name;
+ $("#arenaIdentityStyle").textContent={compact:"Close combat",branched:"Branching paths",filament:"Narrow routes",porous:"Gaps and shortcuts"}[g.arena.type]||"Living arena";
+ $("#difficultyBadge").textContent=g.difficulty[0].toUpperCase()+g.difficulty.slice(1);
+ $("#roundDots").innerHTML=Array.from({length:MAX_ROUND},(_,i)=>`<span class="dot ${i<g.round?"done":""}"></span>`).join("");
+ $("#playerStatus").innerHTML=status("player");$("#enemyStatus").innerHTML=status("enemy");
+ $("#passiveName").textContent=g.player.f.passive;$("#passiveText").textContent=g.player.f.passiveText;const coach=phase==="PLAYER_SELECT"?"Choose your legend to see where they can move.":phase==="PLAYER_MOVE"?`${g.player.f.moveName} is ready. Pick a glowing space.`:phase==="PLAYER_ACTION"?(g.difficulty==="beginner"?`Try an action. The result is shown before you choose.`:`Rival may ${label(g.enemy,decide("enemy").action)} next. Check each action before choosing.`):"Watch the rival’s move. Nothing is random.";$("#coachText").textContent=coach;
+ $("#askTitle").textContent=`Ask ${g.player.f.name.split(" ")[0]} for a turn`;$("#askText").textContent=`${g.player.asks} use${g.player.asks===1?"":"s"} remaining.`;
+ const labels={push:"Attack",read:"Study",block:"Guard",signature:g.player.f.signature};
+ $$(".action").forEach(b=>{b.querySelector("strong").textContent=labels[b.dataset.action]});
+ $$(".cell").forEach(c=>{c.querySelectorAll(".token,.owner").forEach(n=>n.remove());const own=g.owners[c.dataset.key];if(own){const d=document.createElement("div");d.className="owner "+own;c.appendChild(d)}});
+ [["player",g.player],["enemy",g.enemy]].forEach(([side,u])=>{const t=document.createElement("div");t.className=`token ${g.turn===side&&!g.over?"active":""} ${u.res<=3?"low":""} ${g.round===1?(side==="player"?"enter-player":"enter-enemy"):""}`;t.style.setProperty("--lane",u.f.color);t.style.setProperty("--image",image(u.f));t.textContent=u.f.name.split(" ").map(x=>x[0]).join("").slice(0,2);$(`[data-key="${K(u.x,u.y)}"]`)?.appendChild(t)})
+}
+function status(side){
+ const u=g[side],lean=side==="enemy"&&!g.over?`<div class="lean">Leaning: ${label(u,decide("enemy").action)}</div>`:"";
+ const power=Math.max(0,Math.min(100,Math.round(((u.res/12)*45)+((u.momentum/5)*30)+((u.insight/3)*15)+(u.guard?10:0))));
+ const insightClass=side==="player"?"insight-click":"";
+ const insightHandler=side==="player"?'onclick="showInsightThought()" title="Click to hear what your legend is thinking"':"";
+ return`<div class="mini-card" style="--lane:${u.f.color};--image:${image(u.f)}"><span style="display:grid;place-items:center;width:100%;height:100%;font:700 18px Georgia,serif;text-shadow:0 2px 5px #000">${u.f.name.split(" ").map(x=>x[0]).join("").slice(0,2)}</span></div><div style="min-width:0"><div class="lane-name" style="--lane:${u.f.color}">${u.f.lane}</div><h2>${u.f.name}</h2><div class="stats"><span>Health <b>${u.res}/12</b></span><span>Power <b>${u.momentum}/5</b></span><span class="${insightClass}" ${insightHandler}>Focus <b>${u.insight}/3</b></span></div><div class="power-wrap"><span>Ready</span><div class="power-track"><div class="power-fill" style="--lane:${u.f.color};width:${power}%"></div></div><b>${power}</b></div>${lean}</div>`
+}
+function showInsightThought(){
+ if(!g||g.over||g.turn!=="player"||phase==="ENEMY_TURN"||phase==="RESOLVING"){
+   message("Insight unavailable","Your legend only shares a thought during your turn.","Wait until control returns to you.");
+   return;
+ }
+ const u=g.player,o=g.enemy,d=decide("enemy"),obs=observe("player");
+ let thought="";
+ if(u.insight===0)thought=`${u.f.name} has not gathered enough information yet. A Read action would reveal more.`;
+ else if(obs.adjacent&&o.guard)thought=`${u.f.name} notices the rival is guarded. A direct Press would be reduced; Read or Brace may be safer.`;
+ else if(obs.adjacent)thought=`${u.f.name} sees an immediate opening. Current Press damage would be ${Math.max(1,2+u.momentum+u.insight-(o.guard?2:0))}.`;
+ else if(d.action==="push")thought=`${u.f.name} expects ${o.f.name} to press forward. Brace can punish that pressure.`;
+ else if(d.action==="block")thought=`${u.f.name} expects a defensive response. Read can gain an advantage without wasting Momentum.`;
+ else if(d.action==="read")thought=`${u.f.name} expects the rival to Read. Press can interrupt that setup.`;
+ else thought=`${u.f.name} believes the rival may regroup. This is a good moment to claim an objective or build pressure.`;
+ message(`${u.f.name}'s thought`,thought,`Current Insight: ${u.insight}/3 · Rival leaning: ${label(o,d.action)}.`);
+}
+function renderTimeline(){if(!g)return;$("#timeline").innerHTML=g.receipts.slice(-6).reverse().map(r=>`<div class="event"><b>${r.summary}${r.data?.result?.damage?` <span class="damage-chip">-${r.data.result.damage} damage</span>`:""}</b><span class="hash">#${r.n} · ${r.hash}</span></div>`).join("")}
+function message(t,b,d){$("#previewTitle").textContent=t;$("#previewBody").textContent=b;$("#previewDetail").textContent=d||""}
+function speak(side,n){const u=g[side],q=u.f.quote[n%u.f.quote.length];(side==="player"?$("#playerQuote"):$("#enemyQuote")).textContent=`“${q}”`}
+function float(side,n){const u=g[side],c=$(`[data-key="${K(u.x,u.y)}"]`),d=document.createElement("div");d.className="damage";d.textContent=`-${n}`;c.appendChild(d);setTimeout(()=>d.remove(),850)}
+function undoMove(){if(!g||!g.undo||phase!=="PLAYER_ACTION"||busy)return;const u=g.player;u.x=g.undo.from[0];u.y=g.undo.from[1];u.momentum=g.undo.momentum;u.res=g.undo.res;g.owners=JSON.parse(JSON.stringify(g.undo.owners));record("UNDO_MOVE",{round:g.round,returnedTo:g.undo.from},"The player reconsidered the destination before acting");g.undo=null;$("#undoButton").disabled=true;enter("PLAYER_SELECT");render();message("Move undone","Choose your figure again.","No action was committed.")}
+function showGenesis(){
+ const overlay=$("#genesisOverlay"),board=$("#genesisBoard"),keys=Array.from({length:35},(_,i)=>K(i%7,Math.floor(i/7)));
+ $("#genesisName").textContent=g.arena.name;$("#genesisMeta").textContent=`${g.arena.open.size} playable spaces · Match code ${g.arena.hash}`;
+ board.innerHTML=keys.map(k=>`<div class="genesis-cell off" data-gkey="${k}">·</div>`).join("");$("#genesisReceipt").innerHTML="";overlay.classList.add("show");
+ const order=[...g.arena.open].sort((a,b)=>hash(a+g.arena.hash).localeCompare(hash(b+g.arena.hash)));let i=0;
+ const timer=setInterval(()=>{for(let n=0;n<3&&i<order.length;n++,i++){const k=order[i],el=$(`[data-gkey="${k}"]`);if(el){el.className=`genesis-cell on ${(g.arena.strain[k]||0)>=3?"hot":"calm"}`;el.textContent=(g.arena.strain[k]||0)>=3?"HOT":"SAFE";}$("#genesisReceipt").innerHTML+=`#${i+1} Ground formed at ${k}<br>`;}
+ if(i>=order.length){clearInterval(timer);$("#genesisReceipt").innerHTML+=`<b>READY:</b> The arena has finished taking shape.`;setTimeout(()=>overlay.classList.remove("show"),1100)}},90)
+}
+function flashFuture(){
+ if(!g||g.over)return;const list=moves(g.enemy).sort((a,b)=>moveScore(b)-moveScore(a)||a.localeCompare(b)),target=list[0],d=decide("enemy");clearMarks();if(target)$(`[data-key="${target}"]`)?.classList.add("future");$(`[data-key="${K(g.enemy.x,g.enemy.y)}"]`)?.classList.add("preview-cell");message("Deterministic future",`${g.enemy.f.name} will move to ${target||"its current cell"} and use ${label(g.enemy,d.action)}.`,`This preview uses the current state; changing your move changes the future.`);setTimeout(()=>{$$(".cell").forEach(c=>c.classList.remove("future","preview-cell"));},1800)
+}
+function closeIntro(){localStorage.setItem("eracii_intro_seen","1");$("#introOverlay").classList.remove("show")}
+function showGallery(){$("#galleryList").innerHTML=CHARACTERS.map(f=>`<div class="help-item"><b style="color:${f.color}">${f.crest} ${f.name}</b><span>${f.lane}</span><br><small>${f.moveName}: ${f.moveText}</small></div>`).join("");$("#galleryOverlay").classList.add("show")}
+function closeGallery(){$("#galleryOverlay").classList.remove("show")}
+function showHelp(){$("#helpOverlay").classList.add("show")}function closeHelp(){$("#helpOverlay").classList.remove("show")}
+function showReceipts(){if(!g)return;$("#receiptList").innerHTML=g.receipts.slice().reverse().map(r=>`#${r.n} ${r.type} → ${r.hash}<br>${r.summary}${r.data?.result?.damage?` | DAMAGE: ${r.data.result.damage}`:""}<br>${JSON.stringify(r.data)}`).join("<hr>");$("#receiptOverlay").classList.add("show")}
+function closeReceipts(){$("#receiptOverlay").classList.remove("show")}
+
+renderFilters();renderRoster();updatePicks();
+$("#galleryButton").onclick=showGallery;$("#undoButton").onclick=undoMove;$("#clearButton").onclick=clearPicks;$("#startButton").onclick=startGame;$("#helpButton").onclick=showHelp;$("#logButton").onclick=showReceipts;$("#askButton").onclick=askLegend;
+$$(".action").forEach(b=>{b.onmouseenter=()=>preview(b.dataset.action);b.onfocus=()=>preview(b.dataset.action);b.onclick=()=>{if(!b.disabled)playerAct(b.dataset.action)}});
+document.addEventListener("keydown",e=>{
+ if(e.key==="Escape"){if($("#introOverlay").classList.contains("show"))closeIntro();else if($("#galleryOverlay").classList.contains("show"))closeGallery();else if($("#receiptOverlay").classList.contains("show"))closeReceipts();else if($("#helpOverlay").classList.contains("show"))closeHelp();else if($("#resultOverlay").classList.contains("show"))returnRoster()}
+});
+</script>
+
+<script>
+/* Toybox Leap interaction layer. It wraps the existing deterministic game logic. */
+(() => {
+  const crestFor = id => ({WAS:"⬟",ALE:"♞",SOC:"?",JUN:"◐",CUR:"✦",TUB:"↝",LEE:"⚡",ADA:"⚙",SER:"★",MRB:"◆",TAY:"♪",RM:"K"}[id] || "●");
+
+  function plainAbility(f){
+    const map={
+      WAS:"Washington is best at holding important ground. Stand Ground is stronger in the middle column.",
+      ALE:"Alexander builds Power by closing distance. Keep moving toward the rival before striking.",
+      SOC:"Socrates gains extra Focus when he Reads the rival. Focus makes his next Strike more dangerous.",
+      JUN:"Jung recovers Health when he changes tactics instead of repeating the same action.",
+      CUR:"Curie becomes stronger after repeated Read actions. Patience turns into a harder Strike.",
+      TUB:"Tubman can recover Health by escaping danger when badly hurt.",
+      LEE:"Bruce Lee hits harder when he changes actions instead of repeating himself.",
+      ADA:"Ada is rewarded for using Strike, Read, then Guard as a planned sequence.",
+      SER:"Serena can answer an incoming Strike after she has prepared Guard.",
+      MRB:"MrBeast earns an extra reward when he captures a special space.",
+      TAY:"Taylor gains twice as much Power when she captures the Stage.",
+      RM:"RM gains extra Power after using Strike, Read, and Guard instead of relying on one tactic."
+    };return map[f.id]||"This legend has a special advantage. Watch the highlighted explanation during play.";
+  }
+  function objectiveTips(f){
+    const forum=(f.id==="SOC"||f.id==="CUR")?`${f.name} is especially good here because Focus supports their patient style.`:`${f.name} can use Focus to make the next close Strike stronger.`;
+    const stage=f.id==="TAY"?"Taylor gains 2 Power here instead of 1.":f.id==="ALE"||f.id==="LEE"||f.id==="SER"?`${f.name} benefits strongly from extra Power because they favor direct attacks.`:`${f.name} can save this Power for a harder close Strike.`;
+    const workshop=f.id==="MRB"?"MrBeast also receives his extra objective reward here.":`For ${f.name}, this is the place to prepare or regain the unique Special move.`;
+    return{forum,stage,workshop};
+  }
+  let lastMoveFx = null;
+  let actionFx = null;
+
+  function toast(text){
+    const el=document.getElementById("feedbackToast");
+    if(!el)return;
+    el.textContent=text;el.classList.remove("show");void el.offsetWidth;el.classList.add("show");
+  }
+  function guide(text,step){
+    const t=document.getElementById("guideText"),s=document.getElementById("guideStep");
+    if(t)t.textContent=text;if(s)s.textContent=String(step||"•");
+  }
+  function cellAt(x,y){return document.querySelector(`[data-key="${x},${y}"]`)}
+  function tokenFor(side){
+    if(typeof g==="undefined"||!g)return null;
+    const u=g[side];return cellAt(u.x,u.y)?.querySelector(".token")||null;
+  }
+  function pulseCell(x,y,cls){const c=cellAt(x,y);if(!c)return;c.classList.remove(cls);void c.offsetWidth;c.classList.add(cls);setTimeout(()=>c.classList.remove(cls),1000)}
+  function bubble(side,text){
+    if(typeof g==="undefined"||!g)return;
+    const slot=document.getElementById(side==="player"?"playerSpeech":"enemySpeech");if(!slot)return;
+    slot.innerHTML="";
+    const b=document.createElement("div");b.className="speech-bubble";b.style.setProperty("--lane",g[side].f.color);b.textContent=`${g[side].f.name}: “${text}”`;slot.appendChild(b);setTimeout(()=>{if(b.isConnected)b.remove()},2700)
+  }
+  function shake(){const b=document.getElementById("board");b?.classList.remove("board-shake");void b?.offsetWidth;b?.classList.add("board-shake");setTimeout(()=>b?.classList.remove("board-shake"),500)}
+  function confetti(){
+    const layer=document.getElementById("fxLayer");if(!layer)return;
+    for(let i=0;i<36;i++){
+      const bit=document.createElement("i");bit.className="confetti-bit";bit.style.left=`${(i*37)%100}%`;bit.style.setProperty("--c",i%3===0?"var(--gold)":i%3===1?"var(--accent)":"var(--accent2)");bit.style.setProperty("--drift",`${(i%2?1:-1)*(20+(i%7)*8)}px`);bit.style.animationDelay=`${(i%9)*.035}s`;layer.appendChild(bit);setTimeout(()=>bit.remove(),2600)
+    }
+  }
+  function characterLine(side,action){
+    const f=g[side].f;
+    const lines={push:["Now.","Your ground is open.","I press the advantage."],read:["I see the pattern.","Show me your plan.","Interesting."],block:["We hold here.","Not this time.","Steady."],signature:[f.quote?.[0]||"Watch closely."]};
+    const arr=lines[action]||["Onward."];return arr[(g.round+f.id.charCodeAt(0))%arr.length]
+  }
+
+  const oldRenderRoster=window.renderRoster;
+  window.renderRoster=function(){
+    oldRenderRoster();
+    document.querySelectorAll(".roster-card").forEach(card=>{
+      const f=CHARACTERS.find(x=>x.id===card.dataset.id);if(!f)return;
+      const art=card.querySelector(".art");
+      if(art&&!card.querySelector(".hover-quote")){const q=document.createElement("div");q.className="hover-quote";q.textContent=`“${f.quote[0]}”`;art.appendChild(q)}
+    });
+  };
+
+  const oldBuildBoard=window.buildBoard;
+  window.buildBoard=function(){
+    oldBuildBoard();
+    document.querySelectorAll(".cell.objective").forEach(c=>{
+      const o=OBJ[c.dataset.key];if(!o)return;
+      const m=document.createElement("span");m.className="objective-monument";m.textContent=o.name==="FORUM"?"▤":o.name==="STAGE"?"▲":"⚒";c.appendChild(m);
+    });
+    document.querySelectorAll(".cell:not(.blocked)").forEach(c=>c.addEventListener("pointerenter",()=>{if(!c.classList.contains("legal"))c.style.setProperty("--hovered","1")},{passive:true}));
+  };
+
+  const oldCommitMove=window.commitMove;
+  window.commitMove=function(side,x,y){
+    const u=g[side],from={x:u.x,y:u.y};
+    lastMoveFx={side,from,to:{x,y}};
+    pulseCell(from.x,from.y,"tile-ripple");
+    oldCommitMove(side,x,y);
+    requestAnimationFrame(()=>{
+      const t=tokenFor(side);if(t){t.classList.add("token-hop");setTimeout(()=>t.classList.remove("token-hop"),650)}
+      pulseCell(x,y,"tile-ripple");
+    });
+    if(side==="player")toast("Moved. Now choose what happens next.");
+  };
+
+  const oldClaim=window.claim;
+  window.claim=function(side){
+    const before={...g.owners};oldClaim(side);
+    const u=g[side],k=`${u.x},${u.y}`;
+    if(before[k]!==g.owners[k]&&g.owners[k]){pulseCell(u.x,u.y,"claim-pop");toast(`${OBJ[k]?.name||"Objective"} claimed!`)}
+  };
+
+  const oldAct=window.act;
+  window.act=function(side,a,asked=false){
+    const me=g[side],other=g[side==="player"?"enemy":"player"],before=other.res;
+    actionFx={side,a,me:{x:me.x,y:me.y},other:{x:other.x,y:other.y}};
+    oldAct(side,a,asked);
+    const dmg=Math.max(0,before-other.res),myToken=tokenFor(side),otherToken=tokenFor(side==="player"?"enemy":"player");
+    bubble(side,characterLine(side,a));
+    if(a==="push"){
+      pulseCell(me.x,me.y,"hit-cell");if(dmg){otherToken?.classList.add("token-hit");shake();toast(`Good hit! ${dmg} damage.`)}else toast("Pressure built. Your next hit can be stronger.")
+    }else if(a==="read"){
+      pulseCell(me.x,me.y,"read-cell");myToken?.classList.add("token-read");toast("Plan revealed. Focus increased.")
+    }else if(a==="block"){
+      pulseCell(me.x,me.y,"guard-cell");myToken?.classList.add("token-guard");toast("Guard ready. The next hit is softened.")
+    }else{
+      pulseCell(me.x,me.y,"special-cell");myToken?.classList.add("token-special");shake();toast(`${me.f.signature}!`)
+    }
+    setTimeout(()=>{myToken?.classList.remove("token-read","token-guard","token-special");otherToken?.classList.remove("token-hit")},1000)
+  };
+
+  const oldUndo=window.undoMove;
+  window.undoMove=function(){
+    const b=document.getElementById("board");b?.classList.add("board-rewind");toast("Rewinding… nothing was locked in.");
+    setTimeout(()=>{oldUndo();b?.classList.remove("board-rewind")},430)
+  };
+
+  const oldEnter=window.enter;
+  window.enter=function(next){
+    oldEnter(next);
+    if(next==="PLAYER_SELECT")guide("Tap your champion. Glowing spaces will show where they can step.",1);
+    else if(next==="PLAYER_MOVE")guide("Choose any glowing tile.",2);
+    else if(next==="PLAYER_ACTION")guide("Pick one move. Hover or tap to see exactly what it will do.",3);
+    else if(next==="ENEMY_TURN")guide("Watch the rival. Their next choice follows the visible board.","•");
+    else if(next==="RESOLVING")guide("The arena is responding to the move.","•");
+  };
+
+  const oldRender=window.render;
+  window.render=function(){
+    oldRender();
+    if(typeof g==="undefined"||!g)return;
+    document.getElementById("playerArenaName").textContent=g.player.f.name;
+    document.getElementById("enemyArenaName").textContent=g.enemy.f.name;
+    const ph=document.getElementById("legendPlainHelp");if(ph)ph.textContent=plainAbility(g.player.f);
+    const ot=objectiveTips(g.player.f);const ft=document.getElementById("forumPlayerTip"),st=document.getElementById("stagePlayerTip"),wt=document.getElementById("workshopPlayerTip");if(ft)ft.textContent=`For your legend: ${ot.forum}`;if(st)st.textContent=`For your legend: ${ot.stage}`;if(wt)wt.textContent=`For your legend: ${ot.workshop}`;
+    document.querySelectorAll(".token").forEach(t=>{const cell=t.closest(".cell"),key=cell?.dataset.key;const side=key===`${g.player.x},${g.player.y}`?"player":"enemy";t.textContent=crestFor(g[side].f.id);if(g.turn!==side)t.classList.add("waiting");if(!t.querySelector(".token-name")){const n=document.createElement("span");n.className="token-name";n.textContent=g[side].f.name;t.appendChild(n)}});
+    document.querySelectorAll(".objective-monument").forEach(m=>{const c=m.closest(".cell"),o=OBJ[c.dataset.key];m.textContent=o?.name==="FORUM"?"▤":o?.name==="STAGE"?"▲":"⚒"});
+  };
+
+  const oldPreview=window.preview;
+  window.preview=function(a){oldPreview(a);if(phase==="PLAYER_ACTION"){const names={push:"Attack",read:"Study",block:"Guard",signature:"Special"};guide(`${names[a]} preview: the exact result is shown beside the board.`,3)}};
+
+  const oldEndGame=window.endGame;
+  window.endGame=function(title,reason){oldEndGame(title,reason);if(title.includes("You win")){confetti();toast("Victory! The arena remembers this battle.")}else toast("Battle over. The result can be reviewed in the Battle Log.")};
+
+  // Re-render roster once so hover quotes are present immediately.
+  window.renderRoster();
+})();
+</script>
+
+
+<script id="viewport-bugfix-js-v2">
+(() => {
+  function placeFixedEffect(el, target) {
+    const layer = document.getElementById('fxLayer');
+    if (!layer || !target) return false;
+    const r = target.getBoundingClientRect();
+    el.classList.add('damage-overlay');
+    el.style.left = `${r.left + r.width / 2}px`;
+    el.style.top = `${Math.max(8, r.top + r.height * 0.12)}px`;
+    el.style.translate = '-50% 0';
+    layer.appendChild(el);
+    return true;
+  }
+
+  /* Override damage placement so numbers never enter the board's 3D stacking context. */
+  window.float = function(side, n) {
+    if (typeof g === 'undefined' || !g) return;
+    const u = g[side];
+    const target = document.querySelector(`[data-key="${u.x},${u.y}"] .token`) ||
+                   document.querySelector(`[data-key="${u.x},${u.y}"]`);
+    const d = document.createElement('div');
+    d.className = 'damage';
+    d.textContent = `-${n}`;
+    if (!placeFixedEffect(d, target)) return;
+    setTimeout(() => d.remove(), 1100);
+  };
+
+  /* Reposition viewport effects after resize without forcing page scale. */
+  let resizeFrame = 0;
+  addEventListener('resize', () => {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(() => {
+      document.querySelectorAll('.damage-overlay').forEach(el => el.remove());
+    });
+  }, {passive:true});
+
+  /* Basic labels for keyboard and screen-reader navigation. */
+  function labelControls() {
+    document.querySelectorAll('.action').forEach(btn => {
+      const name = btn.querySelector('strong')?.textContent?.trim() || 'Action';
+      const detail = btn.querySelector('small')?.textContent?.trim() || '';
+      btn.setAttribute('aria-label', detail ? `${name}: ${detail}` : name);
+    });
+    document.querySelectorAll('.cell').forEach(cell => {
+      const objective = cell.querySelector('.obj')?.textContent?.trim();
+      cell.setAttribute('role','button');
+      cell.setAttribute('aria-label', objective ? `${objective} arena tile` : `Arena tile ${cell.dataset.x}, ${cell.dataset.y}`);
+    });
+  }
+  const observer = new MutationObserver(() => requestAnimationFrame(labelControls));
+  observer.observe(document.body,{subtree:true,childList:true});
+  labelControls();
+})();
+</script>
+
+</body>
+</html>

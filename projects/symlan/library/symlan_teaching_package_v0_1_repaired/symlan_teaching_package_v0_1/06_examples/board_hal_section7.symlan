@@ -1,0 +1,24 @@
+// Projected 3-space HAL example — Eracii-readable board
+// Programmer sets arena; discovery earns V; phase two commits under ternary gates.
+// Materialize: python materializer_v0_1.py
+// (or run_arena_v0_1.py with default profile)
+
+node Alpha, Beta
+node basin_center
+
+Alpha -> basin_center [kappa: 0.50, phi: pi/4, T: 1.0]
+Beta  -> basin_center [kappa: 0.33, phi: pi/5, T: 1.0]
+
+vocab V = register(basin_center, theta: auto, features: 7D)
+run discovery for 30s seed: "hal-profile-v0.1-demo"
+
+after resolve V {
+  send Alpha[S1] -> basin_center
+  expect basin_center[Sj] within 500ms, fidelity: 0.85
+
+  branch on T(Alpha, basin_center) {
+    > 1.02 : reverse Alpha;
+    ~ 1.0  : proceed Alpha[S1];
+    < 0.98 : hold;
+  }
+}

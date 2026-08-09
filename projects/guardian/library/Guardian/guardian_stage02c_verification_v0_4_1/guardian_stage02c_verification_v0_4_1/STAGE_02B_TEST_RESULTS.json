@@ -1,0 +1,268 @@
+{
+  "stage": "Stage 02B Scope-Aware Analyzer Hardening",
+  "version": "0.4.1",
+  "compile_passed": true,
+  "all_unittests_passed": true,
+  "tests_run": 54,
+  "bypass_corpus_cases": 36,
+  "bypass_corpus_passed": true,
+  "bypass_corpus_results": [
+    {
+      "file": "01_sys_modules_os.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "02_dunder_builtins_attr.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "03_dunder_builtins_subscript.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "04_globals_eval.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "05_locals_exec.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "06_tuple_unpack.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "07_list_unpack.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "08_alias_chain.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "09_list_container.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "10_dict_container.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "11_class_attribute.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "12_partial.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "13_methodcaller.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "14_attrgetter.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "15_ctypes_cdll.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "16_ctypes_alias.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "17_cffi_loader.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "18_zipimport_loader.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "19_wildcard_os.py",
+      "expected": "Hold",
+      "actual": "Hold",
+      "passed": true
+    },
+    {
+      "file": "20_wildcard_subprocess.py",
+      "expected": "Hold",
+      "actual": "Hold",
+      "passed": true
+    },
+    {
+      "file": "21_dynamic_getattr_os.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "22_dynamic_import_conditional.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "23_string_reverse_getattr.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "24_function_return_callable.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "25_lambda_dynamic_import.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "26_named_expression.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "27_path_variable_write.py",
+      "expected": "Hold",
+      "actual": "Hold",
+      "passed": true
+    },
+    {
+      "file": "28_getattr_open_write.py",
+      "expected": "Hold",
+      "actual": "Hold",
+      "passed": true
+    },
+    {
+      "file": "29_os_fdopen_write.py",
+      "expected": "Hold",
+      "actual": "Hold",
+      "passed": true
+    },
+    {
+      "file": "30_multiprocessing_process.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "31_asyncio_subprocess.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "32_pycurl_network.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "33_paho_network.py",
+      "expected": "Reject",
+      "actual": "Reject",
+      "passed": true
+    },
+    {
+      "file": "34_user_touch_clean.py",
+      "expected": "Let In",
+      "actual": "Let In",
+      "passed": true
+    },
+    {
+      "file": "35_user_replace_clean.py",
+      "expected": "Let In",
+      "actual": "Let In",
+      "passed": true
+    },
+    {
+      "file": "36_plain_math_clean.py",
+      "expected": "Let In",
+      "actual": "Let In",
+      "passed": true
+    }
+  ],
+  "baseline_mismatches_fixed": 29,
+  "sample_results": [
+    {
+      "file": "clean.py",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "outcome": "Let In",
+      "passed": true
+    },
+    {
+      "file": "hold_file_write.py",
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "outcome": "Hold",
+      "passed": true
+    },
+    {
+      "file": "reject_unsafe.py",
+      "expected_exit": 3,
+      "actual_exit": 3,
+      "outcome": "Reject",
+      "passed": true
+    },
+    {
+      "file": "missing_manifest.py",
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "outcome": "Hold",
+      "passed": true
+    }
+  ],
+  "all_sample_regressions_passed": true,
+  "ledger_replay_passed": true,
+  "ledger_replay_output": "Ledger replay passed. Chain integrity confirmed.",
+  "known_limits": [
+    "No complete interprocedural, points-to, control-flow, or taint analysis",
+    "Runtime monkey-patching and values produced by arbitrary computation may remain unresolved",
+    "Dependency package contents are not scanned",
+    "HOLD heuristics indicate uncertainty, not proof of malicious behavior"
+  ],
+  "stage_02b_freeze_passed": true
+}

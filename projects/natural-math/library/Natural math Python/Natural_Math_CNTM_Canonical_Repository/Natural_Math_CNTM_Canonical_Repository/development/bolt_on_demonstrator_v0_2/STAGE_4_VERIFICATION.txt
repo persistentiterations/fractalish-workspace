@@ -1,0 +1,92 @@
+BOLT-ON DEMONSTRATOR v0.2 — STAGE 4 VERIFICATION
+========================================================================================
+
+PACKAGE FILE SHA-256
+----------------------------------------------------------------------------------------
+a3a8f0999bbe5106f930ec589c12a007ef0206265ec61fcd0b5f84488bc0fea4  README_STAGE_4.md
+2ef740805505aecefcd99767ffd1224e5f94269d6097bbe27eaf6fad4a6aae4a  lifecycle/bounded_multi_action_lifecycle.py
+f1bdc3109389ed307c40755301a33a1f4f7cc4d90fa46439f1be44c97a56cd97  tests/test_bounded_multi_action_lifecycle.py
+
+STAGE 4 QUALIFICATION OUTPUT
+----------------------------------------------------------------------------------------
+========================================================================================
+BOUNDED MULTI-ACTION LIFECYCLE v0.2.4
+========================================================================================
+Mode / execution authority:        ACTIVE_MEDIATED / HOLD_RELEASE_ONLY
+Four cycles completed:             True
+Repeated HOLD/RELEASE:             True
+Expired authority rejected:        True
+Fresh reauthorization:             True
+Interrupted recovery:              True
+Checkpoint tamper detection:       True
+Active-HOLD detach:                True
+Detach preserves held job:         True
+Cross-cycle HOLD blocked:          True
+Cross-cycle RELEASE blocked:       True
+Permit hash scoping:               True
+Exact action budget:               True
+Immutable jobs:                    True
+Original ordinals:                 True
+Host rules preserved:              True
+Cycle replay:                      True
+Campaign replay:                   True
+Receipt tamper detection:          True
+Repeated campaign exact:           True
+Total executed actions:            8
+Cycle digests:                     ('c8fc99a52ea75e4aea38de6bc3d4849adb98eb1772bdd2be14c84e483e1499bf', 'fceaa6ec9b5079411ce757a06f26111bfa2108d8632be0ac7ad2785db02a1226', 'c8d501c68aae3e0591776e5a9e7b1af1dd7661123db2efa6d19cd861eb4ec5b7', '03995b757a57f54b76003ed91052807fc21831ca1c7810d5325f58955954b95c')
+Campaign digest:                   4322368aad566288738eddf86ed7ffb741734b9f8cf6f6fcb5044f02cdc1e9df
+STAGE 4 BOUNDED LIFECYCLE QUALIFICATION: PASS
+
+NEW STAGE 4 TEST OUTPUT
+----------------------------------------------------------------------------------------
+test_boolean_epoch_rejected (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_boolean_epoch_rejected) ... ok
+test_campaign_digest_is_64_hex (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_campaign_digest_is_64_hex) ... ok
+test_campaign_receipt_tamper_detected (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_campaign_receipt_tamper_detected) ... ok
+test_campaign_receipts_replay (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_campaign_receipts_replay) ... ok
+test_checkpoint_hash_tamper_is_detected (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_checkpoint_hash_tamper_is_detected) ... ok
+test_checkpoint_is_bound_to_hold_digest (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_checkpoint_is_bound_to_hold_digest) ... ok
+test_checkpoint_recovery_succeeds (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_checkpoint_recovery_succeeds) ... ok
+test_checkpoint_requires_active_hold (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_checkpoint_requires_active_hold) ... ok
+test_checkpoint_tamper_is_detected (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_checkpoint_tamper_is_detected) ... ok
+test_cross_cycle_hold_permit_is_blocked (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_cross_cycle_hold_permit_is_blocked) ... ok
+test_cross_cycle_release_is_rejected (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_cross_cycle_release_is_rejected) ... ok
+test_cycle_digests_are_unique (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_cycle_digests_are_unique) ... ok
+test_cycle_ids_are_unique (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_cycle_ids_are_unique) ... ok
+test_cycle_receipt_tamper_detected (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_cycle_receipt_tamper_detected) ... ok
+test_detach_does_not_destroy_hold (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_detach_does_not_destroy_hold) ... ok
+test_detach_uses_exact_ordinary_host (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_detach_uses_exact_ordinary_host) ... ok
+test_each_cycle_executes_hold (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_each_cycle_executes_hold) ... ok
+test_each_cycle_executes_release (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_each_cycle_executes_release) ... ok
+test_each_cycle_receipts_replay (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_each_cycle_receipts_replay) ... ok
+test_empty_cycle_id_rejected (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_empty_cycle_id_rejected) ... ok
+test_expired_release_is_rejected (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_expired_release_is_rejected) ... ok
+test_four_cycles_exist (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_four_cycles_exist) ... ok
+test_fresh_reauthorization_succeeds (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_fresh_reauthorization_succeeds) ... ok
+test_hold_consumption_keys_are_unique (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_hold_consumption_keys_are_unique) ... ok
+test_hold_permit_hashes_differ_across_cycles (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_hold_permit_hashes_differ_across_cycles) ... ok
+test_host_rules_preserved_every_cycle (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_host_rules_preserved_every_cycle) ... ok
+test_immutable_job_preserved_in_every_cycle (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_immutable_job_preserved_in_every_cycle) ... ok
+test_no_new_action_types (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_no_new_action_types) ... ok
+test_original_batch_restored_every_cycle (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_original_batch_restored_every_cycle) ... ok
+test_release_after_detach_succeeds (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_release_after_detach_succeeds) ... ok
+test_release_consumption_keys_are_unique (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_release_consumption_keys_are_unique) ... ok
+test_release_permit_hashes_differ_across_cycles (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_release_permit_hashes_differ_across_cycles) ... ok
+test_released_job_remains_delayed_by_host (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_released_job_remains_delayed_by_host) ... ok
+test_repeated_campaign_is_exact (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_repeated_campaign_is_exact) ... ok
+test_stage4_qualification_passes (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_stage4_qualification_passes) ... ok
+test_total_action_budget_is_exact (development.bolt_on_demonstrator_v0_2.tests.test_bounded_multi_action_lifecycle.BoundedMultiActionLifecycleTests.test_total_action_budget_is_exact) ... ok
+
+----------------------------------------------------------------------
+Ran 36 tests in 0.058s
+
+OK
+
+INTEGRATION EXPECTATION
+----------------------------------------------------------------------------------------
+This package is additive and contains no Stage 1, Stage 2, Stage 3,
+ordinary-host, or frozen-release files.
+
+Expected complete v0.2 suite in the user's canonical repository:
+84 previously passing tests + 36 new Stage 4 tests = 120 tests.
+
+Run tools/verify_all_frozen.py in the canonical repository after extraction.

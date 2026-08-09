@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Eracii · The City Slicker</title>
+<style>
+  body { margin:0; background:#142116; overflow:hidden; font-family:'Courier New', monospace; }
+  canvas { display:block; width:100%; height:100%; cursor:crosshair; }
+  
+  .hud { position:fixed; top:10px; left:10px; background:rgba(8, 6, 4, 0.92); border:1px solid #a09070; padding:12px 16px; border-radius:8px; color:#e6dfc7; font-size:13px; pointer-events:none; box-shadow:0 4px 12px rgba(0,0,0,0.8); width:340px; z-index:10; }
+  .hud .gold { color:#e6c875; }
+  .hud .green { color:#6dbfa6; }
+  .hud .red { color:#d97a5a; }
+  .stat-row { display:flex; gap:12px; flex-wrap:wrap; margin-top:4px; }
+  
+  .journal { position:fixed; top:10px; right:10px; width:300px; background:rgba(8, 6, 4, 0.92); border:1px solid #a09070; border-radius:8px; padding:12px 16px; color:#e6dfc7; font-size:12px; box-shadow:0 4px 12px rgba(0,0,0,0.8); max-height:300px; overflow-y:auto; pointer-events:none; z-index:10; }
+  .journal b { color:#a09070; font-size:11px; text-transform:uppercase; }
+  .journal p { margin:4px 0; padding-left:8px; border-left:2px solid #6dbfa6; }
+
+  .toast { position:fixed; left:50%; bottom:30px; transform:translateX(-50%); background:rgba(8,6,4,0.95); border:1px solid #a09070; padding:10px 20px; border-radius:8px; color:#f0e6d0; font-size:14px; opacity:0; transition:0.3s; pointer-events:none; }
+  .toast.show { opacity:1; }
+  
+  #buildMenu { position:fixed; bottom:50px; left:50%; transform:translateX(-50%); background:rgba(8,6,4,0.95); border:2px solid #e6c875; border-radius:12px; padding:20px; color:#e6dfc7; display:none; z-index:20; box-shadow:0 8px 32px rgba(0,0,0,0.9); }
+  #buildMenu.active { display:block; }
+  #buildMenu h3 { margin:0 0 10px; text-align:center; color:#e6c875; }
+  .build-btn { background:#2a1f14; border:1px solid #a09070; color:#e6c875; padding:8px 16px; margin:4px; border-radius:6px; cursor:pointer; }
+  .build-btn:hover { background:#4a3525; }
+</style>
+</head>
+<body>
+<canvas id="world"></canvas>
+
+<div class="hud" id="hud">
+  <b>🚂 ERAcii · CITY SLICKER</b>
+  <span style="font-size:11px; color:#a09070;">Arrived by train. Bag full of seeds, ammo, and a tired dog.</span>
+  <div class="stat-row">
+    <span>🪓 <span id="wood" class="gold">5</span></span>
+    <span>🥩 <span id="meat" class="gold">0</span></span>
+    <span>🌱 <span id="seeds" class="green">3</span></span>
+    <span>🔫 <span id="ammo" class="gold">6</span></span>
+  </div>
+  <div class="stat-row">
+    <span>🏠 Shed: <span id="shedHp" class="green">100</span></span>
+    <span>🐕 Dog: <span id="dogStatus" class="green">Active</span></span>
+  </div>
+</div>
+
+<div class="journal" id="journal">
+  <b>📜 JOURNAL</b>
+  <p>You stepped off the train into the wild. You have a gun, seeds, and a dog.</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div id="buildMenu">
+  <h3>🛠️ Build</h3>
+  <button class="build-btn" onclick="buildFence()">🪵 Fence (10 Wood)</button>
+  <button class="build-btn" onclick="buildHouse()">🏠 House (30 Wood)</button>
+  <button class="build-btn" onclick="closeBuildMenu()">Close</button>
+</div>
+
+<script>
+// --- CANVAS ---
+const canvas = document.getElementById('world');
+const ctx = canvas.getContext('2d');
+const W = 1200, H = 800;
+canvas.width = W; canvas.height = H;
+
+// --- JOURNAL ---
+function addJournalEntry(text) {
+  const journal = document.getElementById('journal');
+  const entry = document.createElement('p');
+  entry.textContent = `• ${text}`;
+  journal.appendChild(entry);
+  while (journal.children.length > 12) journal.removeChild(journal.children[1]);
+}
+
+// --- WORLD STATE (Starting Gear) ---
+const world = {
+  wood: 5, meat: 0, seeds: 3, ammo: 6,
+  hasAxe: true, hasShovel: false, hasBucket: false,
+  shedHealth: 100, dogActive: true, dogHunger: 50,
+  
+  // Structures
+  hasFence: false, hasHouse: false,
+  treesPlanted: 0, stumps: [], saplings: [], gardens: [],
+  
+  // Social
+  neighborActive: false, neighborBorrowed: false,
+  prospectorWoodThreshold: 50, // He shows when you have 50 wood.
+  
+  // Player
+  px: 400, py: 500, targetX: 400, targetY: 500
+};
+
+// --- ANIMALS ---
+let trees = [], deer = [], wolves = [];
+let dog = { x: 380, y: 480, barkTimer: 0 };
+
+// --- STARTING CUTSCENE ---
+function introCutscene() {
+  setTimeout(() => addJournalEntry("The train left. You have 3 seeds, 6 bullets, and a dog named Rex."), 1000);
+  setTimeout(() => addJournalEntry("Rex is tired. Feed him meat or he won't guard the camp."), 3000);
+  setTimeout(() => showToast("🐕 Rex wags his tail. He's ready to work."), 500);
+}
+introCutscene();
+
+// --- GENERATE WORLD ---
+function generateWorld() {
+  for (let i=0; i<30; i++) {
+    trees.push({ x: 80+(i*37)%1100, y: 80+(i*53)%700, size:0.6+((i*7)%10)/10, alive:true, wood:2+((i*3)%5) });
+  }
+  for (let i=0; i<6; i++) deer.push({ x:100+Math.random()*1000, y:100+Math.random()*600, targetX:0,targetY:0, alive:true });
+  for (let i=0; i<3; i++) wolves.push({ x:100+Math.random()*1000, y:100+Math.random()*600, targetX:0,targetY:0, alive:true });
+}
+
+// --- TOGGLE BUILD ---
+function toggleBuildMenu() { document.getElementById('buildMenu').classList.toggle('active'); }
+function closeBuildMenu() { document.getElementById('buildMenu').classList.remove('active'); }
+
+function buildFence() {
+  if (world.wood < 10) return showToast('❌ Need 10 Wood');
+  if (world.hasFence) return showToast('✅ Already built.');
+  world.wood -= 10; world.hasFence = true;
+  addJournalEntry("Fence built. The dogs will thank you.");
+  closeBuildMenu(); updateHUD();
+}
+
+function buildHouse() {
+  if (world.wood < 30) return showToast('❌ Need 30 Wood');
+  if (world.hasHouse) return showToast('✅ Already built.');
+  world.wood -= 30; world.hasHouse = true;
+  addJournalEntry("House built. Smoke from the chimney is visible for miles.");
+  closeBuildMenu(); updateHUD();
+}
+
+// --- PLAYER ---
+const keys = {};
+function movePlayer() {
+  let dx=0, dy=0;
+  if (keys['w']||keys['arrowup']) dy-=1; if (keys['s']||keys['arrowdown']) dy+=1;
+  if (keys['a']||keys['arrowleft']) dx-=1; if (keys['d']||keys['arrowright']) dx+=1;
+  if (dx||dy) {
+    const len = Math.hypot(dx,dy); dx/=len; dy/=len;
+    world.px += dx*4; world.py += dy*4;
+    world.px = Math.max(20,Math.min(W-20,world.px));
+    world.py = Math.max(20,Math.min(H-20,world.py));
+  } else {
+    const dist = Math.hypot(world.targetX-world.px, world.targetY-world.py);
+    if (dist > 3) { world.px += ((world.targetX-world.px)/dist)*4; world.py += ((world.targetY-world.py)/dist)*4; }
+  }
+}
+
+// --- DOG AI ---
+function tickDog() {
+  if (!world.dogActive) return;
+  if (world.dogHunger <= 0) {
+    world.dogActive = false;
+    addJournalEntry("Rex is too hungry to guard the camp. Find him meat.");
+    showToast("🐕 Rex collapses from hunger. Feed him!");
+    return;
+  }
+  // Follow player loosely
+  const ddx = world.px - dog.x; const ddy = world.py - dog.y;
+  const dist = Math.hypot(ddx, ddy);
+  if (dist > 30) { dog.x += (ddx/dist)*1.2; dog.y += (ddy/dist)*1.2; }
+  // Bark if wolves nearby
+  let nearWolf = wolves.some(w => w.alive && Math.hypot(w.x - dog.x, w.y - dog.y) < 200);
+  if (nearWolf) {
+    dog.barkTimer = 30;
+    if (Math.random() < 0.01) showToast("🐕 Rex is barking at something in the dark!");
+  }
+  if (dog.barkTimer > 0) dog.barkTimer--;
+}
+
+// --- GAME TICK ---
+function tickWorld() {
+  // Dog hunger decays over time
+  if (world.dogActive) world.dogHunger -= 0.001;
+
+  // Saplings grow
+  for (let i=world.saplings.length-1; i>=0; i--) {
+    world.saplings[i].age += 0.1;
+    if (world.saplings[i].age >= 60) {
+      trees.push({ x:world.saplings[i].x, y:world.saplings[i].y, size:0.8, alive:true, wood:3 });
+      world.saplings.splice(i,1);
+      addJournalEntry("A sapling grew into a tree.");
+    }
+  }
+
+  // Wolves attack shed if no fence and dog is too weak/hungry
+  if (!world.hasFence && world.shedHealth > 0 && wolves.some(w=>w.alive) && !world.dogActive && Math.random()<0.003) {
+    world.shedHealth -= 5;
+    showToast('🐺 Wolves attacked the shed! -5 HP');
+  }
+
+  // Prospector arrives only after player has collected 50 wood total
+  if (!world.neighborActive && world.wood >= world.prospectorWoodThreshold) {
+    world.neighborActive = true;
+    world.prospectorWoodThreshold += 30; // Next guy needs more wood
+    addJournalEntry("A drifter saw your campfire. He's coming this way.");
+    showToast('🧔 A drifter is approaching your camp.');
+    setTimeout(() => showToast('🧔 Drifter: "Mind if I set up camp nearby?"'), 1500);
+  }
+
+  // Deer movement (flee from player)
+  deer.forEach(d => {
+    if (!d.alive) return;
+    if (Math.hypot(world.px-d.x, world.py-d.y) < 150) {
+      d.targetX = world.px + (d.x-world.px)*2 + Math.random()*100;
+      d.targetY = world.py + (d.y-world.py)*2 + Math.random()*100;
+    } else if (Math.random()<0.02 || d.targetX===0) {
+      d.targetX = 50+Math.random()*1100; d.targetY = 50+Math.random()*700;
+    }
+    const dist = Math.hypot(d.targetX-d.x, d.targetY-d.y);
+    if (dist>2) { d.x += (d.targetX-d.x)/dist*1.5; d.y += (d.targetY-d.y)/dist*1.5; }
+  });
+
+  // Wolf movement
+  wolves.forEach(w => {
+    if (!w.alive) return;
+    let nearest=null, nearDist=999;
+    deer.forEach(d => { if(d.alive) { const dist=Math.hypot(w.x-d.x,w.y-d.y); if(dist<nearDist){nearDist=dist;nearest=d;} } });
+    if (nearest && nearDist<300) { w.targetX=nearest.x; w.targetY=nearest.y; }
+    else if (Math.random()<0.01) { w.targetX=50+Math.random()*1100; w.targetY=50+Math.random()*700; }
+    const dist = Math.hypot(w.targetX-w.x, w.targetY-w.y);
+    if (dist>2) { w.x += (w.targetX-w.x)/dist*2.2; w.y += (w.targetY-w.y)/dist*2.2; }
+  });
+
+  updateHUD();
+}
+
+// --- INTERACTION ---
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width/rect.width; const scaleY = canvas.height/rect.height;
+  const mx = (e.clientX-rect.left)*scaleX; const my = (e.clientY-rect.top)*scaleY;
+
+  // PET THE DOG
+  if (world.dogActive && Math.hypot(mx-dog.x, my-dog.y) < 30) {
+    showToast('🐕 You pet Rex. He feels better.');
+    world.dogHunger = Math.min(100, world.dogHunger + 5);
+    addJournalEntry("You pet the dog. He's loyal.");
+    return;
+  }
+
+  // CHOP TREE (requires Axe)
+  for (const t of trees) {
+    if (!t.alive) continue;
+    if (Math.hypot(mx-t.x, my-t.y) < 40) {
+      t.alive = false;
+      world.wood += t.wood;
+      world.stumps.push({x:t.x, y:t.y});
+      showToast(`🪓 Chopped! +${t.wood} wood.`);
+      updateHUD();
+      return;
+    }
+  }
+
+  // HUNT DEER (requires Ammo)
+  for (const d of deer) {
+    if (!d.alive) continue;
+    if (Math.hypot(mx-d.x, my-d.y) < 40) {
+      if (world.ammo <= 0) return showToast('❌ No ammo! Use seeds or your axe.');
+      world.ammo--;
+      d.alive = false;
+      world.meat += 3;
+      showToast(`🔫 Hunted! +3 Meat. Ammo left: ${world.ammo}`);
+      updateHUD();
+      return;
+    }
+  }
+
+  // KILL WOLF (requires Ammo)
+  for (const w of wolves) {
+    if (!w.alive) continue;
+    if (Math.hypot(mx-w.x, my-w.y) < 40) {
+      if (world.ammo <= 0) return showToast('❌ No ammo!');
+      world.ammo--;
+      w.alive = false;
+      showToast(`🔫 Killed a wolf!`);
+      updateHUD();
+      return;
+    }
+  }
+
+  // PLANT SEEDS (on empty dirt)
+  if (world.seeds > 0 && Math.hypot(world.px - mx, world.py - my) < 40) {
+    world.seeds--;
+    world.saplings.push({x:mx, y:my, age:0});
+    showToast('🌱 Planted a seed!');
+    updateHUD();
+    return;
+  }
+
+  world.targetX = mx; world.targetY = my;
+});
+
+// --- HUD ---
+function updateHUD() {
+  document.getElementById('wood').textContent = world.wood;
+  document.getElementById('meat').textContent = world.meat;
+  document.getElementById('seeds').textContent = world.seeds;
+  document.getElementById('ammo').textContent = world.ammo;
+  document.getElementById('shedHp').textContent = Math.floor(world.shedHealth);
+  document.getElementById('dogStatus').textContent = world.dogActive ? '🐕 Active' : '💤 Hungry';
+}
+
+// --- RENDER ---
+function render() {
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#3d5937'; ctx.fillRect(0,0,W,H);
+
+  // Stumps
+  world.stumps.forEach(s => { ctx.fillStyle='#5a4030'; ctx.fillRect(s.x-6,s.y-4,12,8); });
+
+  // Saplings
+  world.saplings.forEach(s => { ctx.fillStyle='#2d5a2d'; ctx.fillRect(s.x-1, s.y-(4+(s.age/60)*12), 2, 4+(s.age/60)*12); });
+
+  // Trees
+  trees.forEach(t => {
+    if (!t.alive) return;
+    ctx.fillStyle='#4d3a28'; ctx.fillRect(t.x-3*t.size,t.y,6*t.size,16*t.size);
+    ctx.fillStyle='#2d5a2d'; ctx.beginPath(); ctx.arc(t.x, t.y-8*t.size, 16*t.size, 0, Math.PI*2); ctx.fill();
+  });
+
+  // Deer & Wolves
+  deer.forEach(d => { if(d.alive) { ctx.font='28px sans-serif'; ctx.textAlign='center'; ctx.fillText('🦌', d.x, d.y); } });
+  wolves.forEach(w => { if(w.alive) ctx.fillText('🐺', w.x, w.y); });
+  ctx.textAlign = 'left';
+
+  // Dog
+  if (world.dogActive) {
+    ctx.font='24px sans-serif';
+    ctx.fillText('🐕', dog.x, dog.y);
+    if (dog.barkTimer > 0) {
+      ctx.fillStyle='#e6c875'; ctx.font='14px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('🐕 BARK!', dog.x, dog.y-20);
+    }
+  }
+
+  // Shed
+  ctx.fillStyle='#5a4030'; ctx.fillRect(100,400,100,80);
+  ctx.fillStyle='#8b6f47'; ctx.fillRect(100,400,100,80);
+  ctx.fillStyle='#4a3020'; ctx.fillRect(140,450,20,30);
+
+  // House (if built)
+  if (world.hasHouse) {
+    ctx.fillStyle='#8b6f47'; ctx.fillRect(240,380,80,80);
+    ctx.fillStyle='#5a4030'; ctx.beginPath(); ctx.moveTo(230,380); ctx.lineTo(280,340); ctx.lineTo(330,380); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#e6c875'; ctx.fillRect(270,420,20,40);
+  }
+
+  // Player
+  ctx.fillStyle='#f4d7b9'; ctx.fillRect(world.px-6, world.py-14, 12, 12);
+  ctx.fillStyle='#3b6ea5'; ctx.fillRect(world.px-6, world.py-2, 12, 14);
+  ctx.fillStyle='#4a2e1b'; ctx.fillRect(world.px-4, world.py-16, 8, 6);
+}
+
+// --- TOAST ---
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// --- KEYBOARD ---
+addEventListener('keydown', (e) => { const k=e.key.toLowerCase(); keys[k]=true; if(k==='b') toggleBuildMenu(); });
+addEventListener('keyup', (e) => { const k=e.key.toLowerCase(); keys[k]=false; });
+
+// --- START ---
+generateWorld();
+addJournalEntry("Shotgun has 6 shells. Use them wisely.");
+addJournalEntry("Rex is your only friend out here.");
+function loop() { tickDog(); movePlayer(); tickWorld(); render(); requestAnimationFrame(loop); }
+loop();
+</script>
+</body>
+</html>

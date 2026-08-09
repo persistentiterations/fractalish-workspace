@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Eracii · Hunt or Be Hunted</title>
+<style>
+  body { margin:0; background:#1f2c1e; overflow:hidden; font-family: 'Courier New', monospace; }
+  canvas { display:block; width:100%; height:100%; cursor:crosshair; }
+  .hud { position:fixed; top:10px; left:10px; background:rgba(8, 6, 4, 0.9); border:1px solid #a09070; padding:12px 16px; border-radius:8px; color:#e6dfc7; font-size:13px; pointer-events:none; box-shadow:0 4px 12px rgba(0,0,0,0.8); }
+  .hud span { display:block; margin-top:4px; }
+  .hud .danger { color:#d97a5a; font-weight:bold; }
+  .hud .gold { color:#e6c875; }
+  .hud .green { color:#6dbfa6; }
+  .toast { position:fixed; left:50%; bottom:30px; transform:translateX(-50%); background:rgba(8,6,4,0.95); border:1px solid #a09070; padding:10px 20px; border-radius:8px; color:#f0e6d0; font-size:14px; opacity:0; transition:0.3s; pointer-events:none; }
+  .toast.show { opacity:1; }
+</style>
+</head>
+<body>
+<canvas id="world"></canvas>
+<div class="hud" id="hud">
+  <b>🐺 ERAcii · SURVIVAL</b>
+  <span>Winter in: <span id="winterDays" class="danger">30 days</span></span>
+  <span style="display:flex; gap:20px; flex-wrap:wrap;">
+    <span>🪓 Wood: <span id="firewood" class="gold">0</span></span>
+    <span>🥩 Meat: <span id="meat" class="gold">0</span></span>
+    <span>🧥 Hide: <span id="hide" class="gold">0</span></span>
+  </span>
+  <span>🏠 Shed HP: <span id="shedHp" class="green">100%</span></span>
+  <span>Status: <span id="statusText">Gather wood and hunt before winter!</span></span>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// --- CANVAS SETUP ---
+const canvas = document.getElementById('world');
+const ctx = canvas.getContext('2d');
+const W = 1200, H = 800;
+canvas.width = W; canvas.height = H;
+
+// --- THE LIVING WORLD STATE ---
+const world = {
+  winterDays: 30,      
+  wood: 0,             
+  meat: 0,             
+  hide: 0,             
+  shedHealth: 100,     
+  
+  // Ecology
+  grassHealth: 0.9,
+  deerCount: 8,
+  wolfCount: 4,
+  
+  // Player
+  px: 400, py: 500,
+  targetX: 400, targetY: 500
+};
+
+// --- ENTITIES ---
+let trees = [];
+let deer = [];
+let wolves = [];
+
+// --- GENERATE WORLD ---
+function generateWorld() {
+  trees = [];
+  for (let i = 0; i < 60; i++) {
+    const x = 50 + (i * 37) % 1100;
+    const y = 50 + (i * 53) % 700;
+    // Keep path clear
+    if (Math.hypot(x - 600, y - 400) < 120) continue;
+    trees.push({ x, y, size: 0.6 + ((i * 7) % 10)/10, alive: true, wood: 2 + ((i * 3) % 5) });
+  }
+  
+  deer = [];
+  for (let i = 0; i < world.deerCount; i++) {
+    deer.push({ x: 100 + Math.random()*1000, y: 100 + Math.random()*600, targetX:0, targetY:0, alive:true });
+  }
+  
+  wolves = [];
+  for (let i = 0; i < world.wolfCount; i++) {
+    wolves.push({ x: 100 + Math.random()*1000, y: 100 + Math.random()*600, targetX:0, targetY:0, alive:true });
+  }
+}
+
+// --- PLAYER MOVEMENT ---
+const keys = {};
+function movePlayer() {
+  let dx=0, dy=0;
+  if (keys['w']||keys['arrowup']) dy-=1;
+  if (keys['s']||keys['arrowdown']) dy+=1;
+  if (keys['a']||keys['arrowleft']) dx-=1;
+  if (keys['d']||keys['arrowright']) dx+=1;
+  
+  if (dx!==0 || dy!==0) {
+    const len = Math.hypot(dx, dy);
+    dx/=len; dy/=len;
+    world.px += dx * 4;
+    world.py += dy * 4;
+    world.px = Math.max(20, Math.min(W-20, world.px));
+    world.py = Math.max(20, Math.min(H-20, world.py));
+  } else {
+    // Smoothly move to click target
+    const dist = Math.hypot(world.targetX - world.px, world.targetY - world.py);
+    if (dist > 3) {
+      world.px += ((world.targetX - world.px) / dist) * 4;
+      world.py += ((world.targetY - world.py) / dist) * 4;
+    }
+  }
+}
+
+// --- THE GAME LOOP (Logic) ---
+function tickWorld() {
+  // Winter ticks down
+  world.winterDays -= 0.003;
+  if (world.winterDays < 0) world.winterDays = 0;
+
+  // Wolves attack shed if weak
+  if (world.shedHealth > 0 && world.wolfCount > 0 && Math.random() < 0.002) {
+    world.shedHealth -= 5;
+    if (world.shedHealth < 0) world.shedHealth = 0;
+    showToast('🐺 Wolves attacked the shed! -5 HP');
+  }
+
+  // Deer move
+  for (const d of deer) {
+    if (!d.alive) continue;
+    if (Math.random() < 0.02 || d.targetX === 0) {
+      d.targetX = 50 + Math.random() * 1100;
+      d.targetY = 50 + Math.random() * 700;
+    }
+    const dist = Math.hypot(d.targetX - d.x, d.targetY - d.y);
+    if (dist > 2) {
+      d.x += ((d.targetX - d.x) / dist) * 1.2;
+      d.y += ((d.targetY - d.y) / dist) * 1.2;
+    }
+  }
+
+  // Wolves move (hunt deer)
+  for (const w of wolves) {
+    if (!w.alive) continue;
+    // Find nearest deer
+    let nearest = null; let nearDist = 999;
+    for (const d of deer) {
+      if (!d.alive) continue;
+      const dist = Math.hypot(w.x - d.x, w.y - d.y);
+      if (dist < nearDist) { nearDist = dist; nearest = d; }
+    }
+    if (nearest && nearDist < 300) {
+      w.targetX = nearest.x; w.targetY = nearest.y;
+    } else if (Math.random() < 0.01) {
+      w.targetX = 50 + Math.random() * 1100;
+      w.targetY = 50 + Math.random() * 700;
+    }
+    const dist = Math.hypot(w.targetX - w.x, w.targetY - w.y);
+    if (dist > 2) {
+      w.x += ((w.targetX - w.x) / dist) * 1.8;
+      w.y += ((w.targetY - w.y) / dist) * 1.8;
+    }
+  }
+
+  // Update HUD
+  document.getElementById('winterDays').textContent = Math.floor(world.winterDays);
+  document.getElementById('firewood').textContent = world.wood;
+  document.getElementById('meat').textContent = world.meat;
+  document.getElementById('hide').textContent = world.hide;
+  document.getElementById('shedHp').textContent = Math.floor(world.shedHealth) + '%';
+  const status = document.getElementById('statusText');
+  if (world.winterDays < 5) status.textContent = '❄️ WINTER IS HERE! Hunt and get wood!';
+  else if (world.shedHealth < 20) status.textContent = '⚠️ Shed is collapsing! Use wood to repair!';
+  else status.textContent = '🌲 Cut wood, hunt deer, kill wolves. Survive.';
+}
+
+// --- INTERACTION ENGINE (Click to Act) ---
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top) * scaleY;
+
+  // 1. CHOP TREE
+  for (const t of trees) {
+    if (!t.alive) continue;
+    if (Math.hypot(mx - t.x, my - t.y) < 40) {
+      t.alive = false;
+      world.wood += t.wood;
+      playSound('chop');
+      showToast(`🪓 Chopped tree! +${t.wood} wood.`);
+      return;
+    }
+  }
+
+  // 2. HUNT DEER
+  for (const d of deer) {
+    if (!d.alive) continue;
+    if (Math.hypot(mx - d.x, my - d.y) < 40) {
+      d.alive = false;
+      world.meat += 3;
+      world.hide += 1;
+      playSound('kill');
+      showToast(`🏹 Hunted deer! +3 Meat, +1 Hide.`);
+      return;
+    }
+  }
+
+  // 3. KILL WOLF
+  for (const w of wolves) {
+    if (!w.alive) continue;
+    if (Math.hypot(mx - w.x, my - w.y) < 40) {
+      w.alive = false;
+      world.hide += 2;
+      world.wolfCount--;
+      playSound('kill');
+      showToast(`🗡️ Killed a wolf! +2 Hide.`);
+      return;
+    }
+  }
+
+  // 4. REPAIR SHED (Uses 5 wood)
+  if (mx > 80 && mx < 200 && my > 380 && my < 500) {
+    if (world.wood >= 5 && world.shedHealth < 100) {
+      world.wood -= 5;
+      world.shedHealth = Math.min(100, world.shedHealth + 20);
+      showToast('🔨 Repaired shed! +20 HP. Cost: 5 wood.');
+      playSound('repair');
+    } else if (world.wood < 5) {
+      showToast('❌ Need 5 wood to repair shed.');
+    } else {
+      showToast('✅ Shed is already fully repaired.');
+    }
+    return;
+  }
+
+  // 5. WALK TO POINT
+  world.targetX = mx;
+  world.targetY = my;
+});
+
+// --- RENDERING ---
+function render() {
+  ctx.clearRect(0, 0, W, H);
+  
+  // Ground
+  ctx.fillStyle = '#4a6b42';
+  ctx.fillRect(0, 0, W, H);
+  
+  // Trees (Green if alive, Stump if dead)
+  for (const t of trees) {
+    if (!t.alive) {
+      ctx.fillStyle = '#5a4030';
+      ctx.fillRect(t.x - 4, t.y - 2, 8, 10);
+      continue;
+    }
+    ctx.fillStyle = '#4d3a28';
+    ctx.fillRect(t.x - 3*t.size, t.y, 6*t.size, 16*t.size);
+    ctx.fillStyle = '#2d5a2d';
+    ctx.beginPath(); ctx.arc(t.x, t.y - 8*t.size, 16*t.size, 0, Math.PI*2); ctx.fill();
+  }
+
+  // Deer (Only if alive)
+  for (const d of deer) {
+    if (!d.alive) continue;
+    ctx.font = '28px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🦌', d.x, d.y);
+  }
+
+  // Wolves (Only if alive)
+  for (const w of wolves) {
+    if (!w.alive) continue;
+    ctx.fillText('🐺', w.x, w.y);
+  }
+  ctx.textAlign = 'left';
+
+  // The Storage Shed (Visual HP)
+  ctx.fillStyle = '#5a4030';
+  ctx.fillRect(100, 400, 100, 80);
+  if (world.shedHealth > 50) {
+    ctx.fillStyle = '#8b6f47';
+    ctx.fillRect(100, 400, 100, 80);
+    ctx.fillStyle = '#4a3020';
+    ctx.fillRect(140, 450, 20, 30);
+  } else {
+    ctx.fillStyle = '#3d281d';
+    ctx.fillRect(100, 400, 100, 80);
+    ctx.fillStyle = '#d9534f';
+    ctx.fillText('💔', 130, 460);
+  }
+  
+  // Shed Repair Hint
+  if (Math.hypot(world.px - 150, world.py - 440) < 60) {
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillRect(world.px - 60, world.py - 45, 120, 20);
+    ctx.fillStyle = '#e6c875';
+    ctx.textAlign = 'center';
+    ctx.fillText('Click to Repair (5 wood)', world.px, world.py - 30);
+    ctx.textAlign = 'left';
+  }
+
+  // Player
+  ctx.fillStyle = '#f4d7b9';
+  ctx.fillRect(world.px - 6, world.py - 14, 12, 12);
+  ctx.fillStyle = '#3b6ea5';
+  ctx.fillRect(world.px - 6, world.py - 2, 12, 14);
+  ctx.fillStyle = '#4a2e1b';
+  ctx.fillRect(world.px - 4, world.py - 16, 8, 6);
+}
+
+// --- AUDIO ---
+let audioCtx = null;
+function playSound(type) {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  if (type === 'chop') {
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+  } else if (type === 'kill') {
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+  } else if (type === 'repair') {
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(660, audioCtx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+  }
+}
+
+// --- TOAST ---
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// --- LOOP ---
+let state = { tick: 0 };
+generateWorld();
+
+function loop() {
+  state.tick++;
+  movePlayer();
+  tickWorld();
+  render();
+  requestAnimationFrame(loop);
+}
+
+// --- KEYBOARD ---
+addEventListener('keydown', (e) => {
+  const k = e.key.toLowerCase();
+  keys[k] = true;
+});
+addEventListener('keyup', (e) => {
+  const k = e.key.toLowerCase();
+  keys[k] = false;
+});
+
+loop();
+</script>
+</body>
+</html>

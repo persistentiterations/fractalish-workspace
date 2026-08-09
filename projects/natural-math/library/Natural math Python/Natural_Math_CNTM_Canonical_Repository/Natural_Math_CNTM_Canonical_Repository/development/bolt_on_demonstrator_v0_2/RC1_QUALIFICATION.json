@@ -1,0 +1,77 @@
+{
+  "record": {
+    "approved_for_freeze_procedure": true,
+    "commands": [
+      {
+        "command": [
+          "C:\\Users\\big_b\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "C:\\Natural math Python\\Natural_Math_CNTM_Canonical_Repository\\Natural_Math_CNTM_Canonical_Repository\\development\\bolt_on_demonstrator_v0_2\\mediation\\mediated_hold_host.py"
+        ],
+        "marker": "PASS",
+        "name": "stage_2",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "3d0705631e7ec88b8765e7e9dcd41d0b8b1467ec00e75ff923d4f4d54b5ed0e7"
+      },
+      {
+        "command": [
+          "C:\\Users\\big_b\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "C:\\Natural math Python\\Natural_Math_CNTM_Canonical_Repository\\Natural_Math_CNTM_Canonical_Repository\\development\\bolt_on_demonstrator_v0_2\\release\\controlled_release_host.py"
+        ],
+        "marker": "STAGE 3 CONTROLLED RELEASE QUALIFICATION: PASS",
+        "name": "stage_3",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "af349a475fa1d9e563d413f50a1c09d56a3baa2994773be0f1be9e8f0f63d862"
+      },
+      {
+        "command": [
+          "C:\\Users\\big_b\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "C:\\Natural math Python\\Natural_Math_CNTM_Canonical_Repository\\Natural_Math_CNTM_Canonical_Repository\\development\\bolt_on_demonstrator_v0_2\\lifecycle\\bounded_multi_action_lifecycle.py"
+        ],
+        "marker": "STAGE 4 BOUNDED LIFECYCLE QUALIFICATION: PASS",
+        "name": "stage_4",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "e2301b068de0b16060be8f649a62ebbef8d1372edeb65a6e79970d00e795d50a"
+      },
+      {
+        "command": [
+          "C:\\Users\\big_b\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "C:\\Natural math Python\\Natural_Math_CNTM_Canonical_Repository\\Natural_Math_CNTM_Canonical_Repository\\development\\bolt_on_demonstrator_v0_2\\adversarial\\integrated_active_control_adversarial.py"
+        ],
+        "marker": "STAGE 5 INTEGRATED ADVERSARIAL QUALIFICATION: PASS",
+        "name": "stage_5",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "e0e99e2ba160bd77edc62b4715ee04cb662f6e6272ede38fc2e9fb24bb91c97a"
+      },
+      {
+        "command": [
+          "unittest discover"
+        ],
+        "count": 150,
+        "marker": "OK",
+        "name": "complete_v0_2_tests",
+        "stderr_sha256": "5b71d361728204d9dbfd4ffbd48c21592c58e6d2d6d0e0f64ec08a267cceca01",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": [
+          "C:\\Users\\big_b\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "C:\\Natural math Python\\Natural_Math_CNTM_Canonical_Repository\\Natural_Math_CNTM_Canonical_Repository\\tools\\verify_all_frozen.py"
+        ],
+        "marker": "ALL FROZEN RELEASE VERIFICATIONS PASSED",
+        "name": "all_frozen_verification",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "b80452f0a332011af92a9616691a6d69cbc8eba00130212a8d90a2f475d17912"
+      }
+    ],
+    "deterministic_second_pass": true,
+    "development_manifest_sha256": "5437acec4a38630cdf2d1c539c96e0684237307eece22df914c9e45eff4ae65e",
+    "expected_test_count": 150,
+    "frozen_manifest_sha256": "05b7178624e95b37ea98a4dbf5fe4f7c827c213ca72fff2be23e75443c8fccf2",
+    "observed_test_count": 150,
+    "prohibited_action_hits": [],
+    "rc_version": "v0.2-RC1",
+    "second_pass_comparison": "stable qualification evidence; console timing excluded",
+    "source_commit": "70a5df876ba62ca9f1f2d150d3db5df1cb860ac7"
+  },
+  "record_sha256": "c0a0397aa57f2b1c78c9a17e8b580d23eb4de60d2b9570431dc9d22d4ef363da"
+}

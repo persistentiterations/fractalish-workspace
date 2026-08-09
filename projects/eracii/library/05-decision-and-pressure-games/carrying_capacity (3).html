@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Carrying Capacity - Living System</title>
+<style>
+:root{
+  --bg:#0a0e14;--panel:#121a24;--line:#2a3a4a;--text:#e8eef4;--muted:#7a8a9a;
+  --gold:#d4b56a;--blue:#5a9fd4;--green:#5cba84;--red:#e05a66;--amber:#d4924a;
+  --purple:#a87acc;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;overflow:hidden;height:100vh}
+button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
+
+#world{position:fixed;inset:0;z-index:0}
+#world canvas{display:block;width:100%;height:100%}
+
+.hud{position:fixed;inset:0;z-index:10;pointer-events:none;display:flex;flex-direction:column}
+.hud > *{pointer-events:auto}
+
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:8px 14px;background:linear-gradient(180deg,#0a0e14f0,transparent);
+  backdrop-filter:blur(8px);flex-wrap:wrap;font-size:11px;
+}
+.brand{font-weight:700;letter-spacing:.1em;font-size:11px;color:#9aabb8}
+.brand span{color:var(--gold)}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{display:flex;align-items:center;gap:4px}
+.stat label{color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.06em}
+.stat b{font-size:13px;font-weight:700}
+.stat b.ok{color:var(--green)}.stat b.warn{color:var(--amber)}.stat b.crit{color:var(--red)}
+.stat b.gold{color:var(--gold)}
+.stat .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:4px}
+
+.overlay{
+  position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;
+  background:#04060ae0;backdrop-filter:blur(12px);opacity:0;pointer-events:none;transition:.6s;
+  padding:20px;
+}
+.overlay.show{opacity:1;pointer-events:auto}
+.overlay-card{
+  max-width:460px;padding:32px 28px;border-radius:16px;text-align:center;
+  background:#0c121a;border:1px solid #2a3848;box-shadow:0 40px 100px #000c;
+}
+.overlay-card .phase{font-size:10px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;font-weight:800;margin-bottom:6px}
+.overlay-card h2{font:700 22px/1.2 Georgia,serif;margin-bottom:8px}
+.overlay-card .sub{font-size:13px;color:#a8b6c4;font-style:italic;margin-bottom:6px}
+.overlay-card p{font-size:13px;color:#a8b6c4;margin-bottom:16px;line-height:1.6}
+.overlay-card .actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.overlay-card .btn{
+  padding:9px 18px;border-radius:8px;font-weight:700;font-size:12px;
+  border:1px solid #3a4a5c;background:#121a24;transition:.2s;
+}
+.overlay-card .btn:hover{border-color:#6a7a8c;background:#1a2430;transform:scale(1.02)}
+.overlay-card .btn.primary{background:linear-gradient(180deg,#e0c878,#b88830);color:#141008;border-color:#e8d090}
+.overlay-card .btn.danger{border-color:#8a3a42;color:#f0a0a8;background:#1a1014}
+.overlay-card .btn.nature{border-color:#3a6a4a;color:#90d0a8;background:#0e1a14}
+.overlay-card .btn.wise{border-color:#6a4a8a;color:#c8a0e0;background:#140e1a}
+
+.end-card.balance{border-color:#3a6a4a}
+.end-card.collapse{border-color:#8a3a42}
+.end-card .tag{font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:8px}
+.end-card.balance .tag{color:var(--green)}
+.end-card.collapse .tag{color:var(--red)}
+.end-card .takeaway{font:600 14px/1.5 Georgia,serif;color:var(--gold);margin:14px 0 18px;padding-top:12px;border-top:1px solid #2a3848}
+
+.bottombar{
+  margin-top:auto;padding:8px 14px 12px;background:linear-gradient(0deg,#0a0e14f0,transparent);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  font-size:10px;
+}
+.legend-bar{display:flex;gap:12px;color:var(--muted);flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:4px}
+.legend-item .swatch{width:12px;height:12px;border-radius:50%;border:1px solid #2a3a4a}
+.legend-item .swatch.green{background:#5cba84}
+.legend-item .swatch.red{background:#e05a66}
+.legend-item .swatch.gold{background:#d4b56a}
+.legend-item .swatch.purple{background:#a87acc}
+
+.alert-badge{
+  padding:3px 10px;border-radius:999px;font-weight:700;font-size:9px;
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.alert-badge.normal{background:#0a1a0a;color:var(--green);border:1px solid #1a3a2a}
+.alert-badge.warning{background:#1a140a;color:var(--amber);border:1px solid #3a2a1a;animation:pulse 1.5s ease-in-out infinite}
+.alert-badge.critical{background:#1a0a0a;color:var(--red);border:1px solid #3a1a1a;animation:pulse 0.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+@media(max-width:520px){
+  .topbar{padding:6px 10px;font-size:10px}
+  .stat b{font-size:11px}
+  .overlay-card{padding:20px 16px;margin:10px}
+  .overlay-card h2{font-size:18px}
+  .bottombar{flex-direction:column;align-items:stretch;gap:6px}
+  .legend-bar{justify-content:center}
+}
+</style>
+</head>
+<body>
+<canvas id="world"></canvas>
+
+<div class="hud">
+  <div class="topbar">
+    <div class="brand">🌱 <span>Carrying</span> Capacity</div>
+    <div class="stats">
+      <div class="stat"><label>👥</label><b id="popVal" class="gold">0</b></div>
+      <div class="stat"><label>🍎</label><b id="resVal" class="ok">0%</b></div>
+      <div class="stat"><label>⚡</label><b id="stressVal" class="ok">0%</b></div>
+      <div class="stat"><label>📅</label><b id="yearVal">0</b></div>
+      <div class="stat"><span class="dot" id="alertDot" style="background:var(--green)"></span></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="overlay-card" id="overlayCard">
+      <div class="phase" id="msgPhase">🌿 The Beginning</div>
+      <h2 id="msgTitle">A handful of beings wake in an empty world.</h2>
+      <div class="sub" id="msgSub">"There is food. There is space. There is everything—except awareness."</div>
+      <p id="msgBody">Watch what happens when life discovers the edge of its world. Watch how they fight, hoard, migrate, and fail. Watch the system speak for itself.</p>
+      <div class="actions">
+        <button class="btn primary" id="btnStart">▶ Begin</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottombar">
+    <div class="legend-bar">
+      <span class="legend-item"><span class="swatch green"></span> Healthy</span>
+      <span class="legend-item"><span class="swatch gold"></span> Hoarding</span>
+      <span class="legend-item"><span class="swatch red"></span> Starving</span>
+      <span class="legend-item"><span class="swatch purple"></span> Territory</span>
+    </div>
+    <span class="alert-badge normal" id="alertBadge">🌿 Stable</span>
+  </div>
+</div>
+
+<div class="overlay" id="endOverlay">
+  <div class="overlay-card end-card" id="endCard">
+    <div class="tag" id="endTag"></div>
+    <h2 id="endTitle"></h2>
+    <p id="endBody1"></p>
+    <p id="endBody2"></p>
+    <div class="takeaway" id="endTake"></div>
+    <button class="btn primary" id="btnAgain">🔄 Witness again</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const canvas = document.getElementById('world');
+const ctx = canvas.getContext('2d');
+let W, H, dpr;
+
+function resize(){
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ---------- Simulation State ----------
+const agents = [];
+const food = [];
+const territories = [];
+const conflictZones = [];
+let year = 0;
+let running = false;
+let phase = 'intro';
+let lastTick = 0;
+let resourceBase = 1;
+let totalBorn = 0;
+let totalDied = 0;
+let peakPop = 0;
+let frameCount = 0;
+
+const $ = id => document.getElementById(id);
+
+function rand(a,b){ return a + Math.random()*(b-a); }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function dist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
+
+// ---------- Agent ----------
+function spawnAgent(x, y, energy, size, type){
+  const t = type || (Math.random() < 0.2 ? 'hoarder' : (Math.random() < 0.15 ? 'fighter' : 'normal'));
+  agents.push({
+    x: x ?? rand(40, W-40),
+    y: y ?? rand(40, H-40),
+    vx: rand(-0.4, 0.4),
+    vy: rand(-0.4, 0.4),
+    energy: energy ?? rand(0.5, 1),
+    age: 0,
+    size: size ?? rand(2.5, 4.5),
+    type: t,
+    generation: 0,
+    children: 0,
+    kills: 0,
+    foodStash: 0,
+    targetX: null,
+    targetY: null,
+    territory: null,
+    isPregnant: false,
+    pregnancyTimer: 0,
+    attackCooldown: 0,
+    fear: 0,
+    alive: true
+  });
+}
+
+function spawnFood(x, y, size){
+  food.push({
+    x: x ?? rand(20, W-20),
+    y: y ?? rand(20, H-20),
+    life: rand(120, 280),
+    size: size ?? rand(3, 8),
+    beingEaten: false,
+    hoarded: false
+  });
+}
+
+function initWorld(){
+  agents.length = 0;
+  food.length = 0;
+  territories.length = 0;
+  conflictZones.length = 0;
+  year = 0;
+  resourceBase = 1;
+  totalBorn = 16;
+  totalDied = 0;
+  peakPop = 0;
+  for(let i=0; i<16; i++) spawnAgent();
+  for(let i=0; i<80; i++) spawnFood();
+  updateHUD();
+}
+
+initWorld();
+
+// ---------- Territory System ----------
+function updateTerritories(){
+  territories.length = 0;
+  const clusters = new Map();
+  for(const a of agents){
+    if(a.energy < 0.3) continue;
+    let found = false;
+    for(const [key, cluster] of clusters){
+      const cx = cluster.reduce((s,p) => s + p.x, 0) / cluster.length;
+      const cy = cluster.reduce((s,p) => s + p.y, 0) / cluster.length;
+      if(dist({x:cx,y:cy}, a) < 80){
+        cluster.push(a);
+        found = true;
+        break;
+      }
+    }
+    if(!found){
+      clusters.set(a, [a]);
+    }
+  }
+  for(const [_, cluster] of clusters){
+    if(cluster.length >= 3){
+      const cx = cluster.reduce((s,p) => s + p.x, 0) / cluster.length;
+      const cy = cluster.reduce((s,p) => s + p.y, 0) / cluster.length;
+      const r = 30 + cluster.length * 4;
+      territories.push({x:cx, y:cy, radius:r, members:cluster.length, strength:cluster.reduce((s,a)=>s+a.energy,0)/cluster.length});
+    }
+  }
+}
+
+// ---------- Conflict Detection ----------
+function detectConflicts(){
+  conflictZones.length = 0;
+  for(let i=0; i<agents.length; i++){
+    for(let j=i+1; j<agents.length; j++){
+      const a = agents[i], b = agents[j];
+      if(!a.alive || !b.alive) continue;
+      const d = dist(a,b);
+      if(d < 25 && a.energy < 0.4 && b.energy < 0.4){
+        // Resource conflict - compete for same food
+        conflictZones.push({x:(a.x+b.x)/2, y:(a.y+b.y)/2, intensity:1 - d/25, time:0});
+        // Fight!
+        if(a.type === 'fighter' && b.type !== 'fighter' && a.attackCooldown <= 0){
+          b.energy -= 0.15;
+          a.energy += 0.05;
+          a.kills++;
+          a.attackCooldown = 2;
+          if(b.energy <= 0) { b.alive = false; totalDied++; }
+        } else if(b.type === 'fighter' && a.type !== 'fighter' && b.attackCooldown <= 0){
+          a.energy -= 0.15;
+          b.energy += 0.05;
+          b.kills++;
+          b.attackCooldown = 2;
+          if(a.energy <= 0) { a.alive = false; totalDied++; }
+        } else if(a.type === 'fighter' && b.type === 'fighter' && a.attackCooldown <= 0 && b.attackCooldown <= 0){
+          a.energy -= 0.08;
+          b.energy -= 0.08;
+          a.attackCooldown = 3;
+          b.attackCooldown = 3;
+          if(a.energy <= 0) { a.alive = false; totalDied++; }
+          if(b.energy <= 0) { b.alive = false; totalDied++; }
+        }
+      }
+      // Hoarder defends stash
+      if(a.type === 'hoarder' && a.foodStash > 0 && d < 40 && b.energy < 0.5){
+        b.energy -= 0.05;
+        a.energy += 0.02;
+        if(b.energy <= 0) { b.alive = false; totalDied++; }
+      }
+    }
+  }
+  // Clean dead agents
+  for(let i=agents.length-1; i>=0; i--){
+    if(!agents[i].alive) agents.splice(i,1);
+  }
+}
+
+// ---------- Step ----------
+function step(dt){
+  if(!running) return;
+  frameCount++;
+  year += dt * 0.3;
+
+  const pop = agents.length;
+  if(pop > peakPop) peakPop = pop;
+
+  // Food regen - clumpy, realistic
+  const density = pop / Math.max(1, (W*H)/15000);
+  const foodTarget = Math.floor(60 * resourceBase * (1 - density * 0.3));
+  if(food.length < foodTarget && Math.random() < 0.3 * resourceBase){
+    // Spawn in clusters
+    const cx = rand(40, W-40);
+    const cy = rand(40, H-40);
+    for(let i=0; i<rand(1,4); i++){
+      spawnFood(cx+rand(-30,30), cy+rand(-30,30));
+    }
+  }
+
+  // Process agents
+  for(const a of agents){
+    if(!a.alive) continue;
+    a.age += dt;
+    a.energy -= dt * 0.022;
+    if(a.attackCooldown > 0) a.attackCooldown -= dt;
+
+    // Pregnancy
+    if(a.isPregnant){
+      a.pregnancyTimer -= dt;
+      if(a.pregnancyTimer <= 0){
+        a.isPregnant = false;
+        if(a.energy > 0.5 && agents.length < 300){
+          const child = spawnAgent(a.x+rand(-15,15), a.y+rand(-15,15), 0.4, rand(2,3.5));
+          child.generation = a.generation + 1;
+          a.children++;
+          totalBorn++;
+        }
+      }
+    }
+
+    // Find nearest food
+    let nearest = null, nd = 1e9;
+    for(const f of food){
+      if(f.hoarded && a.type !== 'hoarder') continue;
+      const d = dist(a, f);
+      if(d < nd){ nd = d; nearest = f; }
+    }
+
+    // Movement
+    if(a.type === 'hoarder' && a.foodStash > 0){
+      // Guard stash
+      const stashX = a.x + (a.foodStash * 2);
+      const stashY = a.y + (a.foodStash * 2);
+      const dx = stashX - a.x, dy = stashY - a.y;
+      a.vx += dx * 0.001;
+      a.vy += dy * 0.001;
+      a.vx += rand(-0.02, 0.02);
+      a.vy += rand(-0.02, 0.02);
+    } else if(a.type === 'fighter' && a.energy < 0.4){
+      // Aggressive - seek conflict
+      let target = null;
+      let td = 1e9;
+      for(const o of agents){
+        if(o === a || !o.alive || o.type === 'fighter') continue;
+        const d = dist(a, o);
+        if(d < td && o.energy > 0.2){ td = d; target = o; }
+      }
+      if(target && td < 60){
+        const dx = target.x - a.x, dy = target.y - a.y;
+        a.vx += dx * 0.008;
+        a.vy += dy * 0.008;
+      } else {
+        a.vx += rand(-0.03, 0.03);
+        a.vy += rand(-0.03, 0.03);
+      }
+    } else if(a.energy < 0.5 && nearest){
+      // Seek food
+      const dx = nearest.x - a.x, dy = nearest.y - a.y;
+      const d = Math.sqrt(nd) || 1;
+      a.vx += (dx/d) * 0.05;
+      a.vy += (dy/d) * 0.05;
+    } else {
+      // Wander with occasional direction changes
+      if(Math.random() < 0.01){
+        a.targetX = rand(40, W-40);
+        a.targetY = rand(40, H-40);
+      }
+      if(a.targetX !== null){
+        const dx = a.targetX - a.x, dy = a.targetY - a.y;
+        const d = Math.hypot(dx, dy);
+        if(d > 20){
+          a.vx += (dx/d) * 0.015;
+          a.vy += (dy/d) * 0.015;
+        } else {
+          a.targetX = null;
+          a.targetY = null;
+        }
+      } else {
+        a.vx += rand(-0.02, 0.02);
+        a.vy += rand(-0.02, 0.02);
+      }
+    }
+
+    // Speed limit
+    const sp = Math.hypot(a.vx, a.vy);
+    const maxSp = a.energy < 0.3 ? 0.7 : 1.2;
+    if(sp > maxSp){ a.vx *= maxSp/sp; a.vy *= maxSp/sp; }
+
+    // Apply movement
+    a.x += a.vx * 60 * dt;
+    a.y += a.vy * 60 * dt;
+    if(a.x < 10){ a.x = 10; a.vx *= -0.5; }
+    if(a.x > W-10){ a.x = W-10; a.vx *= -0.5; }
+    if(a.y < 10){ a.y = 10; a.vy *= -0.5; }
+    if(a.y > H-10){ a.y = H-10; a.vy *= -0.5; }
+
+    // Eat food
+    for(let fi = food.length-1; fi>=0; fi--){
+      const f = food[fi];
+      if(f.hoarded && a.type !== 'hoarder') continue;
+      if(dist(a, f) < 35){
+        a.energy = Math.min(1.3, a.energy + 0.25 + f.size * 0.02);
+        // Hoarder stashes extra
+        if(a.type === 'hoarder' && a.energy > 0.8){
+          a.foodStash += 1;
+          f.hoarded = true;
+        }
+        food.splice(fi, 1);
+        break;
+      }
+    }
+
+    // Reproduce
+    if(a.energy > 0.7 && a.age > 3 && !a.isPregnant && Math.random() < 0.008 * dt * 60 * (1.1 - density * 0.3)){
+      a.isPregnant = true;
+      a.pregnancyTimer = rand(2, 4);
+    }
+
+    // Death
+    let death = false;
+    if(a.energy <= 0) death = true;
+    if(a.age > 25 + rand(0,8)) death = true;
+    const stress = clamp((density - 0.3) * 0.8, 0, 1);
+    if(stress > 0.5 && Math.random() < stress * 0.02 * dt * 60) death = true;
+    if(phase === 'collapse_run' && a.energy < 0.2 && Math.random() < 0.04 * dt * 60) death = true;
+    
+    if(death){
+      a.alive = false;
+      totalDied++;
+      // Release hoarded food
+      if(a.type === 'hoarder' && a.foodStash > 0){
+        for(let i=0; i<Math.min(a.foodStash, 3); i++){
+          spawnFood(a.x+rand(-20,20), a.y+rand(-20,20));
+        }
+      }
+    }
+  }
+
+  // Remove dead agents
+  for(let i=agents.length-1; i>=0; i--){
+    if(!agents[i].alive) agents.splice(i,1);
+  }
+
+  // Food decay
+  for(let i=food.length-1; i>=0; i--){
+    food[i].life -= dt * 20;
+    if(food[i].life <= 0) food.splice(i,1);
+  }
+
+  // Update territories and conflicts
+  if(frameCount % 5 === 0){
+    updateTerritories();
+    detectConflicts();
+  }
+
+  // Phase transitions
+  if(phase === 'boom' && pop > 120 && !document.getElementById('overlay').classList.contains('show')){
+    running = false;
+    showChoice();
+  }
+  if(phase === 'balance_run'){
+    if(pop > 30 && pop < 120 && year > 20 && Math.random() < 0.002) endBalance();
+    if(year > 50 && pop > 20 && pop < 150) endBalance();
+    if(pop < 3 && year > 10) endCollapse();
+  }
+  if(phase === 'collapse_run'){
+    if(pop < 5 && year > 15) endCollapse();
+    if(pop === 0) endCollapse();
+    if(pop > 40 && year > 30 && Math.random() < 0.003) endBalance();
+  }
+
+  updateHUD();
+}
+
+// ---------- UI ----------
+function showChoice(){
+  phase = 'pressure';
+  const card = document.getElementById('overlayCard');
+  card.className = 'overlay-card';
+  document.getElementById('msgPhase').textContent = '⚖️ The Threshold';
+  document.getElementById('msgTitle').textContent = 'The world is full. Something must give.';
+  document.getElementById('msgSub').textContent = '"Growth has a shadow. The shadow is called limits."';
+  document.getElementById('msgBody').textContent = `Population: ${agents.length}. Food: ${food.length}. The system is straining. Two paths emerge—one bends, one breaks.`;
+  document.querySelector('#overlay .actions').innerHTML = `
+    <button class="btn nature" id="choiceBalance">🌳 Adapt — Live within limits</button>
+    <button class="btn danger" id="choiceCollapse">🔥 Push — Ignore the signs</button>
+  `;
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('choiceBalance').onclick = () => { choosePath('balance'); };
+  document.getElementById('choiceCollapse').onclick = () => { choosePath('collapse'); };
+}
+
+function choosePath(path){
+  document.getElementById('overlay').classList.remove('show');
+  running = true;
+  phase = path === 'balance' ? 'balance_run' : 'collapse_run';
+  resourceBase = path === 'balance' ? 0.5 : 0.95;
+  if(path === 'balance'){
+    // Balance: fertility drops, but survival increases
+    for(const a of agents) a.energy = Math.min(a.energy + 0.2, 1);
+  }
+}
+
+function endBalance(){
+  running = false;
+  phase = 'balance';
+  const card = document.getElementById('endCard');
+  card.className = 'overlay-card end-card balance';
+  document.getElementById('endTag').textContent = '🌳 Equilibrium';
+  document.getElementById('endTitle').textContent = 'The system found its balance.';
+  document.getElementById('endBody1').textContent = `Population settled at ${agents.length}. ${totalBorn} were born. ${totalDied} died. The carrying capacity held.`;
+  document.getElementById('endBody2').textContent = 'They learned that more is not always better. They learned that limits are not enemies—they are teachers.';
+  document.getElementById('endTake').textContent = '✦ Sustainability is not a permanent state—it\'s a constant adjustment. The doctrine that bends survives.';
+  document.getElementById('endOverlay').classList.add('show');
+}
+
+function endCollapse(){
+  running = false;
+  phase = 'collapse';
+  const card = document.getElementById('endCard');
+  card.className = 'overlay-card end-card collapse';
+  document.getElementById('endTag').textContent = '💀 Collapse';
+  document.getElementById('endTitle').textContent = 'They took everything. Then there was nothing.';
+  document.getElementById('endBody1').textContent = `At peak: ${peakPop}. At end: ${agents.length}. ${totalBorn} born. ${totalDied} died.`;
+  document.getElementById('endBody2').textContent = 'The valley is empty. The homes are silent. The river runs clear again—but no one is there to drink.';
+  document.getElementById('endTake').textContent = '✦ Overshoot is not dramatic until the buffer is gone. Then the cascade is short. The doctrine that ignores limits gets an empty field.';
+  document.getElementById('endOverlay').classList.add('show');
+}
+
+$('btnStart').onclick = () => {
+  document.getElementById('overlay').classList.remove('show');
+  running = true;
+  phase = 'boom';
+};
+
+$('btnAgain').onclick = () => {
+  document.getElementById('endOverlay').classList.remove('show');
+  initWorld();
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('msgPhase').textContent = '🌿 The Beginning';
+  document.getElementById('msgTitle').textContent = 'A handful of beings wake in an empty world.';
+  document.getElementById('msgSub').textContent = '"There is food. There is space. There is everything—except awareness."';
+  document.getElementById('msgBody').textContent = 'Watch what happens when life discovers the edge of its world. Watch how they fight, hoard, migrate, and fail. Watch the system speak for itself.';
+  document.querySelector('#overlay .actions').innerHTML = `<button class="btn primary" id="btnStart2">▶ Begin</button>`;
+  document.getElementById('btnStart2').onclick = $('btnStart').onclick;
+};
+
+// ---------- HUD ----------
+function updateHUD(){
+  const pop = agents.length;
+  $('popVal').textContent = pop;
+  const resPct = clamp(Math.round((food.length / 90) * 100 * resourceBase), 0, 100);
+  const density = pop / Math.max(1, (W*H)/15000);
+  const stress = clamp(Math.round(((density - 0.3) * 150 + (100 - resPct) * 0.3)), 0, 100);
+
+  const rv = $('resVal');
+  rv.textContent = resPct + '%';
+  rv.className = resPct > 55 ? 'ok' : resPct > 25 ? 'warn' : 'crit';
+
+  const sv = $('stressVal');
+  sv.textContent = stress + '%';
+  sv.className = stress < 30 ? 'ok' : stress < 60 ? 'warn' : 'crit';
+
+  $('yearVal').textContent = Math.floor(year);
+
+  const dot = document.getElementById('alertDot');
+  const badge = document.getElementById('alertBadge');
+  if(stress < 30 && resPct > 50){
+    dot.style.background = 'var(--green)';
+    badge.className = 'alert-badge normal';
+    badge.textContent = '🌿 Stable';
+  } else if(stress < 60 && resPct > 25){
+    dot.style.background = 'var(--amber)';
+    badge.className = 'alert-badge warning';
+    badge.textContent = '⚡ Tension';
+  } else {
+    dot.style.background = 'var(--red)';
+    badge.className = 'alert-badge critical';
+    badge.textContent = '🔥 Crisis';
+  }
+}
+
+// ---------- Draw ----------
+function draw(){
+  ctx.fillStyle = '#080c12';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = '#0a121a';
+  ctx.lineWidth = 0.5;
+  for(let x=0; x<W; x+=60){
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, H);
+    ctx.stroke();
+  }
+  for(let y=0; y<H; y+=60){
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+
+  // Territories
+  for(const t of territories){
+    const grad = ctx.createRadialGradient(t.x, t.y, 0, t.x, t.y, t.radius);
+    grad.addColorStop(0, `rgba(168,122,204,${0.08 + t.strength * 0.05})`);
+    grad.addColorStop(1, 'rgba(168,122,204,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, t.radius, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = `rgba(168,122,204,${0.1 + t.strength * 0.05})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, t.radius, 0, Math.PI*2);
+    ctx.stroke();
+  }
+
+  // Conflict zones
+  for(const c of conflictZones){
+    const intensity = Math.min(c.intensity, 1);
+    const grad = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, 20 + intensity * 20);
+    grad.addColorStop(0, `rgba(224,90,102,${intensity * 0.15})`);
+    grad.addColorStop(1, 'rgba(224,90,102,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, 20 + intensity * 20, 0, Math.PI*2);
+    ctx.fill();
+    // Lightning flash
+    if(intensity > 0.5 && Math.random() < 0.1){
+      ctx.strokeStyle = `rgba(255,200,100,${intensity * 0.2})`;
+      ctx.lineWidth = 1;
+      for(let i=0; i<3; i++){
+        ctx.beginPath();
+        ctx.moveTo(c.x+rand(-10,10), c.y+rand(-10,10));
+        for(let j=0; j<4; j++){
+          ctx.lineTo(c.x+rand(-15,15), c.y+rand(-15,15));
+        }
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Food
+  for(const f of food){
+    const alpha = 0.4 + (f.life/280) * 0.4;
+    const size = f.size || 4;
+    ctx.globalAlpha = alpha;
+    if(f.hoarded){
+      ctx.fillStyle = '#d4b56a';
+      ctx.shadowColor = '#d4b56a';
+      ctx.shadowBlur = 10;
+    } else {
+      ctx.fillStyle = `rgb(${40 + size*5}, ${100 + size*5}, ${40 + size*5})`;
+      ctx.shadowColor = '#3a6a4a';
+      ctx.shadowBlur = 5;
+    }
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, size/2, 0, Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+  }
+
+  // Agents
+  for(const a of agents){
+    if(!a.alive) continue;
+    const health = a.energy;
+    const stressTint = clamp(1 - health, 0, 1);
+    const g = Math.floor(160 - stressTint * 120);
+    const r = Math.floor(70 + stressTint * 160);
+    const b = Math.floor(120 - stressTint * 70);
+
+    // Type indicators
+    let glowColor = `rgba(${r},${g},${b},0.2)`;
+    let borderColor = null;
+    if(a.type === 'hoarder'){
+      glowColor = 'rgba(212,181,106,0.25)';
+      borderColor = '#d4b56a';
+    } else if(a.type === 'fighter'){
+      glowColor = 'rgba(224,90,102,0.25)';
+      borderColor = '#e05a66';
+    }
+
+    // Glow
+    const grad = ctx.createRadialGradient(a.x, a.y, 0, a.x, a.y, a.size * 4);
+    grad.addColorStop(0, glowColor);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(a.x, a.y, a.size * 4, 0, Math.PI*2);
+    ctx.fill();
+
+    // Body
+    ctx.beginPath();
+    const color = `rgb(${r},${g},${b})`;
+    ctx.fillStyle = color;
+    ctx.arc(a.x, a.y, a.size, 0, Math.PI*2);
+    ctx.fill();
+
+    // Border for special types
+    if(borderColor){
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(a.x, a.y, a.size + 2, 0, Math.PI*2);
+      ctx.stroke();
+    }
+
+    // Eyes
+    const eyeDir = Math.atan2(a.vy, a.vx);
+    const ex = a.x + Math.cos(eyeDir) * a.size * 0.3;
+    const ey = a.y + Math.sin(eyeDir) * a.size * 0.3;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(ex - a.size*0.2, ey - a.size*0.2, a.size*0.2, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(ex + a.size*0.2, ey - a.size*0.2, a.size*0.2, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#1a1a2e';
+    ctx.beginPath();
+    ctx.arc(ex - a.size*0.15, ey - a.size*0.15, a.size*0.08, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(ex + a.size*0.25, ey - a.size*0.15, a.size*0.08, 0, Math.PI*2);
+    ctx.fill();
+
+    // Hoarder stash indicator
+    if(a.type === 'hoarder' && a.foodStash > 0){
+      ctx.fillStyle = '#d4b56a';
+      ctx.font = '8px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('📦', a.x, a.y - a.size - 4);
+    }
+
+    // Generation rings
+    if(a.generation > 1){
+      ctx.strokeStyle = `rgba(212,181,106,${0.05 + a.generation * 0.02})`;
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.arc(a.x, a.y, a.size + 4 + a.generation * 1.5, 0, Math.PI*2);
+      ctx.stroke();
+    }
+
+    // Health bar
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(a.x - a.size, a.y + a.size + 4, a.size * 2, 3);
+    ctx.fillStyle = health > 0.6 ? '#5cba84' : (health > 0.3 ? '#d4924a' : '#e05a66');
+    ctx.fillRect(a.x - a.size, a.y + a.size + 4, a.size * 2 * health, 3);
+  }
+
+  // Vignette
+  const grd = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.2, W/2, H/2, Math.max(W,H)*0.8);
+  grd.addColorStop(0, 'transparent');
+  grd.addColorStop(1, '#00000044');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, W, H);
+
+  // Status overlay - top right
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.roundRect ? ctx.roundRect(W-180, 10, 170, 70, 8) : null;
+  ctx.fillRect(W-180, 10, 170, 70);
+  ctx.fillStyle = '#9aabb8';
+  ctx.font = '10px sans-serif';
+  ctx.fillText(`👥 ${agents.length}  🍎 ${food.length}  ⚔️ ${conflictZones.length}`, W-170, 35);
+  ctx.fillText(`🏠 ${territories.length} territories  📦 ${agents.filter(a=>a.type==='hoarder'&&a.foodStash>0).length} hoarders`, W-170, 55);
+  ctx.fillStyle = '#5a6a7a';
+  ctx.fillText(`Year ${Math.floor(year)}  ⚡ ${phase}`, W-170, 72);
+}
+
+// ---------- Loop ----------
+function frame(t){
+  const dt = Math.min(0.05, (t - lastTick)/1000) || 0.016;
+  lastTick = t;
+  step(dt);
+  draw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// RoundRect polyfill for older browsers
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
+    if(r > w/2) r = w/2;
+    if(r > h/2) r = h/2;
+    this.moveTo(x+r, y);
+    this.lineTo(x+w-r, y);
+    this.quadraticCurveTo(x+w, y, x+w, y+r);
+    this.lineTo(x+w, y+h-r);
+    this.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+    this.lineTo(x+r, y+h);
+    this.quadraticCurveTo(x, y+h, x, y+h-r);
+    this.lineTo(x, y+r);
+    this.quadraticCurveTo(x, y, x+r, y);
+    return this;
+  };
+}
+</script>
+</body>
+</html>

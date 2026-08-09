@@ -1,0 +1,1130 @@
+Natural Math v5 - Status: Frozen Integer Clean Base
+
+
+Status: Frozen integer clean base for implementation testing.
+
+This document is the rule source for the first integer oracle suite.
+No behavior is considered validated until a matching integer test fixture exists and passes.
+Future edits before v5.0.1 should be limited to typo fixes, formatting fixes, and test citations.
+
+Implementation Boundary
+
+This base is intentionally integer-only and Turing-style.
+
+A conforming implementation must use:
+- integer state values
+- integer counters
+- finite lists
+- exact if/else rules
+- discrete random draws
+- one-cell movement
+- explicit local state only
+
+A conforming implementation must not use:
+- decimal or floating-point stored values
+- hidden continuous fields
+- unstated smoothing
+- non-local planning
+- outside intuition
+- symbolic behavior not written in this document
+- learned behavior, optimization, or AI interpretation as part of the base rules
+
+If a future extension needs decimal math, continuous fields, learned behavior, or non-local planning, it must be outside this frozen base and given a new version label.
+
+
+Plain-language standalone specification.
+
+This document describes a small world made of grid cells and integer energy. A node is a living point on the grid. Each step, living nodes spend energy, sense nearby nodes, try to move one cell, may split into children under a local pressure rule, and may form bonds if bonding is enabled.
+
+The base rule is simple:
+
+No decimal-number arithmetic is part of the base. All stored numbers are integers. All randomness is discrete. All movement is one grid cell at a time. All decisions use only local state named in this document.
+
+This is a Turing-style rule set: a machine can run it by reading symbols, integer counters, finite lists, and exact if/else rules. Nothing requires decimal arithmetic, hidden intuition, or outside explanation.
+
+---
+
+## 1. What This Paper Claims
+
+This paper defines the base mechanics. It does not claim:
+
+- mathematical proof of a final theory
+- production stability
+- non-local graph computation
+- multi-step target planning
+- closed-system conservation
+- behavior not explicitly defined here
+
+If a behavior is not written in this document, it is not part of this base.
+
+---
+
+## 2. Integer Number Rule
+
+Every numeric value stored by the simulation is an integer.
+
+All intermediate arithmetic must use either arbitrary-precision integers or signed integers wide enough to hold every intermediate product in the run being executed. A conforming implementation must not use wrapping integer overflow. For the listed scalar formulas, signed 64-bit integers are the minimum practical fixed-width choice. Exact rational gradient accumulation can require wider arithmetic when many neighbors are included, so arbitrary-precision integers are the safest reference behavior.
+
+Energy-like values use milli-units:
+
+    one ordinary energy unit = 1000 integer units
+
+Examples:
+
+    five ordinary units become 5000 integer units.
+    pressure decay is written as 85 / 100.
+
+Numeric fields in the base never store decimal approximations, infinity, NaN, or other special numeric values. Non-numeric fields may use explicit markers named in this document, such as None for no parent or no center.
+
+When division is needed, the rule must say exactly how to divide. Unless a section says otherwise:
+
+    integer_div(a, b) = floor(a / b)
+
+where b > 0.
+
+Every call to integer_div in this base uses a non-negative numerator and a positive denominator. Because the numerator is non-negative, floor division and truncation toward zero give the same result for all base rules. If a future rule needs division with a negative numerator, that future rule must state its division rule explicitly.
+
+For comparisons involving a fraction, do not divide. Cross-multiply with integers.
+
+Example:
+
+    x / y <= 9 / 4
+
+is tested as:
+
+    4 * x <= 9 * y
+
+---
+
+## 2A. Entry Points
+
+A conforming implementation exposes this step function:
+
+    run_step(
+        nodes,
+        params,
+        *,
+        use_deficit=False,
+        use_poc_scream=False,
+        allow_bonding=False,
+        bond_collapse_positions=False,
+        bonding_strict=False,
+        rng=None,
+    )
+
+params is a dictionary-like object containing the parameter names from Section 5. The keyword flags are the runtime flags from Section 5. rng is either None or a Python-compatible random generator with the methods named in Section 8.
+
+If rng is None and a random draw is required during the step, raise NaturalMathValidationError. For reproducible runs, callers must pass an explicit rng object whenever the node list or parameters allow a random draw to be reached.
+
+run_step mutates nodes in place and returns the same list object.
+
+use_2d_signal is not an accepted flag in this integer base. Passing an unknown runtime flag is a caller error.
+
+A conforming implementation also exposes this cluster function:
+
+    run_cluster(seed, params=None, steps=140)
+
+seed must be an integer. steps must be a non-negative integer. If params is None, run_cluster uses a fresh copy of default_params. At the start of run_cluster, validate seed, steps, and params before initialization. If validation fails, raise NaturalMathValidationError.
+
+run_cluster creates the cluster state from Section 18, runs Section 19 exactly steps times, and returns the dictionary defined in Section 22. It does not call run_step; the cluster benchmark has its own integer step rules in Sections 18 through 22.
+
+---
+
+## 3. Node Record
+
+Each node is a mutable record with exactly these public data fields:
+
+| Field | Meaning |
+|-------|---------|
+| id | Non-negative integer. Unique among nodes currently in the list. |
+| pos | Integer 3D grid tuple (x, y, z). |
+| direction | Integer 3D direction tuple. Used only for fallback movement. |
+| energy | Integer energy, in milli-units. |
+| pressure | Integer pressure, in milli-units. |
+| alive | Boolean. |
+| type | One of seed, tip, branch, inert, or wall. |
+| parent_id | Parent node id, or None. |
+| bonds | Mutable set of integer node ids. |
+| signal_type | Integer signal label. Default is 0. |
+
+In Python, a node may be a class instance or dictionary, but it must behave like a mutable record. A dictionary node must have exactly the keys in this table. A class-based node may have methods or private implementation storage, but its public mutable record fields for the simulation are exactly the fields in this table. run_step mutates the existing node objects. It does not replace the nodes list with a different list.
+
+New non-cluster seed nodes use:
+
+    direction = (0, 1, 0)
+    signal_type = 0
+
+unless an input fixture explicitly provides other integer values.
+
+Dead, inert, branch, and wall nodes stay in the node list. They still occupy their exact grid position.
+
+---
+
+## 4. Node Types And Occupancy
+
+| Type / state | Alive | Blocks movement | Blocks child positions | Can form bonds | Included in occupancy |
+|--------------|-------|-----------------|----------------------|---------------|----------------------|
+| seed | Yes | Yes | Yes | Yes | Yes |
+| tip | Yes | Yes | Yes | Yes | Yes |
+| branch | No | Yes | Yes | No | Yes |
+| inert | No | Yes | Yes | No | Yes |
+| wall | No | Yes | Yes | No | Yes |
+
+Death from energy or boundary changes a node to:
+
+    alive = False
+    type = "inert"
+    energy = current energy after any already-applied cost or clamp
+    pressure = current pressure
+    pos, direction, parent_id, bonds, signal_type remain unchanged
+
+Do not set energy to zero on ordinary death. The energy value is whatever it was after any cost or clamp already applied at that moment. Bifurcation parent death is the only rule that explicitly sets energy = 0.
+
+When a parent splits, it changes to:
+
+    alive = False
+    type = "branch"
+    energy = 0
+
+Bonds to dead nodes may remain in the record, but they have no mechanical effect. They do not prevent contact death. They do not count as live bond capacity. They do not create new bond candidates.
+
+---
+
+## 5. Parameters
+
+All parameters are integers unless written as a numerator/denominator pair or explicitly marked Boolean.
+
+| Parameter | Default | Meaning |
+|-----------|---------|---------|
+| tau | 5000 | Minimum living energy. |
+| iota_sq | 1 | Contact boundary as squared grid distance. |
+| r_sq | 625 | Sensing radius as squared grid distance. |
+| eps_extend | 500 | Energy cost for successful movement in default mode. |
+| eps_sense | 1200 | Energy cost for sensing or blocked movement. |
+| eps_spawn | 4000 | Split setup cost. |
+| eps_split | 9000 | Split cost. |
+| E0 | 1600000 | Reference energy. |
+| P_bifurcate | 12000 | Pressure needed for split. |
+| beta_num | 85 | Pressure decay numerator. |
+| beta_den | 100 | Pressure decay denominator. |
+| delta_P_baseline | 2100 | Pressure added each living step. |
+| delta_P_conflict | 5000 | Extra pressure from blocked movement. |
+| gamma_fallback_ppm | 300000 | Fallback probability out of 1,000,000. |
+| deficit_strength | 15000 | Integer strength for deficit mode. |
+| suffering_strength | -50000 | Integer strength for PoC scream mode. |
+| bond_distance_sq | 4 | Maximum squared distance for non-strict bonding. |
+| max_bonds | 4 | Maximum live bonds per live node. |
+| decay_cost | 220 | Cluster per-step energy loss. |
+| move_cost | 300 | Cluster movement cost. |
+| rest_gain | 220 | Cluster rest gain. |
+| trade_rate_num | 18 | Cluster transfer numerator. |
+| trade_rate_den | 100 | Cluster transfer denominator. |
+| trade_cost | 25 | Cluster transfer cost. |
+| repair_cost | 350 | Cluster repair action cost. |
+| repair_prob_ppm | 700000 | Repair probability out of 1,000,000. |
+| repair_ignores_distance | False | Boolean repair flag. |
+| resource_absorb_rate | 14000 | Resource absorbed per nearby live node. |
+| resource_radius_sq | 4 | Resource contact radius squared. |
+| critical_energy | 30000 | Cluster low emergency energy. |
+| low_energy_cutoff | 38000 | Cluster low average energy cutoff. |
+| success_max_distance_sq_num | 9 | Success distance squared numerator. |
+| success_max_distance_sq_den | 4 | Success distance squared denominator. |
+| gini_threshold_num | 7 | Gini threshold numerator. |
+| gini_threshold_den | 100 | Gini threshold denominator. |
+| world_size | 25 | Cluster grid size. |
+| damage_energy_loss | 14000 | Cluster damage energy loss. |
+| damage_bond_break_ppm | 180000 | Damage bond-break probability out of 1,000,000. |
+
+default_params is a dictionary-like object containing every parameter in this table with its listed default value.
+
+Parameter constraints:
+
+- every parameter in this table is required
+- every numeric parameter is an integer
+- repair_ignores_distance is Boolean
+- tau > 0
+- iota_sq > 0
+- r_sq > iota_sq
+- eps_extend > 0, eps_sense > 0, eps_spawn > 0, and eps_split > 0
+- E0 > tau
+- P_bifurcate > 0
+- beta_num >= 0 and beta_den > 0
+- delta_P_baseline >= 0 and delta_P_conflict >= 0
+- 0 <= gamma_fallback_ppm <= 1000000
+- deficit_strength >= 0
+- suffering_strength is an integer and may be negative
+- bond_distance_sq > 0
+- max_bonds >= 1
+- cluster costs and gains are non-negative integers
+- trade_rate_num >= 0 and trade_rate_den > 0
+- 0 <= repair_prob_ppm <= 1000000
+- resource_absorb_rate > 0
+- resource_radius_sq > 0
+- 0 < critical_energy < low_energy_cutoff < E0
+- success_max_distance_sq_num > 0 and success_max_distance_sq_den > 0
+- gini_threshold_num >= 0 and gini_threshold_den > 0
+- world_size >= 10
+- 0 <= damage_bond_break_ppm <= 1000000
+
+Runtime flags are not parameters:
+
+    use_deficit = False
+    use_poc_scream = False
+    allow_bonding = False
+    bond_collapse_positions = False
+    bonding_strict = False
+
+2D signal gradients, signal decay, delayed signal speed, and curved signal weakening are not part of this integer base. They require a separate integer lookup-table specification before they can be base behavior.
+
+---
+
+## 6. Validation Rules
+
+At the start of run_step, before mutating anything, validate:
+
+- nodes is a mutable list
+- every node has exactly the fields in Section 3
+- every id is a non-negative integer
+- no two nodes have the same id
+- every pos is a 3-integer tuple
+- every direction is a 3-integer tuple
+- every direction is one of (1,0,0), (-1,0,0), (0,1,0), (0,-1,0), (0,0,1), (0,0,-1), or (0,0,0)
+- every energy and pressure is an integer
+- every energy and pressure is non-negative
+- every alive value is Boolean
+- every type is one of the five listed types
+- every live node has type seed or tip
+- every branch, inert, and wall node has alive = False
+- every bonds value is a mutable set of integer node ids
+- every bond points to an id present in nodes
+- every live-to-live bond is symmetric
+- every live node has energy >= 0
+- every signal_type is an integer
+- every parameter satisfies Section 5
+- use_deficit and use_poc_scream are not both True
+
+If validation fails, a Python implementation raises:
+
+    class NaturalMathValidationError(ValueError):
+        pass
+
+The error message must include:
+
+    section name
+    field or parameter name
+    short reason
+
+Non-Python implementations must expose an equivalent named validation error.
+
+Runtime invariant failure also raises NaturalMathValidationError.
+
+---
+
+## 6A. Runtime Invariants
+
+After each run_step, and after each cluster step, a conforming implementation checks these invariants:
+
+- all node ids are unique non-negative integers
+- every node has the Section 3 public data fields
+- every pos and direction is a 3-integer tuple
+- every direction is one of the six cardinal directions or (0,0,0)
+- every energy and pressure is a non-negative integer
+- every live node has type seed or tip
+- every branch, inert, and wall node has alive = False
+- every bond points to an id present in the node list
+- every live-to-live bond is symmetric
+- no live node has more than max_bonds live bonds
+- every signal_type is an integer
+
+After each run_step and after each cluster step, every live node must also have energy >= tau. Duplicate live positions are not by themselves runtime invariant failures; contact rules, bonding rules, and occupancy rules define their effects. Duplicate cluster positions are allowed.
+
+---
+
+## 7. Helper Rules
+
+    Q(p, q) = (p_x - q_x)^2 + (p_y - q_y)^2 + (p_z - q_z)^2
+    dot(a, b) = a_x*b_x + a_y*b_y + a_z*b_z
+    sign(x) = 1 if x > 0, -1 if x < 0, 0 if x == 0
+    clamp_nonnegative(x) = max(0, x)
+
+Lexicographic order for 3D positions means compare x, then y, then z.
+
+Lexicographic order for pairs means compare the first id, then the second id.
+
+All passes over nodes use ascending id order unless a section states another exact order.
+
+---
+
+## 8. Randomness
+
+A Python reference implementation uses:
+
+    rng = random.Random(seed)
+
+The only random probability draw is:
+
+    draw_ppm = rng.randrange(0, 1000000)
+    event occurs if draw_ppm < threshold_ppm
+
+This avoids decimal random numbers.
+
+Integer random functions:
+
+    randint(a, b) = rng.randint(a, b), inclusive
+    choice(seq) = rng.choice(seq)
+    draw_ppm() = rng.randrange(0, 1000000)
+
+draw_ppm() returns one integer from 0 through 999999, inclusive.
+
+sample_two(seq) is defined without using Python's built-in sample helper:
+
+    seq must already be sorted.
+    i = rng.randrange(0, len(seq))
+    first = seq[i]
+    seq_without_first = seq with index i removed, preserving order
+    j = rng.randrange(0, len(seq_without_first))
+    second = seq_without_first[j]
+    return [first, second]
+
+This consumes exactly two rng.randrange calls.
+
+For exact reproducibility, calls must happen only where this document says they happen.
+
+---
+
+## 9. Deficit
+
+Deficit is an integer count of how far a node is below E0:
+
+    deficit(E) = max(0, E0 - E)
+
+Deficit mode modifies the effective energy difference:
+
+    effective = q.energy - node.energy
+    effective -= integer_div(deficit_strength * deficit(node.energy) * deficit(q.energy), E0 * E0)
+
+---
+
+## 10. Integer Gradient Choice
+
+The model does not store a decimal gradient. It computes exact rational scores using integer numerators and denominators.
+
+Each axis score is stored as:
+
+    score_axis = (num, den)
+
+where den > 0. Start every axis score at:
+
+    x_score = (0, 1)
+    y_score = (0, 1)
+    z_score = (0, 1)
+
+To add a contribution (c_num, c_den) to a score (num, den):
+
+    new_num = num * c_den + c_num * den
+    new_den = den * c_den
+    score = (new_num, new_den)
+
+Reduction by greatest common divisor of abs(num) and den is allowed after addition, but not required. Reduction must not change the represented value. A reference implementation may reduce after each addition or after the full neighbor loop; either choice must produce the same final direction.
+
+For each live neighbor q, in ascending q.id order, excluding the node itself:
+
+    qdist = Q(node.pos, q.pos)
+    include if 1 <= qdist <= r_sq
+    effective = q.energy - node.energy
+    if use_deficit:
+        apply Section 9
+    contribution numerator for axis a = effective * (q.pos[a] - node.pos[a])
+    contribution denominator = qdist
+
+For each axis, add that neighbor contribution to the running axis score using the addition rule above.
+
+To compare the absolute size of two scores:
+
+    abs_score_a = abs(num_a) / den_a
+    abs_score_b = abs(num_b) / den_b
+
+Do not divide. Compare by cross-multiplication:
+
+    abs(num_a) * den_b > abs(num_b) * den_a
+    abs(num_a) * den_b == abs(num_b) * den_a
+
+Because every denominator is positive, this comparison is exact.
+
+Dead nodes do not contribute to the gradient.
+
+Direction selection:
+
+1. Compute exact rational scores for x, y, and z.
+2. If all three numerators are zero, return (0,0,0) as the gradient direction.
+3. Choose the axis with the largest absolute score.
+4. Ties go to x before y before z.
+5. Move in the sign of the chosen score.
+
+PoC scream mode uses the same integer gradient rule, except:
+
+    if q.energy < 2 * tau:
+        effective = suffering_strength
+    else:
+        effective = q.energy - node.energy
+
+---
+
+## 11. Contact And Decisions
+
+For each live node, compute contact against other unbonded live nodes.
+
+For node n and other live node q, q is other only if:
+
+    q.id != n.id
+
+The pair is unbonded if:
+
+    q.id not in n.bonds
+    n.id not in q.bonds
+
+Then compute:
+
+    min_q = minimum Q(node.pos, other.pos)
+
+If no such other node exists:
+
+    min_q = None
+
+In a non-Python implementation, None means any explicit no-neighbor marker that cannot be confused with a squared distance.
+
+Decision rule:
+
+    if node.energy < tau:
+        RESTRICT_DIE
+    elif min_q is not None and min_q < iota_sq:
+        RESTRICT_DIE
+    elif min_q is not None and min_q == iota_sq:
+        SENSE
+    else:
+        compute integer gradient direction
+        if gradient direction is nonzero:
+            EXTEND using gradient direction
+        elif draw_ppm() < gamma_fallback_ppm:
+            EXTEND using fallback direction
+        else:
+            SENSE
+
+Energy exactly equal to tau is living energy. It does not trigger RESTRICT_DIE by itself.
+
+The fallback random draw happens only when the node reaches the fallback branch. It is not precomputed.
+
+---
+
+## 12. One Full run_step
+
+run_step(nodes, params, *, use_deficit, use_poc_scream, allow_bonding, bond_collapse_positions, bonding_strict, rng) mutates nodes in place and returns the same list object. The full callable signature is defined in Section 2A.
+
+If nodes is empty, validation runs, no phases change anything, and the same empty list is returned.
+
+One step runs in this exact order:
+
+1. Validate Section 6.
+2. Build active: live nodes sorted by ascending id.
+3. Kill active nodes outside the closed cube -100 <= x,y,z <= 100.
+4. Kill active nodes with energy < tau.
+5. Rebuild active.
+6. Build frozen occupancy:
+
+       all_occupied = set of every node.pos
+
+7. Initialize step-local scheduling structures:
+
+       movement_attempts = empty map from target_pos to list of node ids
+       reserved_child_positions = empty set of positions
+       scheduled_bifurcations = empty list
+
+8. Compute each active node decision in ascending id order.
+9. Apply RESTRICT_DIE decisions in ascending id order.
+10. Apply SENSE decisions in ascending id order:
+
+       energy -= eps_sense
+       energy = clamp_nonnegative(energy)
+       if energy < tau: die as inert
+
+11. Schedule EXTEND decisions in ascending id order. This is when fallback direction validation happens. During scheduling, update:
+
+       movement_attempts: target_pos -> list of node ids
+       reserved_child_positions: set of positions
+       scheduled_bifurcations: list of split records
+
+    Each split record contains exactly:
+
+       parent_id
+       parent_energy_for_split
+       movement_direction
+       child_direction_1
+       child_direction_2
+       child_pos_1
+       child_pos_2
+
+12. Resolve movement targets in ascending lexicographic target position order. Record the movement direction used by each successful mover.
+13. Set direction = movement_direction for successful movers, then clamp and kill any successful mover whose energy is now below tau.
+14. Apply scheduled bifurcations in ascending parent id order.
+15. Apply pressure update to all nodes that are live immediately before this phase, including children created by bifurcation in Step 14.
+16. Apply bonding if enabled.
+17. Check runtime invariants.
+18. Clear the step-local scheduling structures by letting them go out of scope.
+19. Return the same nodes list object.
+
+No phase is skipped unless its input list is empty.
+
+---
+
+## 13. Movement And Blocking
+
+A movement direction must be one of:
+
+    (1,0,0), (-1,0,0), (0,1,0), (0,-1,0), (0,0,1), (0,0,-1)
+
+Fallback direction:
+
+1. Read node.direction.
+2. It must already be one of the six allowed directions or (0,0,0).
+3. If it is (0,0,0), use (0,1,0).
+4. Otherwise use it unchanged.
+
+If a direction outside that set is encountered during runtime, raise NaturalMathValidationError.
+
+No direction conversion from decimals exists in the integer base.
+
+A target is blocked if:
+
+- it is in frozen all_occupied
+- it is in reserved_child_positions
+- any coordinate is outside -100 <= coord <= 100
+
+If unblocked and uncontested, the node moves: set node.pos = target_pos, record its movement direction for Section 12 Step 13, and pay eps_extend.
+
+If blocked:
+
+    node stays in place
+    node.energy -= eps_sense
+    node.energy = clamp_nonnegative(node.energy)
+    node.pressure += delta_P_conflict
+    if node.energy < tau: die as inert
+
+If several nodes try to enter the same blocked target, no winner is selected. Every node attempting that target is treated as blocked: it stays in place, pays eps_sense, gains delta_P_conflict, and dies as inert if its energy falls below tau.
+
+If several nodes try to enter the same unblocked target:
+
+1. Highest current energy wins.
+2. Ties go to lower id.
+3. Winner moves: set node.pos = target_pos, record its movement direction for Section 12 Step 13, and pay eps_extend.
+4. Losers stay, pay eps_sense, gain delta_P_conflict, clamp energy to non-negative, and die as inert if energy falls below tau.
+
+"Current energy" means the energy after SENSE decisions and before movement-resolution costs.
+
+If a target is occupied in the frozen snapshot, it remains blocked for this step even if that occupant later changes type during bifurcation. Movement is never re-evaluated later in the step.
+
+---
+
+## 14. Bifurcation
+
+Bifurcation means one live parent becomes a dead branch and creates two live children in nearby cells.
+
+Bifurcation is checked during EXTEND scheduling, before movement is resolved.
+
+The mode allows bifurcation when use_poc_scream == False. Deficit mode does not disable bifurcation.
+
+Check in this exact order:
+
+1. The node is still alive.
+2. The mode allows bifurcation.
+3. pressure >= P_bifurcate.
+4. energy > eps_extend + eps_spawn + eps_split + 2*tau.
+5. Compute child directions from Section 15 using the original movement direction chosen for this EXTEND decision.
+6. Compute child positions.
+7. Both child positions are inside the closed cube -100 <= x,y,z <= 100.
+8. Both child positions are absent from frozen all_occupied.
+9. Both child positions are absent from reserved_child_positions.
+
+If all checks pass:
+
+    scheduled_bifurcations append this split record
+    reserved_child_positions add both child positions
+    parent_energy_for_split = parent.energy
+
+The scheduled split record stores the parent id, the original movement direction chosen for this EXTEND decision, both child directions, both child positions, and parent_energy_for_split.
+
+The parent does not schedule a movement attempt and is not a successful mover. Therefore it cannot lose a movement conflict between scheduling and child creation, and its direction is not updated by this EXTEND decision. Its energy is not modified between scheduling and child creation.
+
+If any check fails, the node schedules normal movement instead, using the original movement direction chosen for this EXTEND decision. Child-direction checks must not overwrite that original movement direction.
+
+When applied:
+
+    child_energy = integer_div(parent_energy_for_split - eps_extend - eps_spawn - eps_split, 2)
+
+The precondition guarantees child_energy >= tau at creation. It does not claim that a child can pay a later movement or sensing cost without additional energy.
+
+If the remaining energy after costs is odd, one integer energy unit is not assigned to either child. This is intentional integer dissipation from the split.
+
+The parent changes to:
+
+    alive = False
+    type = "branch"
+    energy = 0
+
+Before applying any bifurcation this step, set:
+
+    next_id = 1 + maximum id currently present in nodes
+
+If nodes is empty, next_id = 0.
+
+For each scheduled bifurcation in ascending parent id order, child 1 receives id next_id and child 2 receives id next_id + 1. Then next_id += 2. Both children are appended in that order.
+
+Each child has:
+
+    pos = child position
+    direction = child direction
+    energy = child_energy
+    pressure = 0
+    alive = True
+    type = "tip"
+    parent_id = parent.id
+    bonds = empty set
+    signal_type = parent.signal_type
+
+Same-step children receive the pressure update in the pressure phase.
+
+---
+
+## 15. Child Direction Table
+
+| Movement direction | Child directions |
+|--------------------|------------------|
+| (1,0,0) or (-1,0,0) | (0,1,0) and (0,0,1) |
+| (0,1,0) or (0,-1,0) | (1,0,0) and (0,0,1) |
+| (0,0,1) or (0,0,-1) | (1,0,0) and (0,1,0) |
+| (0,0,0) | (1,0,0) and (0,1,0) |
+
+The movement direction in this table is the original movement direction chosen for the parent's EXTEND decision, not necessarily the parent's stored direction field.
+
+Child positions:
+
+    child_pos_1 = parent.pos + child_direction_1
+    child_pos_2 = parent.pos + child_direction_2
+
+---
+
+## 16. Pressure
+
+Each node that is live immediately before the pressure phase updates:
+
+    pressure = integer_div((pressure + delta_P_baseline) * beta_num, beta_den)
+
+If blocked movement already added conflict pressure this step, the same formula applies to the increased value.
+
+---
+
+## 17. Bonding
+
+Bonding is optional.
+
+Build every unordered live pair (a, b) where a.id < b.id. Sort pairs by (a.id, b.id).
+
+For each pair:
+
+    dist_sq = Q(a.pos, b.pos)
+
+Non-strict bonding allows:
+
+    dist_sq <= bond_distance_sq
+
+Strict bonding allows:
+
+    dist_sq < bond_distance_sq
+
+Also require:
+
+    live_degree(a) < max_bonds
+    live_degree(b) < max_bonds
+    b.id not in a.bonds
+    a.id not in b.bonds
+
+live_degree(n) counts only bonds to currently live nodes.
+
+The total stored size of n.bonds may exceed max_bonds because historical bonds to dead nodes may remain. Only live_degree(n) is compared with max_bonds.
+
+When a bond forms:
+
+    a.bonds.add(b.id)
+    b.bonds.add(a.id)
+    total = a.energy + b.energy
+    a.energy = integer_div(total, 2)
+    b.energy = total - a.energy
+
+This preserves integer total energy across the two bonded nodes.
+
+If bond_collapse_positions == True:
+
+    b.pos = a.pos
+
+This can create duplicate positions. The next step handles duplicate live positions through contact rules unless the pair is bonded.
+
+Same-step contact death is not triggered immediately after bond collapse. Collapse can place a live node on a position also occupied by a wall, branch, or inert node; that position remains blocking occupancy, but contact death still only checks unbonded live nodes. This is a known unsafe collapse mode, not a wall-safe behavior.
+
+---
+
+## 18. Cluster Benchmark
+
+The cluster benchmark is open-system because resource absorption adds external integer energy.
+
+Cluster initialization for seed s:
+
+1. rng = random.Random(s).
+2. center = (world_size // 2, world_size // 2, 0).
+3. center_x = center[0] and center_y = center[1].
+4. Create nodes 0 through 29 in ascending id order.
+5. For each id:
+
+       x = center_x + randint(-2, 2)
+       y = center_y + randint(-2, 2)
+       pos = (x, y, 0)
+       energy = 55000 + randint(-5000, 5000)
+       pressure = 0
+       alive = True
+       type = "seed"
+       parent_id = None
+       bonds = empty set
+       signal_type = 0
+       direction = (0,1,0)
+
+6. Add chain bonds (0,1), (1,2), ..., (28,29) in ascending order if both endpoints have live degree below max_bonds.
+7. For every unordered pair (i,j) with i < j, ascending order:
+
+       draw_ppm()
+       add bond if draw < 80000, no bond already exists between i and j, and both live degrees are below max_bonds
+
+   With 30 nodes, this pass makes exactly 435 draw_ppm() calls before resource placement.
+
+8. Resource:
+
+       resource_x = choice([2, world_size - 3])
+       resource_y = randint(0, world_size - 1)
+       resource_pos = (resource_x, resource_y, 0)
+       resource_left = 450000
+       resource_reached = False
+
+Duplicate positions are allowed in cluster initialization.
+
+Cluster initialization does not trigger contact death. The cluster benchmark has no contact-death rule; it uses bonds, energy, resource movement, damage, and repair only.
+
+---
+
+## 19. Cluster Step
+
+Cluster steps are numbered 1..steps.
+
+Each cluster step:
+
+1. Alive nodes lose decay_cost, in ascending id order.
+2. Clamp energy to zero.
+3. Kill nodes below tau.
+4. If step_index == 35, apply damage.
+5. Clamp energy to zero and kill nodes below tau.
+6. Compute metrics.
+7. Select one cluster action.
+8. Apply that action.
+9. Clamp energy to zero and kill nodes below tau.
+10. Apply resource absorption.
+11. Clamp energy to zero and kill nodes below tau.
+12. Check invariants.
+
+If no nodes are alive, the step still runs. Empty passes do nothing.
+
+Damage:
+
+    for live nodes in ascending id:
+        energy -= damage_energy_loss
+        energy = clamp_nonnegative(energy)
+
+    kill nodes below tau
+
+    for existing live-to-live bond pairs present at the start of this loop,
+    in ascending (low_id, high_id):
+        if draw_ppm() < damage_bond_break_ppm:
+            remove bond symmetrically
+
+---
+
+## 20. Cluster Metrics
+
+Use live nodes only.
+
+If alive_count == 0:
+
+    alive_count = 0
+    component_count = 0
+    average_energy = 0
+    min_energy = 0
+    center_sum = None
+    center_denominator = 0
+    success_distance_passed = False
+    gini_num = 0
+    gini_den = 1
+    gini_over_threshold = False
+
+If alive_count > 0, process live nodes in ascending id order:
+
+    alive_count = number of live nodes
+    energy_total = sum energy
+    average_energy = integer_div(energy_total, alive_count)
+    min_energy = minimum live energy
+    center_sum = (sum_x, sum_y, sum_z)
+    center_denominator = alive_count
+
+The center of mass is not stored as a fraction. Store the numerator tuple center_sum and denominator alive_count.
+
+Distance from center to resource is checked without division:
+
+    dx_num = sum_x - resource_x * alive_count
+    dy_num = sum_y - resource_y * alive_count
+    dz_num = sum_z - resource_z * alive_count
+    dist_num = dx_num^2 + dy_num^2 + dz_num^2
+
+The success distance check is:
+
+    success_max_distance_sq_den * dist_num
+        <= success_max_distance_sq_num * alive_count^2
+
+Store the Boolean result as success_distance_passed.
+
+Connected components:
+
+1. Vertices are live node ids.
+2. Edges are live-to-live bonds.
+3. Each isolated live node is one component.
+4. Build components by scanning live ids ascending.
+5. For each unassigned live id, start a stack with that id.
+6. When visiting a node, inspect its live bonded neighbor ids in ascending order.
+7. The completed component is sorted ascending.
+8. Components are sorted by their first id.
+
+The traversal method must not affect the final component list. Sorting each completed component and then sorting the component list is part of the rule.
+
+Gini:
+
+    sort live energies ascending as v[0] ... v[n-1]
+    T = sum(v[i])
+    W = sum((i + 1) * v[i])
+    gini_num = 2 * W - (n + 1) * T
+    gini_den = n * T
+
+If n == 0 or T == 0, Gini is zero.
+
+To test:
+
+    gini > gini_threshold_num / gini_threshold_den
+
+use:
+
+    gini_threshold_den * gini_num > gini_threshold_num * gini_den
+
+Store the Boolean result as gini_over_threshold.
+
+---
+
+## 21. Cluster Actions
+
+Policy:
+
+    if component_count > 1:
+        REPAIR
+    elif min_energy < critical_energy:
+        REST if resource_reached else REDISTRIBUTE
+    elif average_energy < low_energy_cutoff and not resource_reached:
+        SEEK
+    elif average_energy < low_energy_cutoff and resource_reached:
+        SEEK if success distance check fails else REST
+    elif gini_over_threshold:
+        REDISTRIBUTE
+    elif success distance check fails:
+        SEEK
+    else:
+        REST
+
+SEEK, ascending live id:
+
+    raw_dx = resource_x - x
+    raw_dy = resource_y - y
+    if abs(raw_dx) >= abs(raw_dy):
+        dx = sign(raw_dx)
+        dy = 0
+    else:
+        dx = 0
+        dy = sign(raw_dy)
+    if draw_ppm() < 120000:
+        (dx, dy) = choice([(1,0), (0,1), (-1,0), (0,-1)])
+    x = clamp to 0..world_size-1 after x + dx
+    y = clamp to 0..world_size-1 after y + dy
+    energy -= move_cost
+
+SEEK moves at most one axis-aligned grid cell per node. If both resource offsets are nonzero, the direct direction uses the axis with larger absolute distance; ties go to x before y. The random direction replaces the direct direction and is also axis-aligned.
+
+REDISTRIBUTE builds a snapshot of live-to-live bond pairs at the start of the action, sorted in ascending (low_id, high_id), then processes that snapshot in order using current energy values:
+
+    diff = E_a - E_b
+    if abs(diff) > 1000:
+        amount = integer_div(abs(diff) * trade_rate_num, trade_rate_den)
+        donor = higher-energy node; tie means no transfer
+        recipient = lower-energy node
+        amount = min(amount, donor.energy)
+        donor.energy -= amount
+        recipient.energy += amount
+        donor.energy -= trade_cost
+        donor.energy = clamp_nonnegative(donor.energy)
+
+REPAIR:
+
+    for live nodes ascending:
+        energy -= repair_cost
+
+Then clamp energy to zero, kill nodes below tau, and recompute components after the energy cost.
+
+If the recomputed alive_count < 2, no repair bond attempt is made.
+
+If fragmented:
+
+1. Consider component pairs in ascending (min_id_a, min_id_b).
+2. Use only the first component pair that has at least one valid bond candidate.
+3. A valid bond candidate means:
+
+       no existing bond between a and b
+       live_degree(a) < max_bonds
+       live_degree(b) < max_bonds
+       repair_ignores_distance == True or Q(a.pos, b.pos) <= bond_distance_sq
+
+4. Candidate pairs are sorted (a.id, b.id).
+5. For each candidate, draw once:
+
+       if draw_ppm() < repair_prob_ppm:
+           add bond and stop
+
+If already one component:
+
+1. If alive_count < 2, do nothing after repair cost.
+2. Otherwise make up to 20 attempts.
+3. Each attempt builds alive_ids sorted ascending and calls sample_two(alive_ids) once.
+4. Sort sampled ids into (low_id, high_id).
+5. The sampled pair is valid only if it satisfies the same valid-candidate rule used for fragmented repair.
+6. If the pair is invalid, this still counts as one attempt and no probability draw is made.
+7. If valid, draw once; add bond on success and stop.
+
+REST, ascending live id:
+
+    energy += rest_gain
+
+Resource absorption:
+
+1. Build near as live nodes in ascending id with:
+
+       Q(node.pos, resource_pos) <= resource_radius_sq
+
+2. If near is empty or resource_left == 0, do nothing.
+3. Otherwise:
+
+       total_absorb = min(resource_left, resource_absorb_rate * len(near))
+       base_share = integer_div(total_absorb, len(near))
+       remainder = total_absorb - base_share * len(near)
+
+4. Each near node receives base_share.
+5. The first remainder nodes in ascending id receive one extra energy unit.
+6. resource_left -= total_absorb.
+7. Clamp resource_left to zero if needed.
+8. resource_reached = True.
+
+---
+
+## 22. Cluster Result
+
+After initialization and after exactly steps cluster steps, compute Section 20 metrics from the final state. run_cluster(seed, params, steps) returns a dictionary:
+
+| Key | Value |
+|-----|-------|
+| nodes | final node list |
+| resource_pos | integer tuple |
+| resource_left | integer |
+| resource_reached | Boolean |
+| metrics | metrics from Section 20 |
+| passed | Boolean diagnostic |
+
+The metrics dictionary always has:
+
+    alive_count
+    component_count
+    average_energy
+    min_energy
+    center_sum
+    center_denominator
+    success_distance_passed
+    gini_num
+    gini_den
+    gini_over_threshold
+
+The key is always named passed. It is a diagnostic for every run.
+
+passed is true when the final state satisfies:
+
+    alive_count >= 24
+    component_count == 1
+    average_energy >= low_energy_cutoff
+    resource_reached == True
+    success_distance_passed == True
+
+For runs other than 140 steps, compute the same diagnostic, but do not call it a validation claim. For exactly 140 steps, passed may become a validation claim only after an integer test file exists and cites the exact seed, parameters, and expected output.
+
+---
+
+## 23. Current Validation Status
+
+This integer clean base changes the numeric representation from the earlier decimal draft. Because of that, older decimal-arithmetic pass claims do not transfer automatically.
+
+Current validated status inside this document:
+
+    No standalone pass claim is made without an integer test file.
+
+This is intentional honesty. The rules above define the integer base. The next required artifact is an integer test file that checks the claims you want to make.
+
+---
+
+## 24. Known Limits
+
+- 2D signal decay and delayed signal queues are not in the integer base.
+- Decimal-arithmetic validation results from older drafts are not evidence for this integer base.
+- Core movement, bifurcation, bonding, PoC scream, and cluster behavior need integer fixtures before they can be cited as passed tests.
+- Bond collapse is not wall-safe.
+- The cluster benchmark is open-system because resource absorption adds external energy.
+
+---
+
+## 25. Future Work
+
+Future work must stay outside the base until it has integer rules and tests:
+
+- integer test file for core movement
+- integer test file for pressure and blocked movement
+- integer test file for bifurcation
+- integer test file for bonding
+- integer test file for cluster seeds
+- integer signal lookup table if 2D signal mode returns
+- wall-safe bonding collapse
+- proof or test harness for any conservation claim
+
+---
+
+## 26. Rule For Future Changes
+
+A future change is not base behavior unless:
+
+1. It uses integer arithmetic only.
+2. It has complete input fixtures.
+3. It has exact known outputs.
+4. It lists the random seed and exact random-call order if stochastic.
+5. It says whether it is closed-system or open-system.
+6. It is written plainly enough that a student can restate the rule without hidden project history.

@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Runions × Natural Math — Leaf Venation Mock-up</title>
+<style>
+  :root {
+    color-scheme: light;
+    --paper:#f4f0df; --ink:#1e2a22; --green:#315f42;
+    --gold:#c99221; --line:#c8c2a9; --panel:#fffdf5;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink);
+    font-family:system-ui,-apple-system,Segoe UI,sans-serif; }
+  header { padding:16px 20px 8px; }
+  h1 { margin:0 0 4px; font-size:clamp(20px,3vw,34px); }
+  header p { margin:0; max-width:1000px; line-height:1.4; }
+  main { display:grid; grid-template-columns:minmax(0,1fr) 330px;
+    gap:14px; padding:14px; }
+  .stage,.panel { background:var(--panel); border:1px solid var(--line);
+    border-radius:12px; box-shadow:0 5px 18px #0000000d; }
+  .stage { min-height:680px; overflow:hidden; position:relative; }
+  canvas { width:100%; height:100%; display:block; }
+  .legend { position:absolute; left:14px; bottom:12px; background:#fffdf5e8;
+    border:1px solid var(--line); border-radius:8px; padding:8px 10px;
+    font-size:13px; }
+  .dot { display:inline-block; width:9px; height:9px; border-radius:50%;
+    margin-right:5px; }
+  .panel { padding:15px; overflow:auto; }
+  h2 { font-size:18px; margin:4px 0 10px; }
+  h3 { font-size:15px; margin:18px 0 7px; }
+  button { border:1px solid #7f8d80; background:#fff; border-radius:7px;
+    padding:9px 11px; margin:3px 2px; cursor:pointer; font-weight:600; }
+  button.primary { background:var(--green); color:white; border-color:var(--green); }
+  label { display:block; margin:9px 0 3px; font-size:13px; font-weight:650; }
+  input[type=range] { width:100%; }
+  .value { float:right; font-variant-numeric:tabular-nums; font-weight:500; }
+  .stats { display:grid; grid-template-columns:1fr auto; gap:5px 10px;
+    font-size:13px; padding:9px; background:#f7f5ea; border-radius:7px; }
+  .mapping { font-size:13px; line-height:1.42; }
+  .mapping div { padding:6px 0; border-bottom:1px solid #ebe6d4; }
+  .warning { font-size:12px; line-height:1.4; border-left:3px solid var(--gold);
+    padding:7px 9px; background:#fff8e6; }
+  @media (max-width:900px) {
+    main { grid-template-columns:1fr; }
+    .stage { min-height:560px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Runions-style venation translated into Natural Math</h1>
+  <p>A simplified compatibility mock-up. Auxin-like sources locally attract nearby deposited vein nodes.
+     Reached sources are consumed. The leaf domain slowly expands. No node receives a finished vein map.</p>
+</header>
+<main>
+  <section class="stage">
+    <canvas id="canvas"></canvas>
+    <div class="legend">
+      <span class="dot" style="background:#c99221"></span>RESOURCE / auxin source
+      &nbsp;&nbsp;
+      <span class="dot" style="background:#315f42"></span>persistent vein
+    </div>
+  </section>
+  <aside class="panel">
+    <div>
+      <button class="primary" id="start">Start</button>
+      <button id="step">Single step</button>
+      <button id="reset">Reset</button>
+      <button id="newSeed">New seed</button>
+    </div>
+
+    <h2>Live result</h2>
+    <div class="stats" id="stats"></div>
+
+    <h3>Controls</h3>
+    <label>Source count <span class="value" id="sourceCountV"></span></label>
+    <input id="sourceCount" type="range" min="100" max="1000" step="25" value="550">
+
+    <label>SENSE horizon <span class="value" id="influenceV"></span></label>
+    <input id="influence" type="range" min="25" max="130" step="1" value="74">
+
+    <label>CONTACT radius <span class="value" id="killV"></span></label>
+    <input id="kill" type="range" min="4" max="28" step="1" value="13">
+
+    <label>EXTEND distance <span class="value" id="stepLengthV"></span></label>
+    <input id="stepLength" type="range" min="2" max="13" step="1" value="7">
+
+    <label>Leaf expansion <span class="value" id="growthV"></span></label>
+    <input id="growth" type="range" min="0" max="30" step="1" value="12">
+
+    <h3>Natural Math translation</h3>
+    <div class="mapping">
+      <div><b>Auxin source → RESOURCE / BEACON.</b> A bounded point embedded in the current leaf domain.</div>
+      <div><b>Vein segment → deposited NODE.</b> It remains as persistent morphology and stores a parent link.</div>
+      <div><b>Nearest vein search → local SENSE.</b> A source may influence only nodes inside the selected horizon.</div>
+      <div><b>Growth toward sources → EXTEND.</b> A node averages directions to its locally assigned sources and deposits one child.</div>
+      <div><b>Source removal → CONTACT / consumption.</b> A reached source disappears inside the kill radius.</div>
+      <div><b>No assigned source → CONSERVE.</b> The node deposits nothing that cycle.</div>
+      <div><b>Finite sources and step cap → DYNAMIC LIMITS.</b> Growth cannot continue indefinitely.</div>
+    </div>
+
+    <h3>Compatibility receipt</h3>
+    <div class="warning">
+      Compatible at the architectural level: local sensing, local extension, persistent deposition,
+      finite sources, and explicit termination. Not yet compatible with the strict frozen integer base:
+      this visualization uses continuous coordinates and distance calculations. A later grid version
+      can quantize positions, directions, and radii to integers.
+    </div>
+  </aside>
+</main>
+<script>
+"use strict";
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const ui = {};
+for (const id of ["sourceCount","influence","kill","stepLength","growth"])
+  ui[id] = document.getElementById(id);
+
+let W=900,H=680, running=false, timer=null, seed=42, rng;
+let nodes=[], sourceUV=[], sources=[], stepNo=0, initialCount=0;
+let maxSteps=700;
+
+function mulberry32(a) {
+  return function() {
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  }
+}
+function config() {
+  return {
+    sourceCount:+ui.sourceCount.value,
+    influence:+ui.influence.value,
+    kill:+ui.kill.value,
+    stepLength:+ui.stepLength.value,
+    growth:+ui.growth.value/10000
+  };
+}
+function center(){ return {x:W*.5,y:H*.54}; }
+function halfSize(){
+  const c=config(), scale=Math.min(1,.72+stepNo*c.growth);
+  return {rx:W*.34*scale,ry:H*.43*scale};
+}
+function insideUV(u,v){
+  const radial=Math.pow(Math.abs(u),1.75)+Math.pow(Math.abs(v),1.85)<=1;
+  const pointed=v<.98-.18*Math.abs(u);
+  const notch=!(v<-.82&&Math.abs(u)<.10);
+  return radial&&pointed&&notch;
+}
+function uvToPoint(u,v){
+  const c=center(), s=halfSize();
+  return {x:c.x+u*s.rx,y:c.y-v*s.ry};
+}
+function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
+function refreshSources(){ sources=sourceUV.map(([u,v])=>uvToPoint(u,v)); }
+
+function reset(){
+  running=false; document.getElementById("start").textContent="Start";
+  rng=mulberry32(seed); nodes=[]; sourceUV=[]; stepNo=0;
+  const c=config(), cx=W*.5, baseY=H*.91;
+  for(let i=0;i<10;i++) nodes.push({x:cx,y:baseY-i*c.stepLength,parent:i?i-1:null,depth:i});
+  let attempts=0;
+  while(sourceUV.length<c.sourceCount && attempts<c.sourceCount*40){
+    attempts++;
+    const u=rng()*2-1,v=rng()*2-1;
+    if(insideUV(u,v)){
+      const edgeWeight=Math.min(1,(Math.abs(u)+Math.max(v,0))*.55+.25);
+      if(rng()<edgeWeight) sourceUV.push([u,v]);
+    }
+  }
+  initialCount=sourceUV.length; refreshSources(); draw();
+}
+function iterate(){
+  const c=config();
+  if(stepNo>=maxSteps||!sources.length) return false;
+  stepNo++; refreshSources();
+  const assigned=new Map();
+  for(const s of sources){
+    let best=-1,bestD=c.influence;
+    for(let i=0;i<nodes.length;i++){
+      const d=dist(s,nodes[i]);
+      if(d<bestD){best=i;bestD=d;}
+    }
+    if(best>=0){
+      if(!assigned.has(best)) assigned.set(best,[]);
+      assigned.get(best).push(s);
+    }
+  }
+  const proposals=[];
+  for(const [idx,list] of assigned){
+    const o=nodes[idx]; let dx=0,dy=0;
+    for(const s of list){
+      const d=Math.max(dist(o,s),1e-9);
+      dx+=(s.x-o.x)/d; dy+=(s.y-o.y)/d;
+    }
+    const m=Math.hypot(dx,dy); if(m<1e-9) continue;
+    const p={x:o.x+c.stepLength*dx/m,y:o.y+c.stepLength*dy/m};
+    if(nodes.every(n=>dist(p,n)>=3)) proposals.push([idx,p]);
+  }
+  for(const [parent,p] of proposals)
+    nodes.push({x:p.x,y:p.y,parent,depth:nodes[parent].depth+1});
+
+  const nextUV=[];
+  for(let i=0;i<sourceUV.length;i++){
+    const s=sources[i];
+    if(nodes.every(n=>dist(s,n)>c.kill)) nextUV.push(sourceUV[i]);
+  }
+  sourceUV=nextUV; refreshSources(); draw();
+  return sources.length>0 && stepNo<maxSteps;
+}
+function loop(){
+  if(!running) return;
+  for(let i=0;i<2;i++) if(!iterate()){running=false;break;}
+  document.getElementById("start").textContent=running?"Pause":"Start";
+  if(running) timer=requestAnimationFrame(loop);
+}
+function drawBoundary(){
+  const c=center(), s=halfSize();
+  ctx.beginPath();
+  let begun=false;
+  for(let i=0;i<=360;i++){
+    const a=2*Math.PI*i/360,u=Math.cos(a),v=Math.sin(a);
+    const x=c.x+u*s.rx,y=c.y-v*s.ry;
+    if(!begun){ctx.moveTo(x,y);begun=true}else ctx.lineTo(x,y);
+  }
+  ctx.strokeStyle="#87937c";ctx.lineWidth=2;ctx.stroke();
+}
+function draw(){
+  ctx.clearRect(0,0,W,H); ctx.fillStyle="#fffdf5";ctx.fillRect(0,0,W,H);
+  drawBoundary();
+  ctx.fillStyle="#c99221aa";
+  for(const s of sources){ctx.beginPath();ctx.arc(s.x,s.y,1.7,0,Math.PI*2);ctx.fill();}
+  ctx.strokeStyle="#315f42";ctx.lineCap="round";
+  for(const n of nodes){
+    if(n.parent!==null){
+      const p=nodes[n.parent];ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(n.x,n.y);
+      ctx.lineWidth=Math.max(.65,3.8-n.depth*.035);ctx.stroke();
+    }
+  }
+  const childCounts=new Map();
+  for(const n of nodes) if(n.parent!==null) childCounts.set(n.parent,(childCounts.get(n.parent)||0)+1);
+  const bif=[...childCounts.values()].filter(v=>v>=2).length;
+  document.getElementById("stats").innerHTML=[
+    ["Seed",seed],["Cycles",stepNo],["Vein nodes",nodes.length],
+    ["Sources consumed",initialCount-sources.length],["Sources remaining",sources.length],
+    ["Bifurcations",bif],["State",running?"EXTEND":"CONSERVE / stopped"]
+  ].map(([a,b])=>`<span>${a}</span><b>${b}</b>`).join("");
+}
+function resize(){
+  const r=canvas.parentElement.getBoundingClientRect();
+  W=Math.max(620,Math.floor(r.width));H=Math.max(560,Math.floor(r.height));
+  canvas.width=W*devicePixelRatio;canvas.height=H*devicePixelRatio;
+  canvas.style.width=W+"px";canvas.style.height=H+"px";
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  reset();
+}
+for(const id of Object.keys(ui)){
+  const v=document.getElementById(id+"V");
+  const sync=()=>{v.textContent=ui[id].value; reset();};
+  ui[id].addEventListener("input",sync); sync();
+}
+document.getElementById("start").onclick=()=>{
+  running=!running;
+  document.getElementById("start").textContent=running?"Pause":"Start";
+  if(running) loop();
+};
+document.getElementById("step").onclick=()=>{running=false;iterate();};
+document.getElementById("reset").onclick=reset;
+document.getElementById("newSeed").onclick=()=>{seed=(seed+1)>>>0;reset();};
+window.addEventListener("resize",resize);
+resize();
+</script>
+</body>
+</html>

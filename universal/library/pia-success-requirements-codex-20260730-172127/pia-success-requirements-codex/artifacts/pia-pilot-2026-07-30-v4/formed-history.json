@@ -1,0 +1,41 @@
+{
+  "authority_key_id": "pia-pilot-authority-v0.1",
+  "claim_key": "continuity-route",
+  "confidence": 0.5,
+  "conflicting_observations": [
+    {
+      "asserted_value": "release",
+      "claim_key": "continuity-route",
+      "evidence_ref": "evidence:pia-source-observation-a",
+      "observation_id": "pia-obs-a",
+      "provenance": "human-local-review",
+      "scope": "pilot",
+      "sequence": 1,
+      "statement": "Initial route notes allowed release after a lightweight check."
+    },
+    {
+      "asserted_value": "hold",
+      "claim_key": "continuity-route",
+      "evidence_ref": "evidence:pia-source-observation-b",
+      "observation_id": "pia-obs-b",
+      "provenance": "human-local-review",
+      "scope": "pilot",
+      "sequence": 2,
+      "statement": "Later route notes identified unresolved authority and contradiction risk."
+    }
+  ],
+  "content_digest": "sha256:32a7264de26293477ee78131d6a23201ba7556bfa566ddf85fa00e5e525bffe5",
+  "created_sequence": 1,
+  "eligibility": "eligible",
+  "formation_policy_id": "pia.contradiction-history-formation.v0.1",
+  "formation_signature": "hmac-sha256:e871036820cf006c85ebb370fb6f9b29504409ecaa6b64485cfdc83b9e48d8ef",
+  "history_id": "pia-history-8efb75a5d7230d91",
+  "lineage_digest": "sha256:400b34a2e7284cd3e7e5acb8d5f84c8db3323154e2bd170051fd4f5073c35e32",
+  "provenance_refs": [
+    "evidence:pia-source-observation-a",
+    "evidence:pia-source-observation-b"
+  ],
+  "resolution_status": "unresolved",
+  "schema_version": "fractalish.pia.formed-history.v0.1",
+  "scope": "pilot"
+}

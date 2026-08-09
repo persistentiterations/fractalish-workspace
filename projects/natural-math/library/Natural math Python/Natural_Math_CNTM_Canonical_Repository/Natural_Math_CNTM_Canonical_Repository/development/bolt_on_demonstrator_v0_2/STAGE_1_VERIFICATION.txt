@@ -1,0 +1,70 @@
+BOLT-ON DEMONSTRATOR v0.2 — STAGE 1 VERIFICATION
+========================================================================================
+
+PACKAGE FILE SHA-256
+----------------------------------------------------------------------------------------
+438ce95fd6ce170f8b67b47516574fcd3d41e463c4a40a0483b6086a5bd4abf1  README_STAGE_1.md
+08008feb1dcd57b00248b506c21e9f83e215f3bec877356ccec9f89bd2edbd14  authority/bounded_authority_contract.py
+4082fc221b01d4e542cea3c045ddf5f46b8640d7547a43d5b288e743ba50fc4e  tests/test_bounded_authority_contract.py
+
+STAGE 1 QUALIFICATION OUTPUT
+----------------------------------------------------------------------------------------
+========================================================================================
+BOUNDED AUTHORITY CONTRACT v0.2.1
+========================================================================================
+Mode / execution authority:      DRY_RUN / NONE
+Host output equivalent:          True
+Host digest equivalent:          True
+Qualified v0.1 sources unchanged: True
+Frozen v0.1 release unchanged:   True
+Input objects unchanged:         True
+Governance replay pass:          True
+Authority replay pass:           True
+Deny by default:                 True
+Grant integrity:                 True
+Session binding:                 True
+Scope enforced:                  True
+Budget enforced:                 True
+Validity window enforced:        True
+UNKNOWN abstention:              True
+Tamper detection:                True
+Requests / would authorize:      8 / 8
+Executed actions:                0
+Action counts:                   (('ALLOW', 5), ('HOLD', 1), ('DENY', 2), ('ABSTAIN', 0))
+Host digest:                     04d2438f1dbff0b0ddfe5e5eb6382f6623fbe1d18e92078bde8b8dc95bba1c8e
+Governance digest:               71e72e0608272f485c6872ec7efb31f467f9bdc0d603373a95f443722b4a5075
+Grant hash:                      b080217ae79c6f5f88c585fb8e7546c211b148cc3acc78654ec56e27e230557f
+Authority digest:                8bfb57659ceb61e090c4042b0d08102c83cba48072905f702a1169753ddeb675
+Frozen v0.1 digest:              320922d96911df3492e9f95c96e9f74e8752b79fbf8e9d485fe7659c1995938e
+STAGE 1 BOUNDED AUTHORITY QUALIFICATION: PASS
+
+STAGE 1 TEST OUTPUT
+----------------------------------------------------------------------------------------
+test_action_budget_is_enforced (test_bounded_authority_contract.BoundedAuthorityContractTests.test_action_budget_is_enforced) ... ok
+test_action_scope_is_enforced (test_bounded_authority_contract.BoundedAuthorityContractTests.test_action_scope_is_enforced) ... ok
+test_all_gate_ternary_values_are_exact (test_bounded_authority_contract.BoundedAuthorityContractTests.test_all_gate_ternary_values_are_exact) ... ok
+test_duplicate_request_identifier_is_rejected (test_bounded_authority_contract.BoundedAuthorityContractTests.test_duplicate_request_identifier_is_rejected) ... ok
+test_expired_grant_is_rejected (test_bounded_authority_contract.BoundedAuthorityContractTests.test_expired_grant_is_rejected) ... ok
+test_fixed_release_digests_match (test_bounded_authority_contract.BoundedAuthorityContractTests.test_fixed_release_digests_match) ... ok
+test_grant_is_bound_to_one_session (test_bounded_authority_contract.BoundedAuthorityContractTests.test_grant_is_bound_to_one_session) ... ok
+test_grant_is_deterministic_and_valid (test_bounded_authority_contract.BoundedAuthorityContractTests.test_grant_is_deterministic_and_valid) ... ok
+test_host_output_and_digest_are_unchanged (test_bounded_authority_contract.BoundedAuthorityContractTests.test_host_output_and_digest_are_unchanged) ... ok
+test_inputs_and_qualified_sources_are_unchanged (test_bounded_authority_contract.BoundedAuthorityContractTests.test_inputs_and_qualified_sources_are_unchanged) ... ok
+test_invalid_grant_parameters_are_rejected (test_bounded_authority_contract.BoundedAuthorityContractTests.test_invalid_grant_parameters_are_rejected) ... ok
+test_missing_grant_fails_closed (test_bounded_authority_contract.BoundedAuthorityContractTests.test_missing_grant_fails_closed) ... ok
+test_missing_receipt_changes_terminal_digest (test_bounded_authority_contract.BoundedAuthorityContractTests.test_missing_receipt_changes_terminal_digest) ... ok
+test_no_action_is_executed (test_bounded_authority_contract.BoundedAuthorityContractTests.test_no_action_is_executed) ... ok
+test_not_yet_valid_grant_is_rejected (test_bounded_authority_contract.BoundedAuthorityContractTests.test_not_yet_valid_grant_is_rejected) ... ok
+test_receipt_chain_replays (test_bounded_authority_contract.BoundedAuthorityContractTests.test_receipt_chain_replays) ... ok
+test_repeated_run_is_exact (test_bounded_authority_contract.BoundedAuthorityContractTests.test_repeated_run_is_exact) ... ok
+test_request_sequence_gap_is_rejected (test_bounded_authority_contract.BoundedAuthorityContractTests.test_request_sequence_gap_is_rejected) ... ok
+test_stage1_qualification_passes (test_bounded_authority_contract.BoundedAuthorityContractTests.test_stage1_qualification_passes) ... ok
+test_tampered_grant_is_rejected (test_bounded_authority_contract.BoundedAuthorityContractTests.test_tampered_grant_is_rejected) ... ok
+test_tampered_receipt_is_detected (test_bounded_authority_contract.BoundedAuthorityContractTests.test_tampered_receipt_is_detected) ... ok
+test_unknown_always_abstains (test_bounded_authority_contract.BoundedAuthorityContractTests.test_unknown_always_abstains) ... ok
+test_zero_action_budget_rejects_every_action (test_bounded_authority_contract.BoundedAuthorityContractTests.test_zero_action_budget_rejects_every_action) ... ok
+
+----------------------------------------------------------------------
+Ran 23 tests in 0.024s
+
+OK

@@ -1,0 +1,147 @@
+BOLT-ON DEMONSTRATOR v0.2 — STAGE 2 VERIFICATION
+========================================================================================
+
+PACKAGE FILE SHA-256
+----------------------------------------------------------------------------------------
+1c3f6d327d833b76777a3cc269491180ac81d3de015cdf40d8085ef12b7a5583  README_STAGE_2.md
+da84d47e45d0f1e36b2409d5e0124c05fe17a5921d1daf16008377023876552f  mediation/mediated_hold_host.py
+b0418314f348daa905113c98edc237b293b15079ad34dd1651eaeeb2c7da512d  tests/test_mediated_hold_host.py
+
+STAGE 2 QUALIFICATION OUTPUT
+----------------------------------------------------------------------------------------
+========================================================================================
+MEDIATED HOLD HOST v0.2.2
+========================================================================================
+Mode / execution authority:      ACTIVE_MEDIATED / HOLD_ONLY
+Active HOLD executed:            True
+Exactly one action:              True
+HOLD-only enforced:              True
+Intended delta only:             True
+No-permit passthrough:           True
+Invalid-permit passthrough:      True
+Expired-permit passthrough:      True
+Reused-permit passthrough:       True
+Session binding:                 True
+Evidence binding:                True
+Authority binding:               True
+UNKNOWN abstention:              True
+Grant scope / budget:            True
+Authority replay:                True
+Mediation replay:                True
+Tamper detection:                True
+Input unchanged:                 True
+Qualified sources unchanged:     True
+Frozen v0.1 unchanged:           True
+Safe detach:                     True
+Executed actions:                1
+Held job IDs:                    ('J005',)
+Direct host digest:              04d2438f1dbff0b0ddfe5e5eb6382f6623fbe1d18e92078bde8b8dc95bba1c8e
+Mediated host digest:            aec393e6c4c1f9cc20872f7f88ae9dbd158e96ee4f48c8fd33a8bd85bb834eae
+Authority digest:                c1ce6e705e6dd9547feaee476212bb28ec274b0f87fd39b50e0d8ed39daba162
+Permit hash:                     0e3dc0a854720caebae299ea5883703e04bee3eda29f3c9b1b61d80b2eb47f56
+Mediation digest:                c8b6a06290db738ffb514d1fb27d9cfd579fcbd54d6e3886cb8c896e632827ec
+Frozen v0.1 digest:              4111943b7ef52c8ecd82e498f207a1a073dfffccba93f0a7d927b3d45baa677a
+STAGE 2 MEDIATED HOLD QUALIFICATION: PASS
+
+COMPLETE v0.2 TEST OUTPUT
+----------------------------------------------------------------------------------------
+test_action_budget_is_enforced (test_bounded_authority_contract.BoundedAuthorityContractTests.test_action_budget_is_enforced) ... ok
+test_action_scope_is_enforced (test_bounded_authority_contract.BoundedAuthorityContractTests.test_action_scope_is_enforced) ... ok
+test_all_gate_ternary_values_are_exact (test_bounded_authority_contract.BoundedAuthorityContractTests.test_all_gate_ternary_values_are_exact) ... ok
+test_duplicate_request_identifier_is_rejected (test_bounded_authority_contract.BoundedAuthorityContractTests.test_duplicate_request_identifier_is_rejected) ... ok
+test_expired_grant_is_rejected (test_bounded_authority_contract.BoundedAuthorityContractTests.test_expired_grant_is_rejected) ... ok
+test_fixed_release_digests_match (test_bounded_authority_contract.BoundedAuthorityContractTests.test_fixed_release_digests_match) ... ok
+test_grant_is_bound_to_one_session (test_bounded_authority_contract.BoundedAuthorityContractTests.test_grant_is_bound_to_one_session) ... ok
+test_grant_is_deterministic_and_valid (test_bounded_authority_contract.BoundedAuthorityContractTests.test_grant_is_deterministic_and_valid) ... ok
+test_host_output_and_digest_are_unchanged (test_bounded_authority_contract.BoundedAuthorityContractTests.test_host_output_and_digest_are_unchanged) ... ok
+test_inputs_and_qualified_sources_are_unchanged (test_bounded_authority_contract.BoundedAuthorityContractTests.test_inputs_and_qualified_sources_are_unchanged) ... ok
+test_invalid_grant_parameters_are_rejected (test_bounded_authority_contract.BoundedAuthorityContractTests.test_invalid_grant_parameters_are_rejected) ... ok
+test_missing_grant_fails_closed (test_bounded_authority_contract.BoundedAuthorityContractTests.test_missing_grant_fails_closed) ... ok
+test_missing_receipt_changes_terminal_digest (test_bounded_authority_contract.BoundedAuthorityContractTests.test_missing_receipt_changes_terminal_digest) ... ok
+test_no_action_is_executed (test_bounded_authority_contract.BoundedAuthorityContractTests.test_no_action_is_executed) ... ok
+test_not_yet_valid_grant_is_rejected (test_bounded_authority_contract.BoundedAuthorityContractTests.test_not_yet_valid_grant_is_rejected) ... ok
+test_receipt_chain_replays (test_bounded_authority_contract.BoundedAuthorityContractTests.test_receipt_chain_replays) ... ok
+test_repeated_run_is_exact (test_bounded_authority_contract.BoundedAuthorityContractTests.test_repeated_run_is_exact) ... ok
+test_request_sequence_gap_is_rejected (test_bounded_authority_contract.BoundedAuthorityContractTests.test_request_sequence_gap_is_rejected) ... ok
+test_stage1_qualification_passes (test_bounded_authority_contract.BoundedAuthorityContractTests.test_stage1_qualification_passes) ... ok
+test_tampered_grant_is_rejected (test_bounded_authority_contract.BoundedAuthorityContractTests.test_tampered_grant_is_rejected) ... ok
+test_tampered_receipt_is_detected (test_bounded_authority_contract.BoundedAuthorityContractTests.test_tampered_receipt_is_detected) ... ok
+test_unknown_always_abstains (test_bounded_authority_contract.BoundedAuthorityContractTests.test_unknown_always_abstains) ... ok
+test_zero_action_budget_rejects_every_action (test_bounded_authority_contract.BoundedAuthorityContractTests.test_zero_action_budget_rejects_every_action) ... ok
+test_active_hold_executes_exactly_once (test_mediated_hold_host.MediatedHoldHostTests.test_active_hold_executes_exactly_once) ... ok
+test_active_hold_preserves_intended_state_delta_only (test_mediated_hold_host.MediatedHoldHostTests.test_active_hold_preserves_intended_state_delta_only) ... ok
+test_all_mediation_ternary_values_are_exact (test_mediated_hold_host.MediatedHoldHostTests.test_all_mediation_ternary_values_are_exact) ... ok
+test_authority_grant_is_hold_only_and_one_action (test_mediated_hold_host.MediatedHoldHostTests.test_authority_grant_is_hold_only_and_one_action) ... ok
+test_dispatched_jobs_keep_original_relative_order (test_mediated_hold_host.MediatedHoldHostTests.test_dispatched_jobs_keep_original_relative_order) ... ok
+test_duplicate_consumed_permit_ids_are_rejected (test_mediated_hold_host.MediatedHoldHostTests.test_duplicate_consumed_permit_ids_are_rejected) ... ok
+test_expired_epoch_is_exact_passthrough (test_mediated_hold_host.MediatedHoldHostTests.test_expired_epoch_is_exact_passthrough) ... ok
+test_fixed_release_digests_match (test_mediated_hold_host.MediatedHoldHostTests.test_fixed_release_digests_match) ... ok
+test_input_jobs_are_not_mutated (test_mediated_hold_host.MediatedHoldHostTests.test_input_jobs_are_not_mutated) ... ok
+test_invalid_epoch_type_is_rejected (test_mediated_hold_host.MediatedHoldHostTests.test_invalid_epoch_type_is_rejected) ... ok
+test_invalid_permit_issuer_is_rejected (test_mediated_hold_host.MediatedHoldHostTests.test_invalid_permit_issuer_is_rejected) ... ok
+test_mediation_receipts_replay (test_mediated_hold_host.MediatedHoldHostTests.test_mediation_receipts_replay) ... ok
+test_missing_mediation_receipt_changes_terminal_digest (test_mediated_hold_host.MediatedHoldHostTests.test_missing_mediation_receipt_changes_terminal_digest) ... ok
+test_no_permit_is_exact_passthrough (test_mediated_hold_host.MediatedHoldHostTests.test_no_permit_is_exact_passthrough) ... ok
+test_only_hold_action_is_accepted (test_mediated_hold_host.MediatedHoldHostTests.test_only_hold_action_is_accepted) ... ok
+test_permit_is_single_use (test_mediated_hold_host.MediatedHoldHostTests.test_permit_is_single_use) ... ok
+test_permit_issuance_requires_exactly_one_hold_candidate (test_mediated_hold_host.MediatedHoldHostTests.test_permit_issuance_requires_exactly_one_hold_candidate) ... ok
+test_qualified_sources_and_frozen_release_are_unchanged (test_mediated_hold_host.MediatedHoldHostTests.test_qualified_sources_and_frozen_release_are_unchanged) ... ok
+test_repeated_active_run_is_exact (test_mediated_hold_host.MediatedHoldHostTests.test_repeated_active_run_is_exact) ... ok
+test_safe_detach_restores_exact_original_host_behavior (test_mediated_hold_host.MediatedHoldHostTests.test_safe_detach_restores_exact_original_host_behavior) ... ok
+test_stage2_qualification_passes (test_mediated_hold_host.MediatedHoldHostTests.test_stage2_qualification_passes) ... ok
+test_stale_authority_session_cannot_execute (test_mediated_hold_host.MediatedHoldHostTests.test_stale_authority_session_cannot_execute) ... ok
+test_tampered_mediation_receipt_is_detected (test_mediated_hold_host.MediatedHoldHostTests.test_tampered_mediation_receipt_is_detected) ... ok
+test_tampered_permit_is_exact_passthrough (test_mediated_hold_host.MediatedHoldHostTests.test_tampered_permit_is_exact_passthrough) ... ok
+test_unknown_request_cannot_execute (test_mediated_hold_host.MediatedHoldHostTests.test_unknown_request_cannot_execute) ... ok
+test_wrong_authority_digest_is_exact_passthrough (test_mediated_hold_host.MediatedHoldHostTests.test_wrong_authority_digest_is_exact_passthrough) ... ok
+test_wrong_evidence_digest_is_exact_passthrough (test_mediated_hold_host.MediatedHoldHostTests.test_wrong_evidence_digest_is_exact_passthrough) ... ok
+test_wrong_grant_hash_is_exact_passthrough (test_mediated_hold_host.MediatedHoldHostTests.test_wrong_grant_hash_is_exact_passthrough) ... ok
+test_wrong_job_id_with_valid_hash_is_exact_passthrough (test_mediated_hold_host.MediatedHoldHostTests.test_wrong_job_id_with_valid_hash_is_exact_passthrough) ... ok
+test_wrong_job_ordinal_is_exact_passthrough (test_mediated_hold_host.MediatedHoldHostTests.test_wrong_job_ordinal_is_exact_passthrough) ... ok
+test_wrong_session_is_exact_passthrough (test_mediated_hold_host.MediatedHoldHostTests.test_wrong_session_is_exact_passthrough) ... ok
+
+----------------------------------------------------------------------
+Ran 54 tests in 0.115s
+
+OK
+
+FROZEN RELEASE VERIFICATION OUTPUT
+----------------------------------------------------------------------------------------
+OK       frozen/cntm/v1.3F/cntm_finite_ternary_v1_3f.py
+OK       frozen/cntm/v2.4/cntm_application_layer_v2_4.py
+OK       frozen/cntm/v3.0F/cntm_domain_application_v3_0f.py
+OK       frozen/natural_math/v10.3.2/natural_math_v10_3_2_ONLINE_STANDALONE.py
+OK       frozen/natural_math/v12.0/natural_math_v12_0_RC16_AUTHORITY_SET_PARTITIONS_QUORUM_EPOCH_RECOVERY.py
+OK       frozen/natural_math/v12.0/natural_math_v12_0_RC17_FORGED_EVIDENCE_CONFLICTING_TRANSITION_CERTIFICATES.py
+OK       frozen/natural_math/v12.0/natural_math_v12_0_RC18_MULTI_POOL_TRANSITION_GRAPHS_DEPENDENCY_SAFE_RECOVERY.py
+OK       frozen/natural_math/v12.0/natural_math_v12_0_RC19_BOUNDED_LIVENESS_REPEATED_CONFLICT_LEASE_CHURN.py
+OK       frozen/natural_math/v12.0/natural_math_v12_0_RC20_INTEGRATED_ADVERSARIAL_CAMPAIGN_COMPOSED_FAULT_MATRIX.py
+OK       frozen/natural_math/v12.0/natural_math_v12_0_RC21_FINAL_COMPATIBILITY_REPLAY_RELEASE_FREEZE.py
+OK       frozen/natural_math/v12.0/natural_math_v12_0_RC3_ADAPTER_SUBSTITUTION.py
+
+FROZEN VERIFICATION PASSED: 11 files
+OK       frozen/bolt_on/v0.1/README.md
+OK       frozen/bolt_on/v0.1/README_STAGE_2.md
+OK       frozen/bolt_on/v0.1/README_STAGE_3.md
+OK       frozen/bolt_on/v0.1/README_STAGE_4.md
+OK       frozen/bolt_on/v0.1/README_STAGE_5.md
+OK       frozen/bolt_on/v0.1/RELEASE_RECORD.txt
+OK       frozen/bolt_on/v0.1/STAGE_1_VERIFICATION.txt
+OK       frozen/bolt_on/v0.1/STAGE_2_VERIFICATION.txt
+OK       frozen/bolt_on/v0.1/STAGE_3_VERIFICATION.txt
+OK       frozen/bolt_on/v0.1/STAGE_4_VERIFICATION.txt
+OK       frozen/bolt_on/v0.1/STAGE_5_VERIFICATION.txt
+OK       frozen/bolt_on/v0.1/adapter/bolt_on_adapter.py
+OK       frozen/bolt_on/v0.1/governance/natural_math_shadow_governance.py
+OK       frozen/bolt_on/v0.1/host/ordinary_host.py
+OK       frozen/bolt_on/v0.1/memory/cntm_shadow_memory.py
+OK       frozen/bolt_on/v0.1/qualification/integrated_adversarial_qualification.py
+OK       frozen/bolt_on/v0.1/tests/test_cntm_shadow_memory.py
+OK       frozen/bolt_on/v0.1/tests/test_host_baseline.py
+OK       frozen/bolt_on/v0.1/tests/test_integrated_adversarial_qualification.py
+OK       frozen/bolt_on/v0.1/tests/test_observation_adapter.py
+OK       frozen/bolt_on/v0.1/tests/test_shadow_governance.py
+
+BOLT-ON v0.1 FROZEN VERIFICATION PASSED: 21 files
+
+ALL FROZEN RELEASE VERIFICATIONS PASSED

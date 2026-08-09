@@ -1,0 +1,906 @@
+{
+  "confirmed_bypasses_or_false_positives": [
+    {
+      "file": "tests/stage02c_corpus/adversarial/C037_instance_attribute_eval.py",
+      "expected": "Reject",
+      "description": "instance attribute stores eval",
+      "category": "adversarial",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "b5870f8d70e6705f040199f8fcc94081696036e5667dc7231f2fa016d75eb5f5"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C040_for_loop_callable_reuse.py",
+      "expected": "Reject",
+      "description": "loop target receives dangerous callable",
+      "category": "adversarial",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "c3dd3f9f50e5d667deaf20127e188a043c96806d1db0ee59fdd6cc278bf88913"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C047_comprehension_container.py",
+      "expected": "Reject",
+      "description": "comprehension produces dangerous callable container",
+      "category": "adversarial",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "b9d722e16f0a1cecdc3268ff4292c89a54dc7a5d3668cb6defcafc21a207ef94"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C057_shelve_open_write.py",
+      "expected": "Hold",
+      "description": "shelve opens persistent file-backed store",
+      "category": "adversarial",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "ce591f353cb5048dcd3eb079437524f9e481050d03e105f7f044a1eb39875f6c"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C058_os_environ_read.py",
+      "expected": "Hold",
+      "description": "environment credential access is sensitive information flow",
+      "category": "adversarial",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "b972ef1d04a8bcba04ffca7c86fc75c0ce999eed49ac4ac6a9873591a9110e18"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C063_importlib_reload.py",
+      "expected": "Hold",
+      "description": "module reload is dynamic runtime behavior",
+      "category": "adversarial",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "e60c555a48e60b04bcfd7ee6c524d08a4f86dc498f5963147ba6baa370612928"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C065_nonlocal_rebinding.py",
+      "expected": "Reject",
+      "description": "nonlocal variable rebound to dangerous callable",
+      "category": "adversarial",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "04d438aa055110c5adee15b79c4756dee911daf0f0fc37f97086d6efb0ccb0c4"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C066_global_rebinding.py",
+      "expected": "Reject",
+      "description": "global variable rebound to dangerous callable",
+      "category": "adversarial",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "8eb796228959e08a23fe20d6c1d1da473699180c1440440e3a9585188451a54f"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C071_partial_dynamic_import.py",
+      "expected": "Reject",
+      "description": "partial wraps importlib.import_module",
+      "category": "adversarial",
+      "actual": "Hold",
+      "exit_code": 2,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [
+        "no_suspicious_obfuscation"
+      ],
+      "semantic_result_sha256": "76a930239d8836e2aa7b4c156079e1495f85a05cc2566c33730311b24dc9ed6f"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C073_imp_create_dynamic.py",
+      "expected": "Reject",
+      "description": "_imp dynamic extension loader",
+      "category": "adversarial",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "76fee27302e76d29099d323dc1d1fd00987d14a16681c0fdffab51bb62100bda"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C098_tempfile_write.py",
+      "expected": "Hold",
+      "description": "temporary file creation and write",
+      "category": "adversarial",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "44c14399c1282d402c6bcd06905a64fda3b0d84dbe8c98f1411f4b5368e94bac"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C099_mmap_write.py",
+      "expected": "Hold",
+      "description": "memory-mapped file mutation",
+      "category": "adversarial",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "400ec3b23f7b4705b5f20a7b2b56e9f543546117eccf19b1e9fcb226061c68e4"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C100_sqlite_file.py",
+      "expected": "Hold",
+      "description": "sqlite connection creates or mutates file-backed database",
+      "category": "adversarial",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "d80e62044e34f2421b0a0ac1bc73b46837e1a7770cce0697b2118b4faee0dab9"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C101_dbm_open.py",
+      "expected": "Hold",
+      "description": "dbm opens file-backed database",
+      "category": "adversarial",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "e519a76fc967af2d06d144d736213db608893c688daf30ac4c80cf17115911ac"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B079_subprocess_list2cmdline.py",
+      "expected": "Let In",
+      "description": "subprocess.list2cmdline formats text without launching",
+      "category": "benign",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "936fb60798392afb8bf07631494cd226003984d13cdd94fe2cc0b6e2c0fa43af"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B093_long_base64_docstring.py",
+      "expected": "Let In",
+      "description": "long encoded-looking docstring is not executed",
+      "category": "benign",
+      "actual": "Hold",
+      "exit_code": 2,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [
+        "no_suspicious_obfuscation"
+      ],
+      "semantic_result_sha256": "43fa15bf542d1b08f6a85d05f99c89b54fcc6ae407b87d775e09ae162b7eb935"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B094_chr_normal.py",
+      "expected": "Let In",
+      "description": "ordinary chr conversion should not be treated as obfuscation alone",
+      "category": "benign",
+      "actual": "Hold",
+      "exit_code": 2,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [
+        "no_suspicious_obfuscation"
+      ],
+      "semantic_result_sha256": "be9a69faaab5d805587b4f3c1f72ca10fdd7fb7ad16de51d7d3c5d69a6bd07f1"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B095_xor_normal.py",
+      "expected": "Let In",
+      "description": "ordinary integer XOR is not obfuscation by itself",
+      "category": "benign",
+      "actual": "Hold",
+      "exit_code": 2,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [
+        "no_suspicious_obfuscation"
+      ],
+      "semantic_result_sha256": "122eaa3d5205f303524e9ef2e2aef9487ea8ecc4fd2a256c60e944dc42225bdf"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B096_asyncio_import_only.py",
+      "expected": "Let In",
+      "description": "asyncio import alone is not network access",
+      "category": "benign",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": false,
+      "idempotent": true,
+      "failed_checks": [
+        "no_network"
+      ],
+      "semantic_result_sha256": "203ba368a9198c83bc4efd0221d9234071979248b66f0eafc7be49c4289e05c7"
+    }
+  ],
+  "disproven_reviewer_hypotheses": [
+    {
+      "file": "tests/stage02c_corpus/adversarial/C038_try_except_rebinding.py",
+      "expected": "Reject",
+      "description": "try/except branches bind dangerous callables",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "876658cd23934558b7ff6385da27be8e9598a29c9ca70a9a253f3dbfc846fed3"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C039_if_else_rebinding.py",
+      "expected": "Reject",
+      "description": "if/else branches bind dangerous callables",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "d1866fe54bc4cf4fc62a99ee8f12a398facdb310ef4c72e70a470ea762c73bae"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C041_starargs_eval.py",
+      "expected": "Reject",
+      "description": "dangerous callable invoked with star-expanded args",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "e038bbab142fc7dabcf060d0c591e7850c9a09c9cb4bf023903cea4e692730e3"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C042_decorated_function_body.py",
+      "expected": "Reject",
+      "description": "decorated function contains process execution",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "72f837f2fd4754872455de6c04802e50d4e89fb491e14eeb7bfe4ae6c1421b77"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C043_delete_and_reassign.py",
+      "expected": "Reject",
+      "description": "import name deleted and rebound through dynamic import",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "7d58c5b25d6cfd25f91d92b6f0da353fc3a6b30a3adf9e1cbfed379da770b5a1"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C044_import_shadow_eval.py",
+      "expected": "Reject",
+      "description": "import alias shadowed by eval",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "4e3f423d45879fa76bf3ef1bf0f5e8c540f785c84752e0c95c899a4dca11b17e"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C045_async_function_process.py",
+      "expected": "Reject",
+      "description": "dangerous call inside async function",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "5bfd04c73cd09f67a47caadd9581a535ba8539fd1904087783c76c8b42468b0c"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C046_match_case_rebinding.py",
+      "expected": "Reject",
+      "description": "match branches bind dangerous callables",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "3249e18701d708c6b74396cc32439ae7368f0dd38bf27bf6c9178b11d5a65033"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C048_exec_constant.py",
+      "expected": "Reject",
+      "description": "direct exec with constant source",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "594e308b2116425f63bdced17b611188512b4a1a58034d2dfee63ca1432a9bf9"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C049_compile_then_exec.py",
+      "expected": "Reject",
+      "description": "compile and exec chain",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "0b3e1f9292d68e96681c0b90d545f59d74557328b91f65037ee41a4e589494c3"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C050_dynamic_import_concat.py",
+      "expected": "Reject",
+      "description": "dynamic import with constant concatenation",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "e45f86816113f6a685124f2d5b7d68dda9a2ca5e8ee8f122366fc0d6bd1807bc"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C051_subprocess_inside_class.py",
+      "expected": "Reject",
+      "description": "subprocess call inside class method",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "f3fae84089a32a87d6c56d9652b39a1daa68d19a8d2f238866281461092094d0"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C052_ctypes_windll.py",
+      "expected": "Reject",
+      "description": "ctypes windll native process API",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "564716dbb03e71778ae973b2fb780718a21781b73969737b4126bad747456526"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C053_importlib_loader.py",
+      "expected": "Reject",
+      "description": "importlib machinery dynamic loader",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "1349ea714a74da9cb98ac242cb42bb84edf3d3046d727bed153daba4405061ba"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C054_socket_connection.py",
+      "expected": "Reject",
+      "description": "socket network access",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_network"
+      ],
+      "semantic_result_sha256": "eb26eb4cd9997920fb44eaafffdd71da9342b5d331f4fb3dd8993a5f22aa811f"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C055_pickle_loads.py",
+      "expected": "Reject",
+      "description": "pickle deserialization",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "ef8903f61ee00db0a7b3a1e34396f14fd9dff1069082f464c1719ae14f73a7cd"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C056_marshal_loads.py",
+      "expected": "Reject",
+      "description": "marshal code/object loading",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "dc9d154deaf4657fb7acbe98c38f8c2149c947cb4dcd6bced396f09bf0daba60"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C059_subprocess_shell_true.py",
+      "expected": "Reject",
+      "description": "subprocess shell execution",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "fb8ec218cc9d827dfc3a6e2064f33843345a4c64cc96076934e50d1f9b915536"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C060_eval_variable_concat.py",
+      "expected": "Reject",
+      "description": "eval receives runtime-concatenated source",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "49eeedcf29c71f46a1a6e59ca12a05060db73ae446cf4fadb318ca83bf2e9d60"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C061_dynamic_pickle_import.py",
+      "expected": "Reject",
+      "description": "dynamic import followed by unsafe deserialization",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "a4ff5f9679337193741bc148082ed9ec855c355911518398b11708bbfb23ee45"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C062_eval_function_parameter.py",
+      "expected": "Reject",
+      "description": "eval inside function with parameter",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "a326284718e14bbd172698933cf3db3172fc38a065744d9f20684f605d102be1"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C064_closure_dangerous_callable.py",
+      "expected": "Reject",
+      "description": "closure references dangerous callable from parent scope",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "1b545f6e66493f9659bc3562567b7010fd63e8c72c93c4128fb4c52daf4af904"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C067_exec_local_scope.py",
+      "expected": "Reject",
+      "description": "exec modifies local scope",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "83127be341dbc96380158dd84ecffcd85b5808609e9b51f0e9dcfda4b20f107d"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C068_class_body_exec.py",
+      "expected": "Reject",
+      "description": "exec in class body",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "8ab8bac03fcfea8a3dae6c5f3dd7508b953bf1c997c5c54980d09013fad07fbe"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C069_type_checking_dynamic_import.py",
+      "expected": "Reject",
+      "description": "runtime dynamic import after TYPE_CHECKING block",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "e445cf789f003439b9ec55956edd6888a615877e2555cfd240d0340dfe2bb9f8"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C072_chr_getattr.py",
+      "expected": "Reject",
+      "description": "dangerous attribute constructed from chr calls",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution",
+        "no_suspicious_obfuscation"
+      ],
+      "semantic_result_sha256": "efbb30b3dbb869689aae32bd802aa5750bf4eb4e891d6ec5d88427cf6388ba77"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C074_pickle_import_chain.py",
+      "expected": "Reject",
+      "description": "dynamic pickle import and loads",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "7520f35cdb945be58c9445641e6ac267b913747b27c9267e933b314f29095a69"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C075_popen_list_args.py",
+      "expected": "Reject",
+      "description": "Popen called with list arguments",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "89c7fa876213e653c444c844aacccaefefa2939a869013775130a69a2ef11241"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C076_eval_bytes.py",
+      "expected": "Reject",
+      "description": "eval called with bytes",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution"
+      ],
+      "semantic_result_sha256": "43d0d138f4e424b9bfa96332441169a85f7e867d3ae840c31acf34d5bde8f20e"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C084_malicious_del_method.py",
+      "expected": "Hold",
+      "description": "user destructor performs filesystem deletion",
+      "category": "adversarial",
+      "actual": "Hold",
+      "exit_code": 2,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_file_writes"
+      ],
+      "semantic_result_sha256": "626e6a831fbb35036c75a6b7bbac10b4b87d526fccd03512c199236b0b2ff488"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C086_with_write.py",
+      "expected": "Hold",
+      "description": "with-open write mode",
+      "category": "adversarial",
+      "actual": "Hold",
+      "exit_code": 2,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_file_writes"
+      ],
+      "semantic_result_sha256": "73a48d9714c419af86f7e8b03c73371f198b896bc4c5ffb3a6ae2b76cd3a2e46"
+    },
+    {
+      "file": "tests/stage02c_corpus/adversarial/C102_combined_advanced.py",
+      "expected": "Reject",
+      "description": "combined dynamic import, partial, and dangerous accessor",
+      "category": "adversarial",
+      "actual": "Reject",
+      "exit_code": 3,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [
+        "no_process_execution",
+        "no_suspicious_obfuscation"
+      ],
+      "semantic_result_sha256": "f5296470646ed6db6cdcd3e5ed0d43f4c5181896efa6c87241b87468b108d750"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B070_annotation_string.py",
+      "expected": "Let In",
+      "description": "annotation text is not executable code",
+      "category": "benign",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "11cc339a8907f7c033268b79bcfef434f2f0942b6e11c2f5399fcbc809873442"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B077_ast_literal_eval.py",
+      "expected": "Let In",
+      "description": "ast.literal_eval is a restricted parser",
+      "category": "benign",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "ec9dd7c7cd06ac803eb2d4662211ad89f7b8163789140b6abb79a2628f108a2c"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B078_pickletools_dis.py",
+      "expected": "Let In",
+      "description": "pickletools.dis only inspects pickle opcodes",
+      "category": "benign",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "ee0f480567a32d0df1cad19b7d6fbe306879e1c71f8cec37170b2b04ed84b91f"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B080_shutil_which.py",
+      "expected": "Let In",
+      "description": "shutil.which locates an executable without launching it",
+      "category": "benign",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "37c37fb0a8688b19be0aa7717b868f0bbcaa93aa43804ee4de988829d603241d"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B081_os_path_join.py",
+      "expected": "Let In",
+      "description": "os.path.join is path composition only",
+      "category": "benign",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "aa2246251a06d364f9cfd263718be63aac96a02138ae90d3ce49967140e63922"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B082_pathlib_iterdir.py",
+      "expected": "Let In",
+      "description": "Path.iterdir reads directory entries without writing",
+      "category": "benign",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "7cb17e61ce4b9b5cd72f441c7b2377b69e704cff6c0d2ca40d71f974c81e72f4"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B083_benign_del_method.py",
+      "expected": "Let In",
+      "description": "benign user destructor",
+      "category": "benign",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "fbe1bca871a5c7df12d0fa9b67b08c0be65a078b4bd717c78dd30e27483a93b0"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B085_with_read.py",
+      "expected": "Let In",
+      "description": "read-only open is not a file mutation",
+      "category": "benign",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "8bd2734af16950fccdefae891c8ba352476ed4989e32dc1ef79bbd40b24da23b"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B087_logging_getlogger.py",
+      "expected": "Let In",
+      "description": "logging.getLogger is a benign factory",
+      "category": "benign",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "be7a1b831761b9f20a285ee369ddba0a848c04a7f0d17981b2663398f6ddaf7a"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B088_dataclass_asdict.py",
+      "expected": "Let In",
+      "description": "dataclass conversion is benign",
+      "category": "benign",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "650e500a7f0e9013ec6d0d4216ab20517583f61a383bc71952cd315345f71b4a"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B089_user_system_method.py",
+      "expected": "Let In",
+      "description": "user-defined method named system is not os.system",
+      "category": "benign",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "fc7b72b20d13318ff0bc3e5ff6987e54dc276aee7f861c7cfb60877abd87f9db"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B090_safe_list.py",
+      "expected": "Let In",
+      "description": "ordinary list container",
+      "category": "benign",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "00dc203bd27709d91a27ca275284189fb172943f18840e0e9c7ab8a02a167592"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B091_safe_dict.py",
+      "expected": "Let In",
+      "description": "ordinary dictionary container",
+      "category": "benign",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "b7666507211efc45977d4b8fda469eaa24085ffe9c09324842399b3abdac310e"
+    },
+    {
+      "file": "tests/stage02c_corpus/benign/B092_annotation_dangerous_text.py",
+      "expected": "Let In",
+      "description": "dangerous-looking string annotation is inert",
+      "category": "benign",
+      "actual": "Let In",
+      "exit_code": 0,
+      "matched_expected": true,
+      "idempotent": true,
+      "failed_checks": [],
+      "semantic_result_sha256": "c633252b5121d900c1461ceb37c44c020abe4617e62f1206ca6a882d43e0104f"
+    }
+  ],
+  "untested_or_out_of_scope": [
+    {
+      "id": "O001_with_context_manager_return_type",
+      "proposal": "Arbitrary context manager returns a dangerous object through __enter__.",
+      "reason": "Requires general type and interprocedural return analysis beyond the documented lightweight analyzer."
+    },
+    {
+      "id": "O002_runtime_monkey_patch",
+      "proposal": "Metaclass, descriptor, __getattribute__, __getattr__, or monkey-patching changes a target at runtime.",
+      "reason": "Runtime object mutation is outside static AST assurance."
+    },
+    {
+      "id": "O003_dependency_payload",
+      "proposal": "A declared third-party dependency contains malicious code.",
+      "reason": "Guardian scans one submitted file and does not inspect installed dependency source in this stage."
+    },
+    {
+      "id": "O004_cross_file_call_graph",
+      "proposal": "A safe-looking local module imports another local module containing dangerous behavior.",
+      "reason": "Stage 02C remains single-file and does not perform repository-wide module resolution."
+    },
+    {
+      "id": "O005_native_extension_behavior",
+      "proposal": "A benign-looking native extension performs hidden unsafe operations.",
+      "reason": "Native binary behavior cannot be proven from Python source AST."
+    },
+    {
+      "id": "O006_dynamic_exec_scope_effect",
+      "proposal": "exec dynamically introduces a later name binding that the AST does not contain.",
+      "reason": "The exec call itself is rejected, but names introduced by its string are not separately modeled."
+    },
+    {
+      "id": "O007_precise_path_traversal",
+      "proposal": "Determine whether a computed path escapes an approved directory.",
+      "reason": "Path authorization and taint tracking are not implemented."
+    },
+    {
+      "id": "O008_precise_command_intent",
+      "proposal": "Distinguish harmless and destructive command arguments passed to a process API.",
+      "reason": "Guardian rejects the process API call itself and does not interpret command semantics."
+    }
+  ]
+}

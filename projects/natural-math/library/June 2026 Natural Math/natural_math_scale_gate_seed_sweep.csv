@@ -1,0 +1,9 @@
+maze_seed,generation,arm,stage_a_success,stage_a_step,stage_b_success,stage_b_step_after_a,memory_moves_a,memory_moves_b,unique_cells_a,unique_cells_b,resource_a,resource_b,A_memory_edges,A_memory_mass,A_confirmations,B_memory_edges,B_memory_mass,B_confirmations
+0,0,control,True,1541,True,42,0,0,85,32,"(13, 13)","(13, 4)",,,,,,
+0,1,control,True,1565,True,512,0,0,85,38,"(13, 13)","(13, 4)",,,,,,
+0,0,memory,True,1541,True,42,0,0,85,32,"(13, 13)","(13, 4)",94,1039000,3080,54,41000,82
+0,1,memory,True,2060,True,106,11168,338,86,36,"(13, 13)","(13, 4)",116,2077000,7198,60,146000,292
+1,0,control,False,,False,,0,0,53,0,"(13, 13)","(13, 4)",,,,,,
+1,1,control,False,,False,,0,0,62,0,"(13, 13)","(13, 4)",,,,,,
+1,0,memory,False,,False,,0,0,53,0,"(13, 13)","(13, 4)",0,0,0,0,0,0
+1,1,memory,False,,False,,0,0,62,0,"(13, 13)","(13, 4)",0,0,0,0,0,0

@@ -1,0 +1,11 @@
+{
+  "authority_key_id": "pia-pilot-authority-v0.1",
+  "history_id": "pia-history-8efb75a5d7230d91",
+  "host_id": "pia-host-a",
+  "model_id": "pia-model-a",
+  "schema_version": "fractalish.pia.host-state-receipt.v0.1",
+  "state_receipt_digest": "sha256:2aef02b4f539ff8f1fa1b8b31d1a2f83e8722417e7f5331ad8f7e68351fdd14a",
+  "state_signature": "hmac-sha256:5973c60de59e42be84cb92548a94cde3e016743b3b21b8c908e9cee8e33c9d56",
+  "status": "STORED",
+  "stored_content_digest": "sha256:32a7264de26293477ee78131d6a23201ba7556bfa566ddf85fa00e5e525bffe5"
+}

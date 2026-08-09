@@ -1,0 +1,136 @@
+{
+  "record": {
+    "approved_for_freeze_procedure": true,
+    "bolt_on_executed_actions": 0,
+    "commands": [
+      {
+        "command": [
+          "python",
+          "development/bolt_on_demonstrator_v0_3/portability/portable_adapter_contract.py"
+        ],
+        "marker": "STAGE 1 PORTABLE ADAPTER CONTRACT QUALIFICATION: PASS",
+        "name": "stage_1_portable_adapter_contract",
+        "normalized_output_sha256": "4c4a7eb5d23b3e1d48148943fc1d5650cc71583611a05ce2af0a515f85e85a7c",
+        "stderr_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "stdout_sha256": "4c4a7eb5d23b3e1d48148943fc1d5650cc71583611a05ce2af0a515f85e85a7c"
+      },
+      {
+        "command": [
+          "python",
+          "development/bolt_on_demonstrator_v0_3/hosts/workflow_state_host.py"
+        ],
+        "marker": "SECOND INDEPENDENT HOST SELF-QUALIFICATION: PASS",
+        "name": "workflow_host_self_qualification",
+        "normalized_output_sha256": "244727724addff93c1601fd6e340d81648a4b973cfd674fa0513094d75681630",
+        "stderr_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "stdout_sha256": "244727724addff93c1601fd6e340d81648a4b973cfd674fa0513094d75681630"
+      },
+      {
+        "command": [
+          "python",
+          "development/bolt_on_demonstrator_v0_3/portability/second_independent_host.py"
+        ],
+        "marker": "STAGE 2 SECOND INDEPENDENT HOST QUALIFICATION: PASS",
+        "name": "stage_2_second_independent_host",
+        "normalized_output_sha256": "d22bb3f3754f26c9c7366103d06e688b146c57306e308dcf6f4ce890b44604b4",
+        "stderr_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "stdout_sha256": "d22bb3f3754f26c9c7366103d06e688b146c57306e308dcf6f4ce890b44604b4"
+      },
+      {
+        "command": [
+          "python",
+          "development/bolt_on_demonstrator_v0_3/portability/cross_host_replay.py"
+        ],
+        "marker": "STAGE 3 EQUIVALENT-EVENT CROSS-HOST REPLAY: PASS",
+        "name": "stage_3_cross_host_replay",
+        "normalized_output_sha256": "89def058f29d0a071d3767bcfc0b924bbb61d3d2458b08ed8e4d5bbe885aa1e1",
+        "stderr_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "stdout_sha256": "89def058f29d0a071d3767bcfc0b924bbb61d3d2458b08ed8e4d5bbe885aa1e1"
+      },
+      {
+        "command": [
+          "python",
+          "development/bolt_on_demonstrator_v0_3/hosts/queue_state_host.py"
+        ],
+        "marker": "LEASE QUEUE HOST SELF-QUALIFICATION: PASS",
+        "name": "queue_host_self_qualification",
+        "normalized_output_sha256": "b97121a12e9b4c63437abb8a906638bd1a8602cb544372a38e32f96b993d5333",
+        "stderr_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "stdout_sha256": "b97121a12e9b4c63437abb8a906638bd1a8602cb544372a38e32f96b993d5333"
+      },
+      {
+        "command": [
+          "python",
+          "development/bolt_on_demonstrator_v0_3/portability/live_host_substitution.py"
+        ],
+        "marker": "STAGE 4 LIVE HOST SUBSTITUTION QUALIFICATION: PASS",
+        "name": "stage_4_live_host_substitution",
+        "normalized_output_sha256": "ca8f869e68b3d4f044a5d7c315cb02d5f99e443ebec9e9b0add883ab1e302673",
+        "stderr_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "stdout_sha256": "ca8f869e68b3d4f044a5d7c315cb02d5f99e443ebec9e9b0add883ab1e302673"
+      },
+      {
+        "command": [
+          "python",
+          "development/bolt_on_demonstrator_v0_3/portability/adversarial_adapter_qualification.py"
+        ],
+        "marker": "STAGE 5 ADVERSARIAL ADAPTER QUALIFICATION: PASS",
+        "name": "stage_5_adversarial_adapter_qualification",
+        "normalized_output_sha256": "f22215577cfdcdd3ae6432a1af56e093feccb58eccb8bf1d675668836ee73844",
+        "stderr_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "stdout_sha256": "f22215577cfdcdd3ae6432a1af56e093feccb58eccb8bf1d675668836ee73844"
+      },
+      {
+        "command": [
+          "python",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "development/bolt_on_demonstrator_v0_3/tests",
+          "-p",
+          "test_*.py",
+          "-v"
+        ],
+        "count": 256,
+        "marker": "OK",
+        "name": "complete_v0_3_tests",
+        "normalized_output_sha256": "53e62ed9981c765a2d2f276f7698f49de1b35a9b257c611201ed7563f3ec86a6",
+        "stderr_sha256": "53e62ed9981c765a2d2f276f7698f49de1b35a9b257c611201ed7563f3ec86a6",
+        "stdout_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+      },
+      {
+        "command": [
+          "python",
+          "tools/verify_all_frozen.py"
+        ],
+        "marker": "ALL FROZEN RELEASE VERIFICATIONS PASSED",
+        "name": "all_frozen_verification",
+        "normalized_output_sha256": "3c091ab09667aafba5cc26e7c35f99b945c5e1f6f2adb4d051006a8f8079c070",
+        "stderr_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "stdout_sha256": "3c091ab09667aafba5cc26e7c35f99b945c5e1f6f2adb4d051006a8f8079c070"
+      }
+    ],
+    "deterministic_second_pass": true,
+    "development_manifest_sha256": "aac2512cc908609ef73c8a94ccd86c74a18b22e004c80a722c391de7cabd3ddc",
+    "expected_test_count": 256,
+    "frozen_manifest_sha256": "f6dca84868be5e49e6a2f188a8d4c0ce20bbadc698eec315af9e9c230b92feb4",
+    "frozen_v02_release_manifest_sha256": "e020199f5327866bfcbe34877466ea06558eb6650c578ce841c37b4c9abd159c",
+    "host_actions_during_attacks": 0,
+    "host_families_qualified": 2,
+    "observed_test_count": 256,
+    "portable_actions": [
+      "HOLD",
+      "RELEASE"
+    ],
+    "prohibited_action_hits": [],
+    "qualified_attack_count": 48,
+    "qualified_attack_rejections": 48,
+    "qualified_baseline_host_actions": 2,
+    "qualified_substitutions": 1,
+    "rc_version": "v0.3-RC1",
+    "second_pass_comparison": "stable normalized qualification evidence; console timing excluded",
+    "source_commit": "0e92ecaca48c4c5bf85bab658a4e693aae3d36f6"
+  },
+  "record_sha256": "179e5f1cae244df123de3e5edf1000ab1ae186be20c6041d24141560b963f2b2"
+}

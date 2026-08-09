@@ -1,0 +1,215 @@
+
+---
+
+**Natural Math v3.8.1 Extension**  
+**Signal‑Based Coordination with Open Finite Energy Supply**
+
+---
+
+### Abstract
+
+Natural Math v3.8.1 provides a discrete framework for growth driven by local energy gradients, pressure, and bifurcation. This extension replaces the growth‑oriented dynamics with a **coordination‑oriented** model in which a fixed number of nodes communicate through complementary signals, attract or repel one another, and form persistent bonds. The energy resource remains finite, but the system is made **open** by coupling it to an external, bounded energy reservoir – the system can draw energy from the outside, yet that outside source is not infinite. The result is an *open finite* system that self‑organises into stable clusters without requiring internal energy creation.
+
+---
+
+### 1. Core Principles Retained from Natural Math v3.8.1
+
+- **Quadrance** \(Q(\mathbf{p}_1,\mathbf{p}_2) = \|\mathbf{p}_1 - \mathbf{p}_2\|^2\) defines distance‑based geometry.
+- **Energy** is a finite resource per node; initial energy \(E_0\) is given.
+- **Local neighbourhoods** are bounded by a *sense_radius* \(R\).
+- **Nodes** have unique identifiers, positions, and energy levels.
+
+The original growth machinery (pressure accumulation, bifurcation, conflict resolution) is removed. The lattice is relaxed to a continuous 2D or 3D space.
+
+---
+
+### 2. Signal‑Based Encoder‑Message‑Decoder System
+
+Each node carries a **signal type** \(s_i \in \{-1, 0, +1\}\):
+- \(+1\) and \(-1\) are complementary polarities (attract and bond).
+- \(0\) is neutral; when distressed, it repels other neutrals.
+
+#### 2.1 Energy Deficit Function
+
+A node’s distress is quantified by its energy deficit relative to full capacity:
+
+\[
+\delta_i = \max\!\left(0,\; \frac{E_0 - E_i}{E_0}\right) \tag{1}
+\]
+
+- \(\delta_i = 0\): full capacity, healthy.
+- \(\delta_i = 1\): fully depleted.
+- **Distress threshold**: \(\delta_i > 0.8\) triggers repulsive signalling.
+- **Complementary threshold**: \(\delta_i \le 0.6\) allows attraction between complementary types.
+
+#### 2.2 Signal Encoding
+
+Node \(i\) broadcasts a signal whose strength depends on its state:
+
+\[
+\sigma_i = 
+\begin{cases}
++\alpha_{\text{comp}}, & \text{if } s_i \neq 0,\; \delta_i \le 0.6 \text{ and a complement is nearby}\\
+-\beta_{\text{distress}}, & \text{if } \delta_i > 0.8\\
+-\gamma_{\text{default}}, & \text{otherwise}
+\end{cases} \tag{2}
+\]
+
+Typical values: \(\alpha_{\text{comp}} = 60\), \(\beta_{\text{distress}} = 100\), \(\gamma_{\text{default}} = 10\).
+
+#### 2.3 Signal Transmission (Spatial Physics)
+
+A signal sent by node \(i\) arrives at node \(j\) (if within \(R\)) after a delay and with attenuation:
+
+\[
+\text{delay}_{i\to j} = \frac{\|\mathbf{p}_i - \mathbf{p}_j\|}{v_s}, \qquad
+\text{attenuation}_{i\to j} = \exp(- \lambda \cdot \|\mathbf{p}_i - \mathbf{p}_j\|) \tag{3}
+\]
+
+where \(v_s\) is signal speed and \(\lambda\) is decay constant. The received strength at \(j\) is \(\sigma_i \cdot \text{attenuation}_{i\to j}\).
+
+Parameters: \(v_s = 2.0\), \(\lambda = 0.1\), \(R = 10.0\).
+
+#### 2.4 Weighted Decoding and Decision Gradient
+
+Node \(j\) accumulates incoming messages using inverse‑square weighting and complementarity logic. The effective force from node \(i\) is
+
+\[
+F_{i\to j} = \frac{\sigma_i}{Q(\mathbf{p}_i, \mathbf{p}_j) + \varepsilon}
+             \times 
+             \begin{cases}
+               3, & \text{if } s_i = -s_j \text{ (complementary)}\\
+               1, & \text{otherwise}
+             \end{cases} \tag{4}
+\]
+
+where \(\varepsilon \ll 1\) prevents division by zero.  
+The resulting **social force vector** is
+
+\[
+\mathbf{F}_j = \sum_{i \neq j} F_{i\to j}\, \frac{\mathbf{p}_i - \mathbf{p}_j}{\|\mathbf{p}_i - \mathbf{p}_j\|} \tag{5}
+\]
+
+The movement gradient direction for node \(j\) is the normalised net force (or zero if \(|\mathbf{F}_j| = 0\)):
+
+\[
+\mathbf{g}_j = \frac{\mathbf{F}_j}{\|\mathbf{F}_j\|} \quad (\|\mathbf{F}_j\| > 0) \tag{6}
+\]
+
+No random fallback is used.
+
+---
+
+### 3. Bonding Mechanics
+
+When two complementary nodes (\(s_i = -s_j\)) come within a small quadrance threshold (\(0 < Q(\mathbf{p}_i,\mathbf{p}_j) \le Q_{\text{bond}}\)) and both have free bond slots, they form a **persistent bond**:
+
+- **Maximum bonds per node**: \(\text{max\_bonds} = 3\).
+- **Bond threshold**: \(Q_{\text{bond}} = 4\) (Euclidean distance ≈ 2).
+
+Upon bonding:
+1. **Energy equalisation**: both nodes set their energies to the average  
+   \[
+   E_i' = E_j' = \frac{E_i + E_j}{2} \tag{7}
+   \]
+2. **Positional lock**: node \(j\) is snapped to the position of node \(i\) (or vice versa).  
+   \[
+   \mathbf{p}_j \leftarrow \mathbf{p}_i \tag{8}
+   \]
+3. **Bond registration**: each node records the partner’s ID.
+
+Bonded pairs move together as a single unit thereafter, preserving their bond unless broken by extreme forces (not modelled here).
+
+---
+
+### 4. Energy Dynamics and Open Finite Energy Supply
+
+#### 4.1 Internal Energy Costs
+
+Every active step costs a fixed amount of energy:
+
+\[
+\Delta E_{\text{step}} = \eta \tag{9}
+\]
+
+with \(\eta = 0.5\). A node cannot move if \(E_i < \eta\).
+
+#### 4.2 Open Finite Energy Reservoir
+
+To make the system **open** yet **finite**, we introduce an external energy source of total capacity \(E_{\text{res}}^{\max}\). The reservoir is not infinite; once depleted, no further energy can be drawn.
+
+Nodes can extract energy from the reservoir when they are within a designated *feeding zone* or when certain conditions are met (e.g., proximity to a source location). The extraction rate per node is bounded:
+
+\[
+\frac{dE_i}{dt}\bigg|_{\text{ext}} = 
+\begin{cases}
+\kappa, & \text{if } E_{\text{res}} > 0 \text{ and node is allowed to feed}\\
+0, & \text{otherwise}
+\end{cases} \tag{10}
+\]
+
+where \(\kappa\) is a constant uptake rate, and the global reservoir depletes accordingly:
+
+\[
+\frac{dE_{\text{res}}}{dt} = -\sum_{\text{feeding nodes}} \kappa \qquad (E_{\text{res}} \ge 0) \tag{11}
+\]
+
+Initial conditions: \(E_{\text{res}}(0) = E_{\text{res}}^{\max}\).  
+
+This extension guarantees that **energy does not need to be created internally**; the system can acquire it from outside, but the outside source is finite – reflecting the real‑world constraint “everything is available, but there’s only so much you can get out of it.”
+
+#### 4.3 Conservation and Limits
+
+Total energy in the system (nodes + reservoir) is strictly non‑increasing:
+
+\[
+\sum_i E_i(t) + E_{\text{res}}(t) \le \sum_i E_i(0) + E_{\text{res}}^{\max} \tag{12}
+\]
+
+Energy is never created, only transferred or spent on movement.
+
+---
+
+### 5. Emergent “Stick” Behaviour
+
+The interplay of gradient attraction, deficit‑driven repulsion, bonding, and saturation gives rise to **persistent clusters** (the “stick”):
+
+1. Complementary healthy nodes attract and move toward one another.
+2. When close enough, they bond, equalise energy, and lock positions.
+3. Distressed nodes repel, preventing overcrowding and maintaining cluster stability.
+4. Bonded clusters of 2‑4 nodes act as stable units, resistant to dispersal.
+
+No external scaffolding is needed; the clusters emerge from the local signal logic.
+
+---
+
+### 6. Comparison with Core Natural Math v3.8.1
+
+| Feature | Core (v3.8.1) | This Extension |
+|---------|---------------|----------------|
+| Primary drive | Energy gradient → pressure → bifurcation | Signal complementarity → attraction/repulsion → bonding |
+| Node count | Variable (growth) | Fixed |
+| Energy source | Closed, internal | Open finite (external reservoir) |
+| Distance weighting | \(1/d\) | \(1/d^2\) with complementarity boost |
+| Bonding | Absent | Up to 3 bonds per node, positional lock |
+| Geometry | 3D integer lattice | Continuous 2D/3D space |
+
+---
+
+### 7. Recommendations for Use
+
+- Begin with the default parameters given above, then tune \(\alpha_{\text{comp}}\), \(\beta_{\text{distress}}\), and \(\kappa\) for desired cluster sizes.
+- Monitor energy conservation (Eq. 12) and locality.
+- Adapt oracles for the fixed‑node regime, e.g., cluster count, bond network topology.
+- The model can represent cell adhesion, robotic docking, or logistics hub formation.
+
+---
+
+### References
+
+1. Natural Math v3.8.1 Core Specification (provided separately).
+2. This extension document.
+
+---
+
+*If you need the LaTeX source, a .docx file generated from it, or further formatting (title page, headings, figure placeholders), I can supply those as well.*

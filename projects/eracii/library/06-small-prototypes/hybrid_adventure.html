@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>The District · Exploration</title>
+<style>
+:root{--bg:#a8c7b0;--grass:#8fb29a;--water:#5a8fa8;--mud:#8b583f;--wood:#b8956e;--stone:#7a8a88;--ink:#2a211a;--accent:#d8ba69}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;user-select:none}
+canvas{display:block;width:100%;height:100%}
+.hud{position:fixed;inset:0;z-index:10;pointer-events:none;padding:12px}
+.info{position:absolute;top:0;left:0;background:rgba(34,29,24,.88);border:1px solid rgba(255,240,205,.22);border-radius:10px;padding:8px 10px;color:#f5f0df;font-size:11px}
+.info b{color:var(--accent);display:block;font-size:9px;text-transform:uppercase}
+.hint{position:absolute;bottom:0;left:0;background:rgba(34,29,24,.88);border:1px solid rgba(255,240,205,.22);border-radius:10px;padding:8px 10px;color:#d5cdbb;font-size:10px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:rgba(34,29,24,.94);border:1px solid rgba(255,240,205,.22);border-radius:10px;padding:8px 12px;color:#f5f0df;font-size:11px;opacity:0;transition:.25s}
+.toast.show{opacity:1;bottom:32px}
+.toast b{color:var(--accent)}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div class="hud">
+  <div class="info">
+    <b>Goal</b>
+    <span id="objective">Reach the tower</span>
+  </div>
+  <div class="hint">
+    <b>Move:</b> WASD or arrows · <b>Interact:</b> E or tap
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// Canvas setup
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const W = canvas.width = 1200;
+const H = canvas.height = 800;
+
+// Game state
+const state = {
+  tick: 0,
+  goalReached: false,
+  clearedRubble: new Set()
+};
+
+// Player
+const player = {
+  x: 120,
+  y: 600,
+  radius: 8,
+  speed: 3,
+  width: 16,
+  height: 20
+};
+
+const keys = {};
+
+// --- WORLD BUILDING BLOCKS ---
+
+// Terrain regions (background/walkable areas)
+const terrain = [
+  { x: 0, y: 0, w: 1200, h: 800, type: 'grass' }
+];
+
+// Buildings
+const buildings = [
+  { id: 'house_w', x: 150, y: 200, w: 120, h: 100, type: 'cottage', roof: '#9a5f42' },
+  { id: 'house_e', x: 900, y: 180, w: 140, h: 110, type: 'cottage', roof: '#7e5e48' },
+  { id: 'tower', x: 580, y: 80, w: 90, h: 90, type: 'tower', roof: '#6b4e35' },
+  { id: 'storage', x: 300, y: 520, w: 110, h: 85, type: 'cottage', roof: '#8b6f47' },
+  { id: 'barn', x: 850, y: 520, w: 160, h: 100, type: 'barn', roof: '#8b5a3c' }
+];
+
+// Water hazard (river)
+const water = { x: 450, y: 400, w: 300, h: 80, type: 'water' };
+
+// Bridge that crosses water
+const bridge = {
+  x: 520,
+  y: 380,
+  w: 160,
+  h: 120,
+  type: 'bridge',
+  segments: [
+    { x: 520, y: 400, w: 30, h: 120 },  // support posts
+    { x: 590, y: 400, w: 30, h: 120 },
+    { x: 660, y: 400, w: 30, h: 120 }
+  ],
+  deck: { x: 520, y: 380, w: 160, h: 26 } // walkable deck
+};
+
+// Mud (slows movement)
+const mudField = { x: 200, y: 650, w: 180, h: 100, type: 'mud' };
+
+// Rubble piles (can be pushed)
+const rubblePiles = [
+  { id: 'rubble_1', x: 350, y: 300, w: 50, h: 50, type: 'rubble' },
+  { id: 'rubble_2', x: 410, y: 300, w: 50, h: 50, type: 'rubble' },
+  { id: 'rubble_3', x: 470, y: 300, w: 50, h: 50, type: 'rubble' }
+];
+
+// Decorative elements
+const decor = [
+  { x: 80, y: 350, type: 'tree', scale: 0.9 },
+  { x: 1050, y: 300, type: 'tree', scale: 1.1 },
+  { x: 280, y: 450, type: 'tree', scale: 0.8 },
+  { x: 750, y: 650, type: 'tree', scale: 1.0 },
+  { x: 1100, y: 400, type: 'tree', scale: 0.85 }
+];
+
+// --- COLLISION & INTERACTION ---
+
+function isWalkable(x, y, radius = 8) {
+  // Check buildings
+  for (const b of buildings) {
+    if (x + radius > b.x && x - radius < b.x + b.w &&
+        y + radius > b.y && y - radius < b.y + b.h) {
+      return false;
+    }
+  }
+  
+  // Check water (unless on bridge deck)
+  if (water.x < x < water.x + water.w && water.y < y < water.y + water.h) {
+    if (!(bridge.deck.x < x < bridge.deck.x + bridge.deck.w &&
+          bridge.deck.y < y < bridge.deck.y + bridge.deck.h)) {
+      return false;
+    }
+  }
+  
+  // Check rubble
+  for (const r of rubblePiles) {
+    if (x + radius > r.x && x - radius < r.x + r.w &&
+        y + radius > r.y && y - radius < r.y + r.h) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+function getMovementSpeed() {
+  // Slow down in mud
+  if (player.x > mudField.x && player.x < mudField.x + mudField.w &&
+      player.y > mudField.y && player.y < mudField.y + mudField.h) {
+    return player.speed * 0.5;
+  }
+  return player.speed;
+}
+
+function movePlayer() {
+  let dx = (keys['d'] || keys['right'] ? 1 : 0) - (keys['a'] || keys['left'] ? 1 : 0);
+  let dy = (keys['s'] || keys['down'] ? 1 : 0) - (keys['w'] || keys['up'] ? 1 : 0);
+  
+  if (dx !== 0 || dy !== 0) {
+    const len = Math.hypot(dx, dy);
+    dx /= len;
+    dy /= len;
+    
+    const speed = getMovementSpeed();
+    const newX = player.x + dx * speed;
+    const newY = player.y + dy * speed;
+    
+    if (isWalkable(newX, newY)) {
+      player.x = newX;
+      player.y = newY;
+    }
+  }
+  
+  // Goal reached?
+  if (Math.hypot(player.x - 625, player.y - 125) < 60 && !state.goalReached) {
+    state.goalReached = true;
+    showToast('You reached the tower!');
+  }
+}
+
+function tryInteract() {
+  // Try to push nearby rubble
+  for (const r of rubblePiles) {
+    const dx = r.x + r.w/2 - player.x;
+    const dy = r.y + r.h/2 - player.y;
+    const dist = Math.hypot(dx, dy);
+    
+    if (dist < 50) {
+      // Push direction based on player position
+      let pushDx = Math.sign(dx) * 80;
+      let pushDy = Math.sign(dy) * 80;
+      
+      // Check if new position is valid
+      const newX = r.x + pushDx;
+      const newY = r.y + pushDy;
+      
+      let canMove = true;
+      // Simple collision check against buildings
+      for (const b of buildings) {
+        if (newX + r.w > b.x && newX < b.x + b.w &&
+            newY + r.h > b.y && newY < b.y + b.h) {
+          canMove = false;
+        }
+      }
+      
+      if (canMove && newX > 0 && newX + r.w < W && newY > 0 && newY + r.h < H) {
+        r.x = newX;
+        r.y = newY;
+        showToast('Moved rubble');
+      }
+      return;
+    }
+  }
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// --- RENDERING ---
+
+function drawGrass() {
+  ctx.fillStyle = '#8fb29a';
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(255,255,255,.08)';
+  for (let i = 0; i < 30; i++) {
+    const x = (i % 6) * 200 + 30;
+    const y = Math.floor(i / 6) * 160 + 40;
+    ctx.beginPath();
+    ctx.arc(x, y, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawWater() {
+  ctx.fillStyle = '#5a8fa8';
+  ctx.fillRect(water.x, water.y, water.w, water.h);
+  ctx.strokeStyle = 'rgba(255,255,255,.2)';
+  ctx.lineWidth = 2;
+  for (let x = water.x; x < water.x + water.w; x += 40) {
+    ctx.beginPath();
+    ctx.moveTo(x, water.y + 15);
+    ctx.quadraticCurveTo(x + 15, water.y, x + 30, water.y + 15);
+    ctx.stroke();
+  }
+}
+
+function drawBridge() {
+  // Support posts
+  for (const seg of bridge.segments) {
+    ctx.fillStyle = '#8b6f47';
+    ctx.fillRect(seg.x, seg.y, seg.w, seg.h);
+    ctx.strokeStyle = '#5a4a2f';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(seg.x, seg.y, seg.w, seg.h);
+  }
+  
+  // Deck
+  const deck = bridge.deck;
+  ctx.fillStyle = '#b8956e';
+  ctx.fillRect(deck.x, deck.y, deck.w, deck.h);
+  ctx.strokeStyle = '#7a5c3d';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(deck.x, deck.y, deck.w, deck.h);
+  
+  // Planks detail
+  ctx.strokeStyle = 'rgba(122, 92, 61, .5)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 5; i++) {
+    const y = deck.y + 5 + i * 5;
+    ctx.beginPath();
+    ctx.moveTo(deck.x, y);
+    ctx.lineTo(deck.x + deck.w, y);
+    ctx.stroke();
+  }
+}
+
+function drawRubble() {
+  for (const r of rubblePiles) {
+    ctx.fillStyle = '#9d7259';
+    ctx.fillRect(r.x, r.y, r.w, r.h);
+    
+    ctx.strokeStyle = '#6b5036';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(r.x, r.y, r.w, r.h);
+    
+    // Crack texture
+    ctx.strokeStyle = 'rgba(107, 80, 54, .6)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(r.x + 10, r.y);
+    ctx.lineTo(r.x + 35, r.y + r.h);
+    ctx.stroke();
+  }
+}
+
+function drawMud() {
+  ctx.fillStyle = '#8b583f';
+  ctx.fillRect(mudField.x, mudField.y, mudField.w, mudField.h);
+  ctx.strokeStyle = '#efb36c';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(mudField.x, mudField.y, mudField.w, mudField.h);
+  
+  // Bog texture
+  ctx.fillStyle = 'rgba(255, 215, 150, .3)';
+  for (let i = 0; i < 12; i++) {
+    const x = mudField.x + Math.random() * mudField.w;
+    const y = mudField.y + Math.random() * mudField.h;
+    ctx.beginPath();
+    ctx.arc(x, y, 5 + Math.random() * 8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // Slow label
+  ctx.fillStyle = '#fff0c2';
+  ctx.font = 'bold 10px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('DEEP MUD', mudField.x + mudField.w/2, mudField.y - 8);
+  ctx.textAlign = 'left';
+}
+
+function drawBuilding(b) {
+  // Wall
+  ctx.fillStyle = b.type === 'tower' ? '#5a6f73' : '#c99b68';
+  ctx.fillRect(b.x, b.y + 30, b.w, b.h - 30);
+  
+  // Roof
+  ctx.fillStyle = b.roof;
+  ctx.beginPath();
+  ctx.moveTo(b.x - 12, b.y + 30);
+  ctx.lineTo(b.x + b.w/2, b.y - 20);
+  ctx.lineTo(b.x + b.w + 12, b.y + 30);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Door
+  ctx.fillStyle = '#563b2b';
+  const doorW = 18, doorH = 28;
+  const doorX = b.x + b.w/2 - doorW/2;
+  const doorY = b.y + b.h - doorH - 5;
+  ctx.fillRect(doorX, doorY, doorW, doorH);
+  
+  // Door handle
+  ctx.fillStyle = '#d8ba69';
+  ctx.beginPath();
+  ctx.arc(doorX + doorW - 4, doorY + doorH/2, 2, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Window (if cottage)
+  if (b.type === 'cottage') {
+    ctx.fillStyle = '#a8d2dc';
+    ctx.fillRect(b.x + 15, b.y + 40, 16, 14);
+    ctx.strokeStyle = '#7a8a88';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(b.x + 15, b.y + 40, 16, 14);
+    ctx.beginPath();
+    ctx.moveTo(b.x + 23, b.y + 40);
+    ctx.lineTo(b.x + 23, b.y + 54);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(b.x + 15, b.y + 47);
+    ctx.lineTo(b.x + 31, b.y + 47);
+    ctx.stroke();
+  }
+}
+
+function drawTree(t) {
+  const s = t.scale;
+  ctx.fillStyle = '#4c3425';
+  ctx.fillRect(t.x - 3*s, t.y, 6*s, 18*s);
+  ctx.fillStyle = '#496b45';
+  ctx.beginPath();
+  ctx.arc(t.x, t.y - 6*s, 13*s, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#5b7d50';
+  ctx.beginPath();
+  ctx.arc(t.x - 8*s, t.y - 2*s, 9*s, 0, Math.PI*2);
+  ctx.arc(t.x + 8*s, t.y - 2*s, 9*s, 0, Math.PI*2);
+  ctx.fill();
+}
+
+function drawPlayer() {
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,.2)';
+  ctx.beginPath();
+  ctx.ellipse(player.x, player.y + 12, 10, 3, 0, 0, Math.PI*2);
+  ctx.fill();
+  
+  // Head
+  ctx.fillStyle = '#f0e2bd';
+  ctx.beginPath();
+  ctx.arc(player.x, player.y - 8, 8, 0, Math.PI*2);
+  ctx.fill();
+  
+  // Body
+  ctx.fillStyle = '#4c657f';
+  ctx.fillRect(player.x - 8, player.y + 2, 16, 18);
+  
+  // Legs
+  ctx.fillStyle = '#2c241d';
+  ctx.fillRect(player.x - 6, player.y + 19, 5, 8);
+  ctx.fillRect(player.x + 1, player.y + 19, 5, 8);
+}
+
+function draw() {
+  drawGrass();
+  
+  // Draw decorations behind
+  for (const d of decor) {
+    if (d.type === 'tree' && d.y > player.y - 30) {
+      drawTree(d);
+    }
+  }
+  
+  drawWater();
+  drawBridge();
+  drawMud();
+  drawRubble();
+  
+  // Draw buildings
+  for (const b of buildings) {
+    drawBuilding(b);
+  }
+  
+  // Draw decorations in front
+  for (const d of decor) {
+    if (d.type === 'tree' && d.y <= player.y - 30) {
+      drawTree(d);
+    }
+  }
+  
+  drawPlayer();
+  
+  // Goal marker (tower)
+  if (!state.goalReached) {
+    ctx.strokeStyle = 'rgba(216, 186, 105, .4)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.arc(625, 125, 65, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+}
+
+function loop() {
+  state.tick++;
+  movePlayer();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// --- INPUT ---
+addEventListener('keydown', (e) => {
+  const k = e.key.toLowerCase();
+  if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) {
+    keys[k] = true;
+    e.preventDefault();
+  }
+  if (k === 'e') {
+    tryInteract();
+    e.preventDefault();
+  }
+});
+
+addEventListener('keyup', (e) => {
+  const k = e.key.toLowerCase();
+  keys[k] = false;
+});
+
+// Start
+loop();
+</script>
+</body>
+</html>

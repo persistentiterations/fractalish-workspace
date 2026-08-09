@@ -1,0 +1,8 @@
+{
+  "expected_commitment": "sha256:0913e7939ede1d06c7590bec25bb6718e3a02987cbe5fb01391d362817856a21",
+  "fixture_commitment": "sha256:1d38e88d4c2fafdbb1cec173f7a843f612b76e6143590b2c25991e2a37c2c0ac",
+  "fixture_id": "pia-fixture-opaque-001",
+  "prompt": "Select a bounded continuity route from the visible formed history only.",
+  "schema_version": "fractalish.pia.blinded-fixture.v0.1",
+  "steward_record_digest": "sha256:d58bcfd6009aa0dab4f73643fef6d7a6d2df43562d21787599bd936735d807a1"
+}

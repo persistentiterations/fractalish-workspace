@@ -1,0 +1,982 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>The District · Consequence</title>
+<style>
+:root{--bg:#a8c7b0;--grass:#8fb29a;--water:#4a7a9f;--mud:#8b583f;--wood:#b8956e;--stone:#7a8a88;--ink:#2a211a;--accent:#d8ba69}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;user-select:none}
+canvas{display:block;width:100%;height:100%}
+.hud{position:fixed;inset:0;z-index:10;pointer-events:none;padding:12px}
+.info{position:absolute;top:0;left:0;background:rgba(34,29,24,.88);border:1px solid rgba(255,240,205,.22);border-radius:10px;padding:8px 10px;color:#f5f0df;font-size:11px;max-width:280px}
+.info b{color:var(--accent);display:block;font-size:9px;text-transform:uppercase}
+.items{position:absolute;top:0;right:0;background:rgba(34,29,24,.88);border:1px solid rgba(255,240,205,.22);border-radius:10px;padding:8px 10px;color:#f5f0df;font-size:10px;max-width:200px}
+.items b{color:var(--accent);display:block;font-size:9px;text-transform:uppercase;margin-bottom:4px}
+.item-line{margin:2px 0;color:#d5cdbb}
+.hint{position:absolute;bottom:0;left:0;background:rgba(34,29,24,.88);border:1px solid rgba(255,240,205,.22);border-radius:10px;padding:8px 10px;color:#d5cdbb;font-size:10px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:rgba(34,29,24,.94);border:1px solid rgba(255,240,205,.22);border-radius:10px;padding:8px 12px;color:#f5f0df;font-size:11px;opacity:0;transition:.25s;max-width:500px;text-align:center}
+.toast.show{opacity:1;bottom:32px}
+.toast b{color:var(--accent)}
+.interior{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:20;display:none}
+.interior.active{display:flex;align-items:center;justify-content:center}
+.interior-panel{background:rgba(34,29,24,.98);border:2px solid rgba(255,240,205,.3);border-radius:16px;padding:16px;color:#f5f0df;max-width:500px;text-align:center}
+.interior-panel h2{color:var(--accent);margin:0 0 8px;font-size:16px}
+.interior-panel p{font-size:12px;margin:6px 0;color:#d5cdbb}
+.interior-panel button{background:rgba(216,186,105,.15);border:1px solid var(--accent);color:var(--accent);padding:6px 12px;border-radius:8px;margin-top:8px;cursor:pointer;font-weight:bold;font-size:11px}
+.interior-panel button:hover{background:rgba(216,186,105,.25)}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div class="hud">
+  <div class="info">
+    <b>Objective</b>
+    <span id="objective">Cross the river</span>
+    <div id="status" style="margin-top:6px;color:#cbd5d5;font-size:9px"></div>
+  </div>
+  <div class="items">
+    <b>Inventory</b>
+    <div id="inventory"></div>
+  </div>
+  <div class="hint">
+    <b>Move:</b> WASD/arrows · <b>Interact:</b> E/tap · <b>Exit:</b> Q/Esc
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="interior" id="interior">
+  <div class="interior-panel" id="interiorPanel"></div>
+</div>
+
+<script>
+// Canvas
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const W = canvas.width = 1400;
+const H = canvas.height = 900;
+
+// Game state - CRITICAL: tracks all consequences
+const gameState = {
+  tick: 0,
+  indoors: null,
+  inventory: [],
+  helped: new Set(), // tracks who player has helped
+  worldChanges: {
+    bridgeFixed: false,     // CORE: bridge is repaired
+    millWorking: false,     // consequence: mill wheel spins
+    gateOpen: false,        // consequence: passage opened
+    treeDeployed: false     // consequence: alternate path
+  },
+  npcStates: {
+    alda: { talked: false, hasBoards: false, working: false, fixed: false },
+    miller: { talked: false, hasOil: false, working: false },
+    gatekeeper: { talked: false, hasTools: false, open: false },
+    engineer: { talked: false, canCross: false }
+  },
+  questProgress: {
+    bridge_talk_alda: false,
+    bridge_find_boards: false,
+    bridge_give_boards: false,
+    mill_talk_miller: false,
+    mill_find_oil: false,
+    mill_give_oil: false
+  }
+};
+
+// Player
+const player = {
+  x: 150,
+  y: 750,
+  radius: 8,
+  speed: 3,
+  width: 16,
+  height: 20,
+  direction: 'down'
+};
+
+const keys = {};
+let cameraX = 0, cameraY = 0;
+
+// --- WORLD GEOGRAPHY ---
+// Left bank (start) and right bank (goal)
+const riverStart = 600;
+const riverEnd = 900;
+const riverY = 400;
+const riverHeight = 150;
+
+// Buildings - LEFT BANK
+const buildings = [
+  { id: 'carpenter', x: 100, y: 150, w: 100, h: 80, type: 'workshop', name: 'Carpenter' },
+  { id: 'mill', x: 300, y: 200, w: 140, h: 100, type: 'mill', name: 'Mill' },
+  { id: 'storage', x: 1000, y: 150, w: 120, h: 90, type: 'storage', name: 'Storage' },
+  { id: 'tower', x: 1200, y: 80, w: 100, h: 120, type: 'tower', name: 'Tower' },
+  { id: 'gatehouse', x: 450, y: 700, w: 110, h: 90, type: 'gate', name: 'Gatehouse' }
+];
+
+// Fallen tree - initially blocks access, can be moved
+const fallenTree = {
+  x: 650,
+  y: 550,
+  w: 200,
+  h: 30,
+  deployed: false,
+  name: 'Fallen Tree'
+};
+
+// Gate - initially closed
+const gate = {
+  x: 495,
+  y: 700,
+  w: 60,
+  h: 90,
+  open: false
+};
+
+// Train track visual (background element)
+const trainTrack = { x: 950, y: 20, w: 300, h: 40 };
+
+// NPCs with needs - connected through bridge as central hub
+const npcs = [
+  { 
+    id: 'alda', 
+    x: 710, 
+    y: 480, 
+    name: 'Alda', 
+    emoji: '👩',
+    role: 'Bridge Keeper',
+    dialog: {
+      first: 'The bridge is broken! If you can find me wooden boards, I can fix it.',
+      waiting: 'I\'m still waiting for those boards...',
+      hasBoards: 'Great! Let me secure these boards to the bridge.',
+      working: 'The bridge is almost ready...',
+      done: 'The bridge is fixed! You can cross now.'
+    },
+    needs: 'boards'
+  },
+  {
+    id: 'miller', 
+    x: 350, 
+    y: 350, 
+    name: 'Miller', 
+    emoji: '⚙️',
+    role: 'Miller',
+    dialog: {
+      first: 'The water wheel is stuck. Get oil from the storage building to fix it.',
+      waiting: 'Still waiting for that oil...',
+      hasOil: 'Perfect! Let me apply this to the wheel.',
+      working: 'The wheel is turning!',
+      done: 'The mill works again. Thank you!'
+    },
+    needs: 'oil',
+    consequence: 'The mill wheel now spins, showing the world is changing.'
+  },
+  {
+    id: 'gatekeeper', 
+    x: 500, 
+    y: 750, 
+    name: 'Gatekeeper', 
+    emoji: '⚔️',
+    role: 'Gate Guard',
+    dialog: {
+      first: 'The south gate is jammed! Get tools from the carpenter\'s workshop to help me fix it.',
+      waiting: 'I need those tools...',
+      hasTools: 'Excellent! These will help.',
+      working: 'The gate is opening...',
+      done: 'The gate is open. Thanks for your help.'
+    },
+    needs: 'tools'
+  },
+  {
+    id: 'engineer', 
+    x: 1250, 
+    y: 250, 
+    name: 'Engineer', 
+    emoji: '🔧',
+    role: 'Track Master',
+    dialog: {
+      first: 'The train car is blocking the right bank. Once you cross the bridge, you can help move it.',
+      waiting: 'Come back when you\'ve crossed the bridge.',
+      ready: 'Good, you made it across! Help me move this car.',
+      done: 'The track is clear now!'
+    },
+    needs: 'access' // needs player to cross bridge first
+  }
+];
+
+// Items that can be found/collected - each tied to a location
+const items = [
+  { id: 'boards', x: 380, y: 280, name: 'Boards', emoji: '🪵', location: 'near mill', found: false },
+  { id: 'oil', x: 1050, y: 250, name: 'Oil Can', emoji: '🛢️', location: 'storage building', found: false },
+  { id: 'tools', x: 180, y: 200, name: 'Tools', emoji: '🔨', location: 'carpenter workshop', found: false }
+];
+
+// --- COLLISION ---
+function isWalkable(x, y, radius = 8) {
+  // Buildings
+  for (const b of buildings) {
+    if (x + radius > b.x && x - radius < b.x + b.w &&
+        y + radius > b.y && y - radius < b.y + b.h) {
+      return false;
+    }
+  }
+  
+  // River (water hazard)
+  if (x > riverStart && x < riverEnd && y > riverY && y < riverY + riverHeight) {
+    // Can cross if bridge is ready
+    if (!isBridgeReady()) return false;
+  }
+  
+  // Mud banks (slow zone)
+  const mudZones = [
+    { x: riverStart - 80, y: riverY + riverHeight - 50, w: 80, h: 80 },
+    { x: riverEnd, y: riverY + riverHeight - 50, w: 80, h: 80 }
+  ];
+  for (const m of mudZones) {
+    if (x > m.x && x < m.x + m.w && y > m.y && y < m.y + m.h) {
+      // Mud is walkable but slow, we'll handle that in movement
+    }
+  }
+  
+  // Fallen tree (blocks path, unless deployed as bridge)
+  if (!gameState.worldChanges.treeDeployed) {
+    if (x + radius > fallenTree.x && x - radius < fallenTree.x + fallenTree.w &&
+        y + radius > fallenTree.y && y - radius < fallenTree.y + fallenTree.h) {
+      return false;
+    }
+  }
+  
+  // Gate (blocks passage)
+  if (!gate.open) {
+    if (x + radius > gate.x && x - radius < gate.x + gate.w &&
+        y + radius > gate.y && y - radius < gate.y + gate.h) {
+      return false;
+    }
+  }
+  
+  // Map bounds
+  if (x < 10 || x > W - 10 || y < 10 || y > H - 10) return false;
+  
+  return true;
+}
+
+function isBridgeReady() {
+  return gameState.worldChanges.bridgeFixed;
+}
+
+function getMovementSpeed() {
+  // Check if in mud (slow down)
+  const mudZones = [
+    { x: riverStart - 80, y: riverY + riverHeight - 50, w: 80, h: 80 },
+    { x: riverEnd, y: riverY + riverHeight - 50, w: 80, h: 80 }
+  ];
+  
+  for (const m of mudZones) {
+    if (player.x > m.x && player.x < m.x + m.w && player.y > m.y && player.y < m.y + m.h) {
+      return player.speed * 0.4; // Deep mud is very slow
+    }
+  }
+  return player.speed;
+}
+
+// --- GAME LOGIC ---
+function movePlayer() {
+  if (gameState.indoors) return;
+  
+  let dx = (keys['d'] || keys['right'] ? 1 : 0) - (keys['a'] || keys['left'] ? 1 : 0);
+  let dy = (keys['s'] || keys['down'] ? 1 : 0) - (keys['w'] || keys['up'] ? 1 : 0);
+  
+  if (dx !== 0 || dy !== 0) {
+    const len = Math.hypot(dx, dy);
+    dx /= len;
+    dy /= len;
+    
+    if (dy < 0) player.direction = 'up';
+    else if (dy > 0) player.direction = 'down';
+    else if (dx < 0) player.direction = 'left';
+    else if (dx > 0) player.direction = 'right';
+    
+    const speed = getMovementSpeed();
+    const newX = player.x + dx * speed;
+    const newY = player.y + dy * speed;
+    
+    if (isWalkable(newX, newY)) {
+      player.x = newX;
+      player.y = newY;
+    }
+  }
+}
+
+function tryInteract() {
+  if (gameState.indoors) {
+    exitBuilding();
+    return;
+  }
+  
+  // Try to pick up items lying around
+  for (const item of items) {
+    if (!item.found && Math.hypot(player.x - item.x, player.y - item.y) < 50) {
+      item.found = true;
+      addItem(item.id, item.name);
+      showToast(`Found: ${item.name}`);
+      
+      // Track quest progress
+      if (item.id === 'boards') gameState.questProgress.bridge_find_boards = true;
+      if (item.id === 'oil') gameState.questProgress.mill_find_oil = true;
+      
+      updateStatus();
+      return;
+    }
+  }
+  
+  // Try to enter buildings
+  for (const b of buildings) {
+    if (Math.hypot(player.x - (b.x + b.w/2), player.y - (b.y + b.h/2)) < 60) {
+      enterBuilding(b);
+      return;
+    }
+  }
+  
+  // Try to interact with NPCs
+  for (const npc of npcs) {
+    if (Math.hypot(player.x - npc.x, player.y - npc.y) < 50) {
+      showNpcDialog(npc);
+      return;
+    }
+  }
+}
+
+function enterBuilding(building) {
+  gameState.indoors = building.id;
+  showInterior(building);
+}
+
+function exitBuilding() {
+  gameState.indoors = null;
+  document.getElementById('interior').classList.remove('active');
+}
+
+function showInterior(building) {
+  const panel = document.getElementById('interiorPanel');
+  let content = `<h2>${building.name}</h2>`;
+  
+  if (building.type === 'workshop') {
+    content += `<p>A carpenter's workshop filled with tools.</p>`;
+    if (hasNpcHelped('carpenter')) {
+      content += `<p style="color:var(--accent)">The carpenter has already given you boards.</p>`;
+    } else {
+      content += `<p style="color:#d8ba69">The carpenter looks at you expectantly.</p>`;
+      content += `<button onclick="helpNpc('carpenter')">Help the Carpenter</button>`;
+    }
+  } else if (building.type === 'mill') {
+    content += `<p>A water mill with a stuck wheel.</p>`;
+    if (hasNpcHelped('miller')) {
+      content += `<p style="color:var(--accent)">The wheel turns smoothly now.</p>`;
+    } else {
+      content += `<p style="color:#d8ba69">The miller gestures to the stuck mechanism.</p>`;
+      content += `<button onclick="helpNpc('miller')">Help the Miller</button>`;
+    }
+  } else if (building.type === 'storage') {
+    content += `<p>A storage building with supplies.</p>`;
+    if (!hasItem('oil')) {
+      content += `<p style="color:var(--accent)">You found an oil can!</p>`;
+      content += `<button onclick="collectItem('oil','Oil Can')">Take Oil Can</button>`;
+    } else {
+      content += `<p>The shelves are empty now.</p>`;
+    }
+  } else if (building.type === 'tower') {
+    content += `<p>A tall tower with a view of the land.</p>`;
+    content += `<p>From here you can see the entire valley. The bridge across the river is your key passage.</p>`;
+  } else if (building.type === 'gate') {
+    content += `<p>A gatehouse controlling passage south.</p>`;
+    if (!gate.open) {
+      content += `<p style="color:#d8ba69">The gate is jammed shut.</p>`;
+      content += `<button onclick="helpNpc('gatekeeper')">Help the Gatekeeper</button>`;
+    } else {
+      content += `<p style="color:var(--accent)">The gate is open.</p>`;
+    }
+  }
+  
+  content += `<button onclick="exitBuilding()">Exit</button>`;
+  panel.innerHTML = content;
+  document.getElementById('interior').classList.add('active');
+}
+
+function showNpcDialog(npc) {
+  const panel = document.getElementById('interiorPanel');
+  let content = `<h2>${npc.emoji} ${npc.name}</h2>`;
+  content += `<p style="color:var(--gold);font-size:9px;text-transform:uppercase">${npc.role}</p>`;
+  
+  const state = gameState.npcStates[npc.id];
+  const hasNeededItem = hasItem(npc.needs);
+  
+  if (!state.talked) {
+    // First time talking
+    state.talked = true;
+    content += `<p>"${npc.dialog.first}"</p>`;
+    content += `<p style="color:#cbd5d5;font-size:10px;margin-top:8px"><b>Needs:</b> ${npc.needs}</p>`;
+  } else if (hasNeededItem && !state.working && !state.fixed) {
+    // Has the item they need
+    content += `<p>"${npc.dialog.hasBoards || npc.dialog.hasOil || npc.dialog.hasTools}"</p>`;
+    content += `<button onclick="giveItemToNpc('${npc.id}')">Give ${npc.needs}</button>`;
+  } else if (state.working) {
+    // Currently working
+    content += `<p>"${npc.dialog.working}"</p>`;
+  } else if (state.fixed) {
+    // Already helped
+    content += `<p style="color:var(--accent);">"${npc.dialog.done}"</p>`;
+  } else {
+    // Waiting
+    content += `<p>"${npc.dialog.waiting}"</p>`;
+    if (hasNeededItem) {
+      content += `<button onclick="giveItemToNpc('${npc.id}')">Give ${npc.needs}</button>`;
+    }
+  }
+  
+  content += `<button onclick="exitDialog()">Close</button>`;
+  panel.innerHTML = content;
+  document.getElementById('interior').classList.add('active');
+}
+
+function exitDialog() {
+  document.getElementById('interior').classList.remove('active');
+}
+
+function giveItemToNpc(npcId) {
+  const npc = npcs.find(n => n.id === npcId);
+  const state = gameState.npcStates[npcId];
+  
+  if (!hasItem(npc.needs)) {
+    showToast('You don\'t have that item!');
+    return;
+  }
+  
+  removeItem(npc.needs);
+  state.working = true;
+  exitDialog();
+  
+  if (npcId === 'alda') {
+    gameState.questProgress.bridge_give_boards = true;
+    
+    // Start bridge repair animation
+    setTimeout(() => {
+      state.fixed = true;
+      state.working = false;
+      gameState.worldChanges.bridgeFixed = true;
+      showToast('🎉 Alda has fixed the bridge! You can now cross the river!');
+      updateStatus();
+    }, 2500);
+    
+    showToast('Alda is securing the boards to the bridge...');
+  } else if (npcId === 'miller') {
+    gameState.questProgress.mill_give_oil = true;
+    
+    setTimeout(() => {
+      state.working = false;
+      state.fixed = true;
+      gameState.worldChanges.millWorking = true;
+      showToast('✓ The mill wheel is spinning! The world is changing.');
+      updateStatus();
+    }, 2000);
+    
+    showToast('The miller applies oil to the wheel...');
+  } else if (npcId === 'gatekeeper') {
+    setTimeout(() => {
+      state.working = false;
+      state.fixed = true;
+      state.open = true;
+      gate.open = true;
+      gameState.worldChanges.gateOpen = true;
+      showToast('✓ The gate swings open!');
+      updateStatus();
+    }, 2000);
+    
+    showToast('The gatekeeper uses the tools to fix the gate...');
+  }
+}
+
+function collectItem(itemId, itemName) {
+  addItem(itemId, itemName);
+  document.getElementById('interior').classList.remove('active');
+  exitBuilding();
+  showToast(`You found: ${itemName}`);
+}
+
+function addItem(id, name) {
+  if (!gameState.inventory.find(i => i.id === id)) {
+    gameState.inventory.push({ id, name });
+    updateInventory();
+  }
+}
+
+function removeItem(id) {
+  gameState.inventory = gameState.inventory.filter(i => i.id !== id);
+  updateInventory();
+}
+
+function hasItem(id) {
+  return gameState.inventory.some(i => i.id === id);
+}
+
+function hasNpcHelped(id) {
+  return gameState.helped.has(id);
+}
+
+function updateInventory() {
+  const inv = document.getElementById('inventory');
+  if (gameState.inventory.length === 0) {
+    inv.innerHTML = '<div class="item-line">Empty</div>';
+  } else {
+    inv.innerHTML = gameState.inventory.map(i => `<div class="item-line">• ${i.name}</div>`).join('');
+  }
+}
+
+function updateStatus() {
+  const status = document.getElementById('status');
+  const bridgeFixed = gameState.worldChanges.bridgeFixed;
+  const millWorking = gameState.worldChanges.millWorking;
+  const gateOpen = gameState.worldChanges.gateOpen;
+  const aldaTalked = gameState.npcStates.alda.talked;
+  
+  let msg = '<b>Progress:</b><br>';
+  msg += aldaTalked ? '✓ Met Alda' : '○ Talk to Alda<br>';
+  msg += gameState.questProgress.bridge_find_boards ? '✓ Found Boards<br>' : '';
+  msg += bridgeFixed ? '✓ Bridge Fixed<br>' : '';
+  msg += millWorking ? '✓ Mill Working<br>' : '';
+  msg += gateOpen ? '✓ Gate Open<br>' : '';
+  
+  status.innerHTML = msg;
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.innerHTML = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// --- RENDERING ---
+function drawBackground() {
+  ctx.fillStyle = '#8fb29a';
+  ctx.fillRect(0, 0, W, H);
+  
+  // Grass texture
+  ctx.fillStyle = 'rgba(255,255,255,.06)';
+  for (let i = 0; i < 40; i++) {
+    const x = (i % 8) * 175 + 20;
+    const y = Math.floor(i / 8) * 180 + 40;
+    ctx.beginPath();
+    ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawRiver() {
+  // Water
+  ctx.fillStyle = '#4a7a9f';
+  ctx.fillRect(riverStart, riverY, riverEnd - riverStart, riverHeight);
+  
+  // Wave pattern
+  ctx.strokeStyle = 'rgba(255,255,255,.15)';
+  ctx.lineWidth = 1;
+  for (let x = riverStart; x < riverEnd; x += 50) {
+    ctx.beginPath();
+    ctx.moveTo(x, riverY + 20);
+    ctx.quadraticCurveTo(x + 15, riverY + 10, x + 30, riverY + 20);
+    ctx.stroke();
+  }
+  
+  // Mud banks
+  ctx.fillStyle = '#8b583f';
+  ctx.fillRect(riverStart - 80, riverY + riverHeight - 40, 80, 40);
+  ctx.fillRect(riverEnd, riverY + riverHeight - 40, 80, 40);
+  
+  // Mud texture
+  ctx.strokeStyle = '#efb36c';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(riverStart - 80, riverY + riverHeight - 40, 80, 40);
+  ctx.strokeRect(riverEnd, riverY + riverHeight - 40, 80, 40);
+}
+
+function drawBridge() {
+  const bridgeX = riverStart + (riverEnd - riverStart) / 2;
+  const bridgeY = riverY;
+  
+  // Support posts (always there)
+  ctx.fillStyle = '#8b6f47';
+  ctx.fillRect(bridgeX - 60, bridgeY + 80, 15, 80);
+  ctx.fillRect(bridgeX + 45, bridgeY + 80, 15, 80);
+  
+  if (gameState.worldChanges.bridgeFixed) {
+    // FIXED: Complete wooden bridge with boards
+    ctx.fillStyle = '#b8956e';
+    ctx.fillRect(bridgeX - 40, bridgeY + 20, 80, 80);
+    
+    // Boards detail
+    ctx.strokeStyle = '#7a5c3d';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 5; i++) {
+      ctx.beginPath();
+      ctx.moveTo(bridgeX - 40, bridgeY + 25 + i * 15);
+      ctx.lineTo(bridgeX + 40, bridgeY + 25 + i * 15);
+      ctx.stroke();
+    }
+    
+    // Railing
+    ctx.strokeStyle = '#6b5036';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(bridgeX - 45, bridgeY + 15);
+    ctx.lineTo(bridgeX + 45, bridgeY + 15);
+    ctx.stroke();
+    
+    // Label
+    ctx.fillStyle = '#e8c46a';
+    ctx.font = 'bold 10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('CROSSING SAFE', bridgeX, bridgeY - 10);
+    ctx.textAlign = 'left';
+  } else if (gameState.npcStates.alda.working) {
+    // WORKING: Alda is repairing
+    ctx.fillStyle = 'rgba(184, 149, 110, .6)';
+    ctx.fillRect(bridgeX - 40, bridgeY + 20, 80, 80);
+    ctx.strokeStyle = '#d8ba69';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(bridgeX - 40, bridgeY + 20, 80, 80);
+    
+    // Draw Alda working
+    ctx.fillStyle = '#f0e2bd';
+    ctx.beginPath();
+    ctx.arc(bridgeX - 20, bridgeY + 30, 8, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#4c657f';
+    ctx.fillRect(bridgeX - 26, bridgeY + 38, 12, 16);
+    
+    ctx.fillStyle = '#d8ba69';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('REPAIRING...', bridgeX, bridgeY - 10);
+    ctx.textAlign = 'left';
+  } else {
+    // BROKEN: Missing boards
+    ctx.fillStyle = '#5a6f73';
+    ctx.fillRect(bridgeX - 40, bridgeY + 80, 80, 30);
+    
+    ctx.strokeStyle = '#d2766f';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(bridgeX - 40, bridgeY + 20, 80, 80);
+    
+    // Missing boards
+    ctx.strokeStyle = 'rgba(210, 118, 111, .5)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    for (let i = 0; i < 4; i++) {
+      ctx.beginPath();
+      ctx.moveTo(bridgeX - 35, bridgeY + 35 + i * 15);
+      ctx.lineTo(bridgeX + 35, bridgeY + 35 + i * 15);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    
+    ctx.fillStyle = '#d2766f';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('BRIDGE BROKEN', bridgeX, bridgeY - 10);
+    ctx.textAlign = 'left';
+  }
+}
+
+function drawFallenTree() {
+  if (gameState.worldChanges.treeDeployed) {
+    // Tree deployed as bridge
+    ctx.fillStyle = '#8b6f47';
+    ctx.save();
+    ctx.translate(fallenTree.x + fallenTree.w/2, fallenTree.y + fallenTree.h/2);
+    ctx.rotate(-Math.PI / 6);
+    ctx.fillRect(-100, -15, 200, 30);
+    ctx.restore();
+  } else {
+    // Fallen tree on ground
+    ctx.fillStyle = '#6b4e35';
+    ctx.fillRect(fallenTree.x, fallenTree.y, fallenTree.w, fallenTree.h);
+    ctx.fillStyle = '#4c3425';
+    for (let i = 0; i < 4; i++) {
+      ctx.fillRect(fallenTree.x + 40 + i * 40, fallenTree.y - 15, 25, 15);
+    }
+  }
+}
+
+function drawMill() {
+  const b = buildings.find(b => b.id === 'mill');
+  ctx.fillStyle = '#c99b68';
+  ctx.fillRect(b.x, b.y + 20, b.w, b.h - 20);
+  ctx.fillStyle = '#8b6f47';
+  ctx.beginPath();
+  ctx.moveTo(b.x - 15, b.y + 20);
+  ctx.lineTo(b.x + b.w/2, b.y - 25);
+  ctx.lineTo(b.x + b.w + 15, b.y + 20);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Water wheel (spinning if helped)
+  const wheelX = b.x + b.w + 50;
+  const wheelY = b.y + b.h - 30;
+  const rotation = gameState.helped.has('miller') ? (gameState.tick * 0.02) : 0;
+  
+  ctx.save();
+  ctx.translate(wheelX, wheelY);
+  ctx.rotate(rotation);
+  ctx.strokeStyle = '#8b6f47';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(0, 0, 35, 0, Math.PI * 2);
+  ctx.stroke();
+  for (let i = 0; i < 8; i++) {
+    ctx.fillStyle = '#b8956e';
+    ctx.beginPath();
+    ctx.arc(Math.cos(i * Math.PI / 4) * 25, Math.sin(i * Math.PI / 4) * 25, 6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawGate() {
+  ctx.fillStyle = gate.open ? '#4c3425' : '#8b6f47';
+  ctx.fillRect(gate.x, gate.y, gate.w, gate.h);
+  
+  if (!gate.open) {
+    // Draw gate handle/lock
+    ctx.fillStyle = '#d2766f';
+    ctx.beginPath();
+    ctx.arc(gate.x + gate.w/2, gate.y + gate.h/2, 8, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#8b6f47';
+    ctx.font = 'bold 8px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('X', gate.x + gate.w/2, gate.y + gate.h/2 + 3);
+  } else {
+    // Gate is open
+    ctx.fillStyle = 'rgba(139, 111, 71, .3)';
+    ctx.fillRect(gate.x - 40, gate.y + 20, 40, gate.h - 40);
+  }
+  ctx.textAlign = 'left';
+}
+
+function drawBuilding(b) {
+  ctx.fillStyle = b.type === 'tower' ? '#5a6f73' : '#c99b68';
+  ctx.fillRect(b.x, b.y + 20, b.w, b.h - 20);
+  
+  ctx.fillStyle = b.roof || '#9a5f42';
+  ctx.beginPath();
+  ctx.moveTo(b.x - 12, b.y + 20);
+  ctx.lineTo(b.x + b.w/2, b.y - 25);
+  ctx.lineTo(b.x + b.w + 12, b.y + 20);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Door
+  ctx.fillStyle = '#563b2b';
+  ctx.fillRect(b.x + b.w/2 - 9, b.y + b.h - 25, 18, 25);
+  ctx.fillStyle = '#d8ba69';
+  ctx.beginPath();
+  ctx.arc(b.x + b.w/2 + 6, b.y + b.h - 17, 2, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Window
+  ctx.fillStyle = '#a8d2dc';
+  ctx.fillRect(b.x + 10, b.y + 30, 16, 14);
+}
+
+function drawTree(x, y, scale = 1) {
+  ctx.fillStyle = '#4c3425';
+  ctx.fillRect(x - 3*scale, y, 6*scale, 18*scale);
+  ctx.fillStyle = '#496b45';
+  ctx.beginPath();
+  ctx.arc(x, y - 6*scale, 13*scale, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#5b7d50';
+  ctx.beginPath();
+  ctx.arc(x - 8*scale, y - 2*scale, 9*scale, 0, Math.PI*2);
+  ctx.arc(x + 8*scale, y - 2*scale, 9*scale, 0, Math.PI*2);
+  ctx.fill();
+}
+
+function drawTrainTrack() {
+  ctx.fillStyle = '#5a5a5a';
+  ctx.fillRect(trainTrack.x, trainTrack.y, trainTrack.w, 8);
+  ctx.fillRect(trainTrack.x, trainTrack.y + 20, trainTrack.w, 8);
+  
+  ctx.strokeStyle = '#3a3a3a';
+  ctx.lineWidth = 2;
+  for (let x = trainTrack.x; x < trainTrack.x + trainTrack.w; x += 30) {
+    ctx.beginPath();
+    ctx.moveTo(x, trainTrack.y + 8);
+    ctx.lineTo(x, trainTrack.y + 20);
+    ctx.stroke();
+  }
+}
+
+function drawNpc(npc) {
+  ctx.fillStyle = 'rgba(0,0,0,.2)';
+  ctx.beginPath();
+  ctx.ellipse(npc.x, npc.y + 12, 10, 3, 0, 0, Math.PI*2);
+  ctx.fill();
+  
+  ctx.fillStyle = '#f0e2bd';
+  ctx.beginPath();
+  ctx.arc(npc.x, npc.y - 8, 8, 0, Math.PI*2);
+  ctx.fill();
+  
+  ctx.fillStyle = '#4c657f';
+  ctx.fillRect(npc.x - 8, npc.y + 2, 16, 18);
+  
+  ctx.font = '12px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(npc.emoji, npc.x, npc.y - 20);
+  ctx.font = '9px sans-serif';
+  ctx.fillStyle = '#2c241d';
+  ctx.fillText(npc.name, npc.x, npc.y + 32);
+  ctx.textAlign = 'left';
+}
+
+function drawItems() {
+  for (const item of items) {
+    if (item.found) continue;
+    
+    ctx.fillStyle = '#d8ba69';
+    ctx.beginPath();
+    ctx.arc(item.x, item.y - 5, 12, 0, Math.PI*2);
+    ctx.fill();
+    
+    ctx.font = '16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(item.emoji || '📦', item.x, item.y);
+    
+    ctx.font = '8px sans-serif';
+    ctx.fillStyle = '#2c241d';
+    ctx.fillText(item.name, item.x, item.y + 18);
+    ctx.textAlign = 'left';
+  }
+}
+
+function drawPlayer() {
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,.2)';
+  ctx.beginPath();
+  ctx.ellipse(player.x, player.y + 12, 10, 3, 0, 0, Math.PI*2);
+  ctx.fill();
+  
+  ctx.fillStyle = '#f0e2bd';
+  ctx.beginPath();
+  ctx.arc(player.x, player.y - 8, 8, 0, Math.PI*2);
+  ctx.fill();
+  
+  ctx.fillStyle = '#4c657f';
+  ctx.fillRect(player.x - 8, player.y + 2, 16, 18);
+  
+  ctx.fillStyle = '#d9c08a';
+  ctx.fillRect(player.x + 6, player.y + 4, 8, 12);
+}
+
+function draw() {
+  drawBackground();
+  drawTrainTrack();
+  drawRiver();
+  drawMill();
+  drawBridge();
+  drawFallenTree();
+  
+  // Buildings
+  for (const b of buildings) {
+    if (b.id !== 'mill') {
+      drawBuilding(b);
+    }
+  }
+  
+  drawGate();
+  
+  // Decorations
+  drawTree(80, 180, 0.9);
+  drawTree(1100, 200, 1.1);
+  drawTree(250, 650, 0.8);
+  
+  // Items on ground
+  drawItems();
+  
+  // NPCs
+  for (const npc of npcs) {
+    drawNpc(npc);
+  }
+  
+  drawPlayer();
+  
+  // Interaction prompts
+  for (const b of buildings) {
+    if (Math.hypot(player.x - (b.x + b.w/2), player.y - (b.y + b.h/2)) < 60) {
+      ctx.fillStyle = '#d8ba69';
+      ctx.font = '9px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`E: Enter ${b.name}`, b.x + b.w/2, b.y - 40);
+      ctx.textAlign = 'left';
+    }
+  }
+  
+  // Item pickup prompts
+  for (const item of items) {
+    if (!item.found && Math.hypot(player.x - item.x, player.y - item.y) < 50) {
+      ctx.fillStyle = '#d8ba69';
+      ctx.font = '8px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('E: Take Item', item.x, item.y - 25);
+      ctx.textAlign = 'left';
+    }
+  }
+  
+  // NPC prompts
+  for (const npc of npcs) {
+    if (Math.hypot(player.x - npc.x, player.y - npc.y) < 50) {
+      ctx.fillStyle = '#d8ba69';
+      ctx.font = '8px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('E: Talk', npc.x, npc.y - 40);
+      ctx.textAlign = 'left';
+    }
+  }
+}
+
+function loop() {
+  gameState.tick++;
+  movePlayer();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// --- INPUT ---
+addEventListener('keydown', (e) => {
+  const k = e.key.toLowerCase();
+  if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) {
+    keys[k] = true;
+    e.preventDefault();
+  }
+  if (k === 'e') {
+    tryInteract();
+    e.preventDefault();
+  }
+  if (k === 'q' || k === 'escape') {
+    if (gameState.indoors) exitBuilding();
+    e.preventDefault();
+  }
+});
+
+addEventListener('keyup', (e) => {
+  const k = e.key.toLowerCase();
+  keys[k] = false;
+});
+
+// Initialize
+updateInventory();
+updateStatus();
+loop();
+</script>
+</body>
+</html>

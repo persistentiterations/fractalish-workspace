@@ -1,0 +1,117 @@
+{
+  "generated_at": "2026-06-18T16:35:00-04:00",
+  "canonical_repository_path": "C:/Users/moop/cognitive-basin-platform",
+  "locks": [
+    {
+      "branch": "build/memory-governance-codex",
+      "worktree_path": "C:/Users/moop/Cognitive-Basin-Worktrees/build-memory-governance-codex",
+      "owner": "Codex",
+      "status": "merged",
+      "scope": [
+        "python/cognitive_basin/**",
+        "python/basinlab/memory_map.py",
+        "python/basinlab/team_narrative.py",
+        "python/ephux_local/service.py",
+        "tests/test_memory_governance.py",
+        "tests/test_basinlab_memory_layers.py",
+        "tests/test_ephux_local_api.py",
+        "tests/test_*package_layout.py",
+        "ops/coordination/**",
+        "ops/verification/main-baseline-8e4e1c8/**",
+        "ops/manifests/capability-registry.json"
+      ],
+      "notes": "Memory governance tranche plus exact-main CI repair for cross-platform clean-venv tests."
+    },
+    {
+      "branch": "build/connectors-cloudflare-readiness-codex",
+      "worktree_path": "C:/Users/moop/Cognitive-Basin-Worktrees/build-connectors-cloudflare-readiness-codex",
+      "owner": "Codex",
+      "status": "merged",
+      "scope": [
+        "python/cognitive_basin/connectors/**",
+        "python/cognitive_basin/authority/**",
+        "python/ephux_local/**",
+        "apps/ephux-local-ui/**",
+        "tests/test_connector*",
+        "tests/test_action_permit*",
+        "tests/test_ephux_local_api.py",
+        "tests/test_cognitive_basin_acceptance.py",
+        "ops/coordination/**",
+        "ops/manifests/capability-registry.json"
+      ],
+      "notes": "Merged connector tranche for connector contracts, external action authority, Cloudflare-readiness code, connector acceptance suites, and connector-related EphUX UI."
+    },
+    {
+      "branch": "build/operational-consciousness-kernel-codex",
+      "worktree_path": "C:/Users/moop/Cognitive-Basin-Worktrees/build-operational-consciousness-kernel-codex",
+      "owner": "Codex",
+      "status": "merged",
+      "scope": [
+        "python/cognitive_basin/consciousness/**",
+        "python/consciousness_lab/**",
+        "consciousness_lab/**",
+        "python/ephux_local/**",
+        "apps/ephux-local-ui/**",
+        "python/evaluation_lab/**",
+        "tests/test_consciousness*",
+        "tests/test_ephux_local_api.py",
+        "tests/test_cognitive_basin_acceptance.py",
+        "tests/test_cognitive_basin_package_layout.py",
+        "tests/test_evaluation_lab_acceptance.py",
+        "ops/coordination/**",
+        "ops/manifests/capability-registry.json"
+      ],
+      "notes": "Merged owner for operational consciousness kernel, percept/workspace/attention/self-model/continuity/purpose/counterfactual/metacognition/episode layers, EphUX product surface, and consciousness acceptance."
+    },
+    {
+      "branch": "build/predictive-world-interoception-codex",
+      "worktree_path": "C:/Users/moop/Cognitive-Basin-Worktrees/build-predictive-world-interoception-codex",
+      "owner": "Codex",
+      "status": "active",
+      "scope": [
+        "python/cognitive_basin/consciousness/**",
+        "python/cognitive_basin/world_model/**",
+        "python/cognitive_basin/prediction/**",
+        "python/cognitive_basin/interoception/**",
+        "python/cognitive_basin/boundaries/**",
+        "python/cognitive_basin/causality/**",
+        "python/cognitive_basin/learning/**",
+        "python/cognitive_basin/perspectives/**",
+        "python/cognitive_basin/planning/**",
+        "python/cognitive_basin/rehearsal/**",
+        "python/cognitive_basin/anomalies/**",
+        "python/cognitive_basin/calibration/**",
+        "python/predictive_cognition/**",
+        "predictive_cognition/**",
+        "python/ephux_local/**",
+        "apps/ephux-local-ui/**",
+        "python/evaluation_lab/**",
+        "tests/test_connectors.py",
+        "tests/test_consciousness*",
+        "tests/test_predictive_cognition_acceptance.py",
+        "tests/test_ephux_local_api.py",
+        "tests/test_cognitive_basin_acceptance.py",
+        "tests/test_cognitive_basin_package_layout.py",
+        "tests/test_evaluation_lab_acceptance.py",
+        "ops/coordination/**",
+        "ops/verification/consciousness-baseline-6ad5715/**",
+        "ops/manifests/capability-registry.json",
+        ".github/workflows/ci.yml"
+      ],
+      "notes": "Active owner for predictive world model, machine interoception, causal learning, perspective architecture, skipped-test closure, and workflow-runtime warning repair."
+    },
+    {
+      "branch": "build/client-provider-security-release-codex",
+      "worktree_path": "C:/Users/moop/Cognitive-Basin-Worktrees/build-client-provider-security-release-codex",
+      "owner": "reserved",
+      "status": "pending",
+      "scope": [
+        "apps/**",
+        "python/ephux_local/**",
+        "release/**",
+        "security/**"
+      ],
+      "notes": "Reserved flat worktree path for later tranche; do not start until the memory-governance branch is settled."
+    }
+  ]
+}

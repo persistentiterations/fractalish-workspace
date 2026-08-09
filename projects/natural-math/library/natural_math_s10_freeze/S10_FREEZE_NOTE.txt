@@ -1,0 +1,102 @@
+NATURAL MATH v6.18 — STAGE 10 FREEZE NOTE
+============================================
+
+Stage 10 is frozen as a completed diagnostic stage.
+
+The purpose of Stage 10 was to identify and stabilize the 20x20 maze
+boundary, not to exhaustively prove every remaining seed. The completed
+ledger is sufficient to classify the boundary and move forward.
+
+FINAL TESTED STATE
+------------------
+Ledger rows completed: 330/450
+Passing rows: 329/330
+
+By fixture:
+  F1_close_original: 150/150 pass (complete)
+  F2_close_swapped:  150/150 pass (complete)
+  F3_close_corner:    29/30 pass  (30 rows run, 120 remaining)
+
+Only known failure:
+  F3_close_corner, seed=2, R=5
+  ScoutRC=0, AuditOut=DEAD_END
+  Classification: NO_SCOUT_CYCLE / discovery failure
+  Reason: No scout completed a B-route under R=5. No learned B-route
+          existed for the audit to read. This is not an audit-reader
+          failure after learning and not follower contamination.
+
+STAGE 10 FINDINGS
+-----------------
+1. The corrected control base works under tested conditions.
+2. The ledger runner was smoke-tested end-to-end.
+3. Follower contamination was not confirmed in the completed ledger.
+4. Audit failure after successful scout discovery was not confirmed as a
+   remaining blocker in the completed ledger.
+5. Low-R discovery failure remains an expected boundary condition.
+6. Dense learned trail graphs and local readability remain documented
+   concerns for future investigation.
+7. Scream/warning interaction remains a caveat if future work reopens
+   this stage.
+
+KNOWN CAVEAT
+------------
+The analyzer reported ScreamOnSuccessEdges total=24 during the partial
+ledger run. This was traced to 12 passing rows with 2 contaminated edges
+each. The contamination is small, bounded, and did not cause any failures.
+It was not fully resolved before tool budget ended. It is recorded as an
+analyzer/ledger caveat rather than a blocker to freezing Stage 10.
+
+Root cause of residual contamination:
+  - Scream is written during scout exploration (when cycles are detected)
+  - Success edges are registered AFTER the scout completes the cycle
+  - The immunity check prevents FUTURE writes on success edges but does
+    not retroactively remove scream written before success was recorded
+  - Fix options: (a) accept as known residual, (b) add retroactive cleanup
+    after each scout cycle, (c) add per-scout success tracking
+
+CORRECTIONS APPLIED TO S10-5 BASELINE
+---------------------------------------
+1. AUDIT_TIMEOUT = MAX_STEPS = 500
+   Reason: Old timeout of 200 was shorter than actual 20x20 route lengths.
+
+2. Success-edge write immunity in write_scream_edge:
+   If an edge is in scout_success_edges_out or scout_success_edges_home,
+   do not write cycle-scream onto that edge.
+   Reason: Prevents recontamination death spiral where later scouts
+   write scream onto edges proven successful by earlier scouts.
+
+FREEZE DECISION
+---------------
+Stage 10 is complete enough to proceed. The remaining 120 unrun rows are
+optional extension validation, not required for the next stage.
+
+REOPEN CONDITION
+----------------
+Stage 10 should only be reopened if a future model requires:
+- Full 450-row exhaustive validation
+- Direct classification/resolution of ScreamOnSuccessEdges=24
+- A new route-shaping mechanism
+- A non-maze proof-of-concept exposes the same failure in a smaller
+  setting
+
+NEXT STEP
+---------
+Stop maze testing. Preserve the code, ledger, and freeze note.
+Move to a smaller non-maze proof-of-concept model.
+
+SHORT VERSION FOR ANOTHER AI
+----------------------------
+Do not continue Stage 10 maze testing unless explicitly asked.
+Stage 10 is frozen as diagnostic-complete at 330/450 ledger rows,
+329/330 passing. F1 and F2 are fully complete at 150/150 each.
+The only known failure is F3 seed=2 R=5 with ScoutRC=0, classified as
+discovery failure, not audit failure. Remaining rows are optional.
+Preserve caveats and move to the smallest non-maze proof-of-concept.
+
+FILES PRESERVED
+---------------
+- s10_control_base.py      : Corrected S10-5 baseline with 2 patches
+- run_s10_ledger.py        : Ledger runner with deduplication
+- analyze_s10_ledger.py    : Ledger analyzer
+- s10_9_exact_ledger.csv   : 330 completed rows
+- S10_FREEZE_NOTE.txt      : This file

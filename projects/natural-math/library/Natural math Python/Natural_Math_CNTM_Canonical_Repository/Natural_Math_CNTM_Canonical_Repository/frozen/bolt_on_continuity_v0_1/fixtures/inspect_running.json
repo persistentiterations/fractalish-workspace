@@ -1,0 +1,12 @@
+[
+  {
+    "Id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "Name": "/example-service",
+    "State": {
+      "Status": "running",
+      "Health": {
+        "Status": "healthy"
+      }
+    }
+  }
+]

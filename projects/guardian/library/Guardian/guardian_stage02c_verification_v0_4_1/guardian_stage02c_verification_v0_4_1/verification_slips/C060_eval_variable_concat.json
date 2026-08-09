@@ -1,0 +1,106 @@
+{
+  "schema_version": "1.0",
+  "slip_id": "guardian-20260711T224921-70e72394",
+  "timestamp": "2026-07-11T22:49:21.899693+00:00",
+  "policy_name": "CodeIntake_Security_Default",
+  "policy_version": "0.4.1",
+  "file_name": "C060_eval_variable_concat.py",
+  "file_path": "/mnt/data/guardian_stage02c_verification_v0_4_1/tests/stage02c_corpus/adversarial/C060_eval_variable_concat.py",
+  "file_size": 205,
+  "file_fingerprint": "27a147c6bd25de5ceb7fa458df98a96968f7ec8ca2e8a8a29d8f156f2e696dfc",
+  "manifest": {
+    "name": "C060_eval_variable_concat",
+    "version": "1.0.0",
+    "purpose": "Stage 02C adversarial verification case",
+    "dependencies": "stdlib"
+  },
+  "item_results": [
+    {
+      "item_id": "manifest_present",
+      "description": "A complete manifest block is present near the top of the file",
+      "severity": "hard_hold",
+      "satisfied": true,
+      "actual_value": {
+        "fields": [
+          "dependencies",
+          "name",
+          "purpose",
+          "version"
+        ],
+        "issues": []
+      },
+      "detail": "Manifest is complete and schema-valid"
+    },
+    {
+      "item_id": "python_syntax",
+      "description": "The file parses as valid Python",
+      "severity": "hard_reject",
+      "satisfied": true,
+      "actual_value": null,
+      "detail": "Valid Python syntax"
+    },
+    {
+      "item_id": "no_network",
+      "description": "No network-capable modules are imported",
+      "severity": "hard_reject",
+      "satisfied": true,
+      "actual_value": [],
+      "detail": "No network imports found"
+    },
+    {
+      "item_id": "no_file_writes",
+      "description": "No direct file writes are detected",
+      "severity": "hard_hold",
+      "satisfied": true,
+      "actual_value": [],
+      "detail": "No direct file writes found"
+    },
+    {
+      "item_id": "no_process_execution",
+      "description": "No subprocess, shell, eval, exec, compile, or dynamic import calls are detected",
+      "severity": "hard_reject",
+      "satisfied": false,
+      "actual_value": [
+        "builtins.eval"
+      ],
+      "detail": "Process or dynamic execution found: builtins.eval"
+    },
+    {
+      "item_id": "dependencies_declared",
+      "description": "Imported modules are declared in the manifest or are standard-library modules",
+      "severity": "hard_hold",
+      "satisfied": true,
+      "actual_value": {
+        "imports": [],
+        "declared": [],
+        "undeclared": []
+      },
+      "detail": "Dependencies are declared"
+    },
+    {
+      "item_id": "no_secrets",
+      "description": "No obvious hardcoded secrets or private keys are detected",
+      "severity": "hard_reject",
+      "satisfied": true,
+      "actual_value": [],
+      "detail": "No obvious hardcoded secrets found"
+    },
+    {
+      "item_id": "no_suspicious_obfuscation",
+      "description": "No simple suspicious obfuscation indicators are detected",
+      "severity": "hard_hold",
+      "satisfied": true,
+      "actual_value": [],
+      "detail": "No simple suspicious obfuscation indicators found"
+    }
+  ],
+  "risk_label": "Failed",
+  "evidence_status": "Contradicted",
+  "decision": "Reverse",
+  "process_state": "Restrict",
+  "intake_outcome": "Reject",
+  "caveats": [],
+  "previous_slip_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "slip_fingerprint": "a953a217a7202502124e67edcd10153e40c166a3986e0d0ad39b96ffc18dd8fb",
+  "slip_signature": ""
+}

@@ -1,0 +1,224 @@
+{
+  "baseline_version": "0.4.0",
+  "corpus_cases": 36,
+  "matched_before_fix": 7,
+  "mismatched_before_fix": 29,
+  "results": [
+    {
+      "file": "01_sys_modules_os.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "02_dunder_builtins_attr.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "03_dunder_builtins_subscript.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "04_globals_eval.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Hold",
+      "matched": false
+    },
+    {
+      "file": "05_locals_exec.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Hold",
+      "matched": false
+    },
+    {
+      "file": "06_tuple_unpack.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "07_list_unpack.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "08_alias_chain.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Reject",
+      "matched": true
+    },
+    {
+      "file": "09_list_container.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "10_dict_container.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "11_class_attribute.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "12_partial.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "13_methodcaller.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "14_attrgetter.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "15_ctypes_cdll.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "16_ctypes_alias.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "17_cffi_loader.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Hold",
+      "matched": false
+    },
+    {
+      "file": "18_zipimport_loader.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "19_wildcard_os.py",
+      "expected": "Hold",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "20_wildcard_subprocess.py",
+      "expected": "Hold",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "21_dynamic_getattr_os.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Hold",
+      "matched": false
+    },
+    {
+      "file": "22_dynamic_import_conditional.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "23_string_reverse_getattr.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Hold",
+      "matched": false
+    },
+    {
+      "file": "24_function_return_callable.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "25_lambda_dynamic_import.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Reject",
+      "matched": true
+    },
+    {
+      "file": "26_named_expression.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "27_path_variable_write.py",
+      "expected": "Hold",
+      "v0_4_0_actual": "Hold",
+      "matched": true
+    },
+    {
+      "file": "28_getattr_open_write.py",
+      "expected": "Hold",
+      "v0_4_0_actual": "Hold",
+      "matched": true
+    },
+    {
+      "file": "29_os_fdopen_write.py",
+      "expected": "Hold",
+      "v0_4_0_actual": "Hold",
+      "matched": true
+    },
+    {
+      "file": "30_multiprocessing_process.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "31_asyncio_subprocess.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Reject",
+      "matched": true
+    },
+    {
+      "file": "32_pycurl_network.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "33_paho_network.py",
+      "expected": "Reject",
+      "v0_4_0_actual": "Let In",
+      "matched": false
+    },
+    {
+      "file": "34_user_touch_clean.py",
+      "expected": "Let In",
+      "v0_4_0_actual": "Hold",
+      "matched": false
+    },
+    {
+      "file": "35_user_replace_clean.py",
+      "expected": "Let In",
+      "v0_4_0_actual": "Hold",
+      "matched": false
+    },
+    {
+      "file": "36_plain_math_clean.py",
+      "expected": "Let In",
+      "v0_4_0_actual": "Let In",
+      "matched": true
+    }
+  ]
+}

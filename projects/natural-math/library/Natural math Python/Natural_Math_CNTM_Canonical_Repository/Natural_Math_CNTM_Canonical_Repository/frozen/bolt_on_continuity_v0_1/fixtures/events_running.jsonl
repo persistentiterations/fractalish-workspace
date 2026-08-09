@@ -1,0 +1,2 @@
+{"Action": "start", "Actor": {"Attributes": {"name": "example-service"}, "ID": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}, "Type": "container", "time": 1700000000}
+{"Action": "health_status: healthy", "Actor": {"Attributes": {"name": "example-service"}, "ID": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}, "Type": "container", "time": 1700000005}

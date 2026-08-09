@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bonacqui.example/schemas/bolt-on-continuity/gateway-decision-1.json",
+  "title": "Host-Owned Gateway Decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "container_id",
+    "requested_action",
+    "decision",
+    "reason_code",
+    "decided_at",
+    "decision_digest"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 128
+    },
+    "container_id": {
+      "type": "string",
+      "minLength": 12,
+      "maxLength": 128
+    },
+    "requested_action": {
+      "enum": [
+        "HOLD",
+        "RELEASE"
+      ]
+    },
+    "decision": {
+      "enum": [
+        "ACCEPTED",
+        "REJECTED"
+      ]
+    },
+    "reason_code": {
+      "enum": [
+        "VALIDATED",
+        "MALFORMED",
+        "UNAUTHORIZED",
+        "WRONG_SUBJECT",
+        "STALE",
+        "EXPIRED",
+        "DUPLICATE",
+        "TAMPERED",
+        "UNSUPPORTED_ACTION",
+        "UNSUPPORTED_STATE",
+        "AMBIGUOUS",
+        "DEPENDENCY_UNAVAILABLE"
+      ]
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "decision_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  }
+}

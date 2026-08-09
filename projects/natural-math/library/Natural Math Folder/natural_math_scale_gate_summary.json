@@ -1,0 +1,359 @@
+{
+  "suite": "Natural Math v5 scale gates",
+  "spec_path": "C:\\Users\\big_b\\Downloads\\Natural Math v5 - Status Frozen Int.txt",
+  "spec_sha256": "E5AB47D41B82F6AF573866BE637BF3B0054D96C7F45A613EC6CAE2124AD84C7B",
+  "seeds": [
+    0,
+    49
+  ],
+  "seed_count": 50,
+  "step_sweep": [
+    0,
+    1,
+    35,
+    70,
+    140,
+    210,
+    300
+  ],
+  "parameter_variants": {
+    "damage_energy_loss": [
+      7000,
+      21000
+    ],
+    "resource_absorb_rate": [
+      7000,
+      21000
+    ],
+    "decay_cost": [
+      110,
+      440
+    ],
+    "move_cost": [
+      150,
+      600
+    ],
+    "rest_gain": [
+      110,
+      440
+    ],
+    "repair_cost": [
+      175,
+      700
+    ],
+    "max_bonds": [
+      2,
+      6
+    ],
+    "world_size": [
+      15,
+      35
+    ]
+  },
+  "seed_sweep_summary": [
+    {
+      "variant": "default",
+      "runs": 50,
+      "passes": 50,
+      "pass_rate_num": 50,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 44542,
+      "resource_reached_count": 50,
+      "failure_counts": {}
+    }
+  ],
+  "steps_sweep_summary": [
+    {
+      "steps": "0",
+      "runs": 50,
+      "passes": 0,
+      "pass_rate_num": 0,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 55034,
+      "resource_reached_count": 0,
+      "failure_counts": {
+        "resource_reached=False": 50,
+        "success_distance_passed=False": 50
+      }
+    },
+    {
+      "steps": "1",
+      "runs": 50,
+      "passes": 0,
+      "pass_rate_num": 0,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 54514,
+      "resource_reached_count": 0,
+      "failure_counts": {
+        "resource_reached=False": 50,
+        "success_distance_passed=False": 50
+      }
+    },
+    {
+      "steps": "35",
+      "runs": 50,
+      "passes": 42,
+      "pass_rate_num": 42,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 44963,
+      "resource_reached_count": 50,
+      "failure_counts": {
+        "component_count!=1": 7,
+        "success_distance_passed=False": 1
+      }
+    },
+    {
+      "steps": "70",
+      "runs": 50,
+      "passes": 50,
+      "pass_rate_num": 50,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 44542,
+      "resource_reached_count": 50,
+      "failure_counts": {}
+    },
+    {
+      "steps": "140",
+      "runs": 50,
+      "passes": 50,
+      "pass_rate_num": 50,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 44542,
+      "resource_reached_count": 50,
+      "failure_counts": {}
+    },
+    {
+      "steps": "210",
+      "runs": 50,
+      "passes": 50,
+      "pass_rate_num": 50,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 44542,
+      "resource_reached_count": 50,
+      "failure_counts": {}
+    },
+    {
+      "steps": "300",
+      "runs": 50,
+      "passes": 50,
+      "pass_rate_num": 50,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 44542,
+      "resource_reached_count": 50,
+      "failure_counts": {}
+    }
+  ],
+  "parameter_sensitivity_summary": [
+    {
+      "variant": "max_bonds=2",
+      "runs": 50,
+      "passes": 7,
+      "pass_rate_num": 7,
+      "pass_rate_den": 50,
+      "average_alive_count": 26,
+      "average_average_energy": 31317,
+      "resource_reached_count": 50,
+      "failure_counts": {
+        "average_energy<38000": 22,
+        "success_distance_passed=False": 35,
+        "alive_count<24": 13
+      }
+    },
+    {
+      "variant": "max_bonds=6",
+      "runs": 50,
+      "passes": 50,
+      "pass_rate_num": 50,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 45274,
+      "resource_reached_count": 50,
+      "failure_counts": {}
+    },
+    {
+      "variant": "move_cost=150",
+      "runs": 50,
+      "passes": 50,
+      "pass_rate_num": 50,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 47277,
+      "resource_reached_count": 50,
+      "failure_counts": {}
+    },
+    {
+      "variant": "move_cost=600",
+      "runs": 50,
+      "passes": 30,
+      "pass_rate_num": 30,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 39508,
+      "resource_reached_count": 50,
+      "failure_counts": {
+        "average_energy<38000": 20,
+        "success_distance_passed=False": 6
+      }
+    },
+    {
+      "variant": "rest_gain=110",
+      "runs": 50,
+      "passes": 0,
+      "pass_rate_num": 0,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 31927,
+      "resource_reached_count": 50,
+      "failure_counts": {
+        "average_energy<38000": 50
+      }
+    },
+    {
+      "variant": "rest_gain=440",
+      "runs": 50,
+      "passes": 50,
+      "pass_rate_num": 50,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 69528,
+      "resource_reached_count": 50,
+      "failure_counts": {}
+    },
+    {
+      "variant": "world_size=15",
+      "runs": 50,
+      "passes": 49,
+      "pass_rate_num": 49,
+      "pass_rate_den": 50,
+      "average_alive_count": 29,
+      "average_average_energy": 48999,
+      "resource_reached_count": 50,
+      "failure_counts": {
+        "average_energy<38000": 1
+      }
+    },
+    {
+      "variant": "world_size=35",
+      "runs": 50,
+      "passes": 24,
+      "pass_rate_num": 24,
+      "pass_rate_den": 50,
+      "average_alive_count": 29,
+      "average_average_energy": 39688,
+      "resource_reached_count": 50,
+      "failure_counts": {
+        "success_distance_passed=False": 19,
+        "alive_count<24": 1,
+        "average_energy<38000": 8
+      }
+    },
+    {
+      "variant": "decay_cost=110",
+      "runs": 50,
+      "passes": 50,
+      "pass_rate_num": 50,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 60154,
+      "resource_reached_count": 50,
+      "failure_counts": {}
+    },
+    {
+      "variant": "decay_cost=440",
+      "runs": 50,
+      "passes": 0,
+      "pass_rate_num": 0,
+      "pass_rate_den": 50,
+      "average_alive_count": 27,
+      "average_average_energy": 14562,
+      "resource_reached_count": 50,
+      "failure_counts": {
+        "average_energy<38000": 50,
+        "success_distance_passed=False": 8,
+        "alive_count<24": 7
+      }
+    },
+    {
+      "variant": "repair_cost=175",
+      "runs": 50,
+      "passes": 50,
+      "pass_rate_num": 50,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 44629,
+      "resource_reached_count": 50,
+      "failure_counts": {}
+    },
+    {
+      "variant": "repair_cost=700",
+      "runs": 50,
+      "passes": 50,
+      "pass_rate_num": 50,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 44377,
+      "resource_reached_count": 50,
+      "failure_counts": {}
+    },
+    {
+      "variant": "damage_energy_loss=7000",
+      "runs": 50,
+      "passes": 50,
+      "pass_rate_num": 50,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 51824,
+      "resource_reached_count": 50,
+      "failure_counts": {}
+    },
+    {
+      "variant": "damage_energy_loss=21000",
+      "runs": 50,
+      "passes": 26,
+      "pass_rate_num": 26,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 37895,
+      "resource_reached_count": 50,
+      "failure_counts": {
+        "average_energy<38000": 24,
+        "success_distance_passed=False": 1
+      }
+    },
+    {
+      "variant": "resource_absorb_rate=7000",
+      "runs": 50,
+      "passes": 50,
+      "pass_rate_num": 50,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 45307,
+      "resource_reached_count": 50,
+      "failure_counts": {}
+    },
+    {
+      "variant": "resource_absorb_rate=21000",
+      "runs": 50,
+      "passes": 50,
+      "pass_rate_num": 50,
+      "pass_rate_den": 50,
+      "average_alive_count": 30,
+      "average_average_energy": 44208,
+      "resource_reached_count": 50,
+      "failure_counts": {}
+    }
+  ],
+  "artifacts": {
+    "seed_sweep_csv": "C:\\Users\\big_b\\Documents\\Codex\\2026-06-22\\we\\outputs\\natural_math_scale_gate_seed_sweep.csv",
+    "steps_sweep_csv": "C:\\Users\\big_b\\Documents\\Codex\\2026-06-22\\we\\outputs\\natural_math_scale_gate_steps_sweep.csv",
+    "parameter_sensitivity_csv": "C:\\Users\\big_b\\Documents\\Codex\\2026-06-22\\we\\outputs\\natural_math_scale_gate_parameter_sensitivity.csv"
+  }
+}

@@ -1,0 +1,595 @@
+{
+  "suite": "Natural Math v5 Scale Gate 4 threshold mapping",
+  "spec_path": "C:\\Users\\big_b\\Downloads\\Natural Math v5 - Status Frozen Int.txt",
+  "spec_sha256": "E5AB47D41B82F6AF573866BE637BF3B0054D96C7F45A613EC6CAE2124AD84C7B",
+  "seeds": [
+    0,
+    49
+  ],
+  "seed_count": 50,
+  "steps": 140,
+  "threshold_maps": {
+    "rest_gain": [
+      80,
+      110,
+      140,
+      170,
+      200,
+      220,
+      260,
+      300,
+      360,
+      440
+    ],
+    "decay_cost": [
+      110,
+      160,
+      220,
+      280,
+      340,
+      400,
+      440
+    ],
+    "max_bonds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "world_size": [
+      15,
+      25,
+      35,
+      45,
+      60
+    ],
+    "damage_energy_loss": [
+      7000,
+      14000,
+      17000,
+      21000,
+      25000
+    ],
+    "move_cost": [
+      150,
+      300,
+      450,
+      600,
+      750
+    ]
+  },
+  "summary": [
+    {
+      "parameter": "damage_energy_loss",
+      "value": 7000,
+      "runs": 50,
+      "passes": 50,
+      "pass_rate": "50/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 51824,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {}
+    },
+    {
+      "parameter": "damage_energy_loss",
+      "value": 14000,
+      "runs": 50,
+      "passes": 50,
+      "pass_rate": "50/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 44542,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {}
+    },
+    {
+      "parameter": "damage_energy_loss",
+      "value": 17000,
+      "runs": 50,
+      "passes": 47,
+      "pass_rate": "47/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 41632,
+      "resource_reached": 50,
+      "success_distance_passed": 49,
+      "failure_counts": {
+        "average_energy<38000": 3,
+        "success_distance_passed=False": 1
+      }
+    },
+    {
+      "parameter": "damage_energy_loss",
+      "value": 21000,
+      "runs": 50,
+      "passes": 26,
+      "pass_rate": "26/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 37895,
+      "resource_reached": 50,
+      "success_distance_passed": 49,
+      "failure_counts": {
+        "average_energy<38000": 24,
+        "success_distance_passed=False": 1
+      }
+    },
+    {
+      "parameter": "damage_energy_loss",
+      "value": 25000,
+      "runs": 50,
+      "passes": 2,
+      "pass_rate": "2/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 34013,
+      "resource_reached": 50,
+      "success_distance_passed": 49,
+      "failure_counts": {
+        "average_energy<38000": 48,
+        "success_distance_passed=False": 1
+      }
+    },
+    {
+      "parameter": "decay_cost",
+      "value": 110,
+      "runs": 50,
+      "passes": 50,
+      "pass_rate": "50/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 60154,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {}
+    },
+    {
+      "parameter": "decay_cost",
+      "value": 160,
+      "runs": 50,
+      "passes": 50,
+      "pass_rate": "50/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 53044,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {}
+    },
+    {
+      "parameter": "decay_cost",
+      "value": 220,
+      "runs": 50,
+      "passes": 50,
+      "pass_rate": "50/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 44542,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {}
+    },
+    {
+      "parameter": "decay_cost",
+      "value": 280,
+      "runs": 50,
+      "passes": 15,
+      "pass_rate": "15/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 35932,
+      "resource_reached": 50,
+      "success_distance_passed": 49,
+      "failure_counts": {
+        "average_energy<38000": 35,
+        "success_distance_passed=False": 1
+      }
+    },
+    {
+      "parameter": "decay_cost",
+      "value": 340,
+      "runs": 50,
+      "passes": 0,
+      "pass_rate": "0/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 27651,
+      "resource_reached": 50,
+      "success_distance_passed": 48,
+      "failure_counts": {
+        "average_energy<38000": 50,
+        "success_distance_passed=False": 2
+      }
+    },
+    {
+      "parameter": "decay_cost",
+      "value": 400,
+      "runs": 50,
+      "passes": 0,
+      "pass_rate": "0/50",
+      "avg_alive_count": 29,
+      "avg_average_energy": 19435,
+      "resource_reached": 50,
+      "success_distance_passed": 45,
+      "failure_counts": {
+        "average_energy<38000": 50,
+        "success_distance_passed=False": 5
+      }
+    },
+    {
+      "parameter": "decay_cost",
+      "value": 440,
+      "runs": 50,
+      "passes": 0,
+      "pass_rate": "0/50",
+      "avg_alive_count": 27,
+      "avg_average_energy": 14562,
+      "resource_reached": 50,
+      "success_distance_passed": 42,
+      "failure_counts": {
+        "average_energy<38000": 50,
+        "success_distance_passed=False": 8,
+        "alive_count<24": 7
+      }
+    },
+    {
+      "parameter": "max_bonds",
+      "value": 1,
+      "runs": 50,
+      "passes": 0,
+      "pass_rate": "0/50",
+      "avg_alive_count": 0,
+      "avg_average_energy": 0,
+      "resource_reached": 0,
+      "success_distance_passed": 0,
+      "failure_counts": {
+        "alive_count<24": 50,
+        "component_count!=1": 50,
+        "average_energy<38000": 50,
+        "resource_reached=False": 50,
+        "success_distance_passed=False": 50
+      }
+    },
+    {
+      "parameter": "max_bonds",
+      "value": 2,
+      "runs": 50,
+      "passes": 7,
+      "pass_rate": "7/50",
+      "avg_alive_count": 26,
+      "avg_average_energy": 31317,
+      "resource_reached": 50,
+      "success_distance_passed": 15,
+      "failure_counts": {
+        "average_energy<38000": 22,
+        "success_distance_passed=False": 35,
+        "alive_count<24": 13
+      }
+    },
+    {
+      "parameter": "max_bonds",
+      "value": 3,
+      "runs": 50,
+      "passes": 41,
+      "pass_rate": "41/50",
+      "avg_alive_count": 29,
+      "avg_average_energy": 42019,
+      "resource_reached": 50,
+      "success_distance_passed": 43,
+      "failure_counts": {
+        "average_energy<38000": 3,
+        "success_distance_passed=False": 7,
+        "alive_count<24": 1
+      }
+    },
+    {
+      "parameter": "max_bonds",
+      "value": 4,
+      "runs": 50,
+      "passes": 50,
+      "pass_rate": "50/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 44542,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {}
+    },
+    {
+      "parameter": "max_bonds",
+      "value": 5,
+      "runs": 50,
+      "passes": 50,
+      "pass_rate": "50/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 45050,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {}
+    },
+    {
+      "parameter": "max_bonds",
+      "value": 6,
+      "runs": 50,
+      "passes": 50,
+      "pass_rate": "50/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 45274,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {}
+    },
+    {
+      "parameter": "move_cost",
+      "value": 150,
+      "runs": 50,
+      "passes": 50,
+      "pass_rate": "50/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 47277,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {}
+    },
+    {
+      "parameter": "move_cost",
+      "value": 300,
+      "runs": 50,
+      "passes": 50,
+      "pass_rate": "50/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 44542,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {}
+    },
+    {
+      "parameter": "move_cost",
+      "value": 450,
+      "runs": 50,
+      "passes": 43,
+      "pass_rate": "43/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 42001,
+      "resource_reached": 50,
+      "success_distance_passed": 49,
+      "failure_counts": {
+        "average_energy<38000": 6,
+        "success_distance_passed=False": 1
+      }
+    },
+    {
+      "parameter": "move_cost",
+      "value": 600,
+      "runs": 50,
+      "passes": 30,
+      "pass_rate": "30/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 39508,
+      "resource_reached": 50,
+      "success_distance_passed": 44,
+      "failure_counts": {
+        "average_energy<38000": 20,
+        "success_distance_passed=False": 6
+      }
+    },
+    {
+      "parameter": "move_cost",
+      "value": 750,
+      "runs": 50,
+      "passes": 25,
+      "pass_rate": "25/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 37050,
+      "resource_reached": 50,
+      "success_distance_passed": 41,
+      "failure_counts": {
+        "average_energy<38000": 25,
+        "success_distance_passed=False": 9
+      }
+    },
+    {
+      "parameter": "rest_gain",
+      "value": 80,
+      "runs": 50,
+      "passes": 0,
+      "pass_rate": "0/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 28558,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {
+        "average_energy<38000": 50
+      }
+    },
+    {
+      "parameter": "rest_gain",
+      "value": 110,
+      "runs": 50,
+      "passes": 0,
+      "pass_rate": "0/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 31927,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {
+        "average_energy<38000": 50
+      }
+    },
+    {
+      "parameter": "rest_gain",
+      "value": 140,
+      "runs": 50,
+      "passes": 6,
+      "pass_rate": "6/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 35281,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {
+        "average_energy<38000": 44
+      }
+    },
+    {
+      "parameter": "rest_gain",
+      "value": 170,
+      "runs": 50,
+      "passes": 28,
+      "pass_rate": "28/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 38679,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {
+        "average_energy<38000": 22
+      }
+    },
+    {
+      "parameter": "rest_gain",
+      "value": 200,
+      "runs": 50,
+      "passes": 47,
+      "pass_rate": "47/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 42182,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {
+        "average_energy<38000": 3
+      }
+    },
+    {
+      "parameter": "rest_gain",
+      "value": 220,
+      "runs": 50,
+      "passes": 50,
+      "pass_rate": "50/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 44542,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {}
+    },
+    {
+      "parameter": "rest_gain",
+      "value": 260,
+      "runs": 50,
+      "passes": 50,
+      "pass_rate": "50/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 49067,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {}
+    },
+    {
+      "parameter": "rest_gain",
+      "value": 300,
+      "runs": 50,
+      "passes": 50,
+      "pass_rate": "50/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 53604,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {}
+    },
+    {
+      "parameter": "rest_gain",
+      "value": 360,
+      "runs": 50,
+      "passes": 50,
+      "pass_rate": "50/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 60424,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {}
+    },
+    {
+      "parameter": "rest_gain",
+      "value": 440,
+      "runs": 50,
+      "passes": 50,
+      "pass_rate": "50/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 69528,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {}
+    },
+    {
+      "parameter": "world_size",
+      "value": 15,
+      "runs": 50,
+      "passes": 49,
+      "pass_rate": "49/50",
+      "avg_alive_count": 29,
+      "avg_average_energy": 48999,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {
+        "average_energy<38000": 1
+      }
+    },
+    {
+      "parameter": "world_size",
+      "value": 25,
+      "runs": 50,
+      "passes": 50,
+      "pass_rate": "50/50",
+      "avg_alive_count": 30,
+      "avg_average_energy": 44542,
+      "resource_reached": 50,
+      "success_distance_passed": 50,
+      "failure_counts": {}
+    },
+    {
+      "parameter": "world_size",
+      "value": 35,
+      "runs": 50,
+      "passes": 24,
+      "pass_rate": "24/50",
+      "avg_alive_count": 29,
+      "avg_average_energy": 39688,
+      "resource_reached": 50,
+      "success_distance_passed": 31,
+      "failure_counts": {
+        "success_distance_passed=False": 19,
+        "alive_count<24": 1,
+        "average_energy<38000": 8
+      }
+    },
+    {
+      "parameter": "world_size",
+      "value": 45,
+      "runs": 50,
+      "passes": 12,
+      "pass_rate": "12/50",
+      "avg_alive_count": 22,
+      "avg_average_energy": 29647,
+      "resource_reached": 39,
+      "success_distance_passed": 17,
+      "failure_counts": {
+        "average_energy<38000": 17,
+        "success_distance_passed=False": 33,
+        "alive_count<24": 13,
+        "component_count!=1": 11,
+        "resource_reached=False": 11
+      }
+    },
+    {
+      "parameter": "world_size",
+      "value": 60,
+      "runs": 50,
+      "passes": 0,
+      "pass_rate": "0/50",
+      "avg_alive_count": 12,
+      "avg_average_energy": 16195,
+      "resource_reached": 21,
+      "success_distance_passed": 1,
+      "failure_counts": {
+        "alive_count<24": 29,
+        "component_count!=1": 29,
+        "average_energy<38000": 33,
+        "resource_reached=False": 29,
+        "success_distance_passed=False": 49
+      }
+    }
+  ],
+  "csv": "C:\\Users\\big_b\\Documents\\Codex\\2026-06-22\\we\\outputs\\natural_math_scale_gate_4_threshold_mapping.csv"
+}

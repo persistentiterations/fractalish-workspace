@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Eracii Arena: Clash of Legends</title>
+<style>
+:root{
+  --bg:#080c13;--panel:#121a27;--panel2:#182334;--line:#334158;
+  --text:#f4eedf;--muted:#aab4c5;--gold:#e3bb67;--blue:#4f8ce8;
+  --red:#d26272;--green:#77d497;--orange:#ed9b51;--purple:#a887e2;
+  --tile:#172231;--tile2:#1c293b;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{
+  background:radial-gradient(circle at 12% 0,#182b4b 0,transparent 32rem),
+  radial-gradient(circle at 90% 8%,#44232f 0,transparent 30rem),var(--bg);
+  color:var(--text);font:14px/1.35 Inter,Segoe UI,system-ui,sans-serif;
+}
+button{font:inherit}
+.app{width:100vw;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+.topbar{
+  flex:0 0 46px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  padding:5px 12px;border-bottom:1px solid var(--line);background:#080c13ec;
+}
+.brand{font-weight:900;letter-spacing:.17em;font-size:12px}.brand b,.round{color:var(--gold)}
+.round{text-align:center;font-weight:850}.top-actions{text-align:right}
+.btn,.icon-btn,.action{
+  border:1px solid var(--line);border-radius:9px;background:#182538;color:var(--text);
+  cursor:pointer;font-weight:750;
+}
+.btn{padding:9px 13px}.icon-btn{padding:6px 9px;font-size:12px}
+button:hover:not(:disabled){border-color:var(--gold);transform:translateY(-1px)}
+button:disabled{opacity:.3;cursor:not-allowed;transform:none}
+.primary{background:var(--gold);border-color:var(--gold);color:#171208}
+.screen{display:none;flex:1;min-height:0}.screen.active{display:flex}
+.panel{
+  background:linear-gradient(145deg,var(--panel),var(--panel2));
+  border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 50px #0008;
+}
+
+/* selection */
+#selectScreen{align-items:center;justify-content:center;padding:12px;overflow:auto}
+.select-box{width:min(920px,96vw);max-height:calc(100dvh - 65px);overflow:auto;padding:18px}
+.select-box h1{font:700 clamp(26px,4vw,46px)/1.02 Georgia,serif;text-align:center;margin:0 0 7px}
+.select-box>p{text-align:center;color:var(--muted);margin:0 0 14px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.card{
+  background:#101722;color:var(--text);border:1px solid var(--line);border-radius:12px;
+  padding:10px;text-align:left;cursor:pointer
+}
+.card.selected{outline:2px solid var(--gold)}
+.avatar{height:70px;border-radius:9px;background:radial-gradient(circle at 50% 20%,#425c7d,#1b2636 60%,#0d121a);display:grid;place-items:center;font:700 28px Georgia,serif;margin-bottom:7px}
+.card-name{font:700 17px Georgia,serif}.role,.small{font-size:11px;color:var(--muted)}
+.style{font-size:11px;margin-top:5px;color:#dbe2ec;min-height:40px}
+.chip{display:inline-block;margin-top:6px;background:#0c131e;padding:4px 6px;border-radius:6px;font-size:10px;color:var(--green)}
+.select-footer{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:13px}
+
+/* game */
+#gameScreen{flex-direction:column;padding:5px 8px 7px;gap:5px}
+.fighter-strip{
+  flex:0 0 55px;display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;padding:5px 9px
+}
+.fighter{display:flex;align-items:center;gap:8px;min-width:0}
+.fighter.enemy{flex-direction:row-reverse;text-align:right}
+.face{width:40px;height:40px;border-radius:9px;display:grid;place-items:center;flex:none;border:2px solid #fff9;background:#305e9d;font:700 17px Georgia,serif}
+.enemy .face{background:#7d3441}
+.fname{font:700 15px Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stats{display:flex;gap:7px;flex-wrap:wrap;font-size:10px;color:var(--muted)}
+.enemy .stats{justify-content:flex-end}.stats b{color:var(--text)}.vs{color:var(--gold);font-weight:900}
+.play{flex:1;min-height:0;display:grid;grid-template-columns:minmax(145px,185px) minmax(390px,1fr) minmax(145px,185px);gap:6px}
+.side{min-height:0;display:flex;flex-direction:column;gap:6px}
+.box{padding:9px;overflow:hidden}.box h3{margin:0 0 5px;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.09em}
+.tutorial{border-left:3px solid var(--gold)}.tutorial strong{display:block;color:var(--gold);margin-bottom:3px}
+.signature{font:700 14px Georgia,serif;color:var(--gold)}.desc{font-size:11px;color:#d7dfeb;margin-top:3px}
+.preview{flex:1}.preview-title{font:700 16px Georgia,serif;color:var(--gold);margin-bottom:4px}.preview-body{font-size:12px;color:#dce3ed}.preview-detail{font-size:10px;color:var(--muted);margin-top:6px}
+.duel-rules{font-size:11px;color:var(--muted);line-height:1.5}.duel-rules b{color:var(--text)}
+.board-wrap{display:flex;align-items:center;justify-content:center;min-height:0}
+.board{
+  display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(5,1fr);gap:4px;padding:6px;
+  border-radius:13px;background:#090e16;border:1px solid var(--line);
+  width:min(100%,calc((100dvh - 208px)*1.4));aspect-ratio:7/5;max-height:100%;
+  box-shadow:0 12px 35px #0007;
+}
+.cell{position:relative;display:grid;place-items:center;border:1px solid #2d3a4e;border-radius:7px;background:linear-gradient(145deg,var(--tile),var(--tile2));overflow:hidden;transition:.12s}
+.cell:nth-child(even){background:linear-gradient(145deg,#151f2e,#1b2738)}
+.cell.objective{box-shadow:inset 0 0 19px #ad7d284f}
+.cell.legal{outline:3px solid #77d497a8;cursor:pointer}.cell.legal:hover{outline-color:var(--green);transform:scale(1.04)}
+.cell.engage{outline:3px solid #ed9b51c4}.cell.duel-zone{box-shadow:inset 0 0 0 3px #ed9b5144}
+.obj-label{position:absolute;top:3px;left:4px;font-size:8px;color:var(--gold);font-weight:900;z-index:1}
+.token{width:62%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;z-index:3;font-weight:900;font-size:clamp(11px,1.5vw,18px);border:3px solid #fff9;box-shadow:0 6px 16px #0008}
+.token.player{background:var(--blue)}.token.enemy{background:var(--red)}
+.token.active{box-shadow:0 0 0 3px var(--gold),0 6px 16px #0008;animation:pulse 1.25s infinite}
+.owner{position:absolute;right:3px;bottom:3px;width:9px;height:9px;border-radius:50%;z-index:2}.owner.player{background:var(--blue)}.owner.enemy{background:var(--red)}
+.damage{position:absolute;z-index:10;font-weight:900;font-size:20px;color:#fff;text-shadow:0 2px 4px #000;animation:floatup .8s forwards}
+@keyframes pulse{50%{box-shadow:0 0 0 6px #e3bb674d,0 6px 16px #0008}}
+@keyframes floatup{to{transform:translateY(-30px);opacity:0}}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}.shake{animation:shake .25s 2}
+@keyframes pop{50%{transform:scale(1.2)}}.pop{animation:pop .3s}
+
+/* action bar and duel panel */
+.actions{flex:0 0 64px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.action{min-width:0;padding:5px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.action strong{font-size:12px}.action small{font-size:9px;color:var(--muted);line-height:1.1;text-align:center;margin-top:2px}
+.action.available{border-color:var(--green)}.action.special{border-color:#796130;color:var(--gold)}
+
+.duel-overlay{
+  display:none;position:fixed;inset:0;background:#000b;z-index:120;align-items:center;justify-content:center;padding:12px
+}
+.duel-overlay.show{display:flex}
+.duel-card{width:min(760px,95vw);padding:18px}
+.duel-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;margin-bottom:12px}
+.duel-head h2{margin:0;font:700 26px Georgia,serif;color:var(--gold);text-align:center}
+.duel-fighter{font:700 18px Georgia,serif}.duel-fighter.enemy{text-align:right}
+.duel-tip{text-align:center;color:var(--muted);font-size:12px;margin-bottom:12px}
+.duel-choices{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.duel-choice{padding:13px 8px;min-height:92px}
+.duel-choice strong{display:block;font-size:15px}.duel-choice small{display:block;color:var(--muted);margin-top:5px;font-size:10px}
+.duel-choice.strike{border-color:var(--red)}.duel-choice.counter{border-color:var(--blue)}.duel-choice.prepare{border-color:var(--green)}.duel-choice.special{border-color:var(--gold);color:var(--gold)}
+.duel-log{margin-top:12px;background:#0c131e;border-radius:9px;padding:10px;min-height:56px;color:#dce3ed}
+.duel-result{font-weight:800;color:var(--gold);margin-bottom:3px}
+
+/* generic overlays */
+.overlay{display:none;position:fixed;inset:0;background:#000b;z-index:150;align-items:center;justify-content:center;padding:12px}.overlay.show{display:flex}
+.modal{width:min(560px,94vw);max-height:82dvh;overflow:auto;padding:18px}.modal h2{font:700 25px Georgia,serif;margin:0 0 8px}.close{float:right}
+.help-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.help-item{background:#0d141f;padding:9px;border-radius:8px}.help-item b{display:block;color:var(--gold)}
+.receipts{font:10px/1.45 monospace;color:#c2cad6;background:#080d14;border-radius:8px;padding:8px}.result{text-align:center}.result h2{font-size:36px}
+
+@media(max-width:850px){.play{grid-template-columns:130px 1fr 130px}.box{padding:7px}.desc,.preview-body{font-size:10px}}
+@media(max-width:680px){
+  .topbar{flex-basis:42px}.brand{font-size:10px}#gameScreen{padding:3px}.fighter-strip{flex-basis:48px}.face{width:34px;height:34px}
+  .play{grid-template-columns:1fr;grid-template-rows:auto 1fr auto}.side{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .signature-box{display:none}.board{width:min(98vw,calc((100dvh - 285px)*1.4))}.actions{flex-basis:58px}
+  .duel-choices{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-height:650px){.topbar{flex-basis:42px}.fighter-strip{flex-basis:47px}.face{width:34px;height:34px}.actions{flex-basis:56px}.board{width:min(100%,calc((100dvh - 178px)*1.4))}.box{padding:6px}.desc{font-size:10px}}
+@media(max-width:700px){.cards{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="topbar">
+  <div class="brand">ERA<b>CII</b> ARENA</div>
+  <div id="roundLabel" class="round">CLASH OF LEGENDS</div>
+  <div class="top-actions"><button id="helpButton" class="icon-btn">How to Play</button></div>
+</header>
+
+<section id="selectScreen" class="screen active">
+  <div class="panel select-box">
+    <h1>Choose your duelist.</h1>
+    <p>Close the distance, start an engagement, and outthink the rival in a direct duel.</p>
+    <div id="cards" class="cards"></div>
+    <div class="select-footer">
+      <span id="selectionText" class="small">Choose a figure.</span>
+      <button id="startButton" class="btn primary" disabled>Start Duel</button>
+    </div>
+  </div>
+</section>
+
+<section id="gameScreen" class="screen">
+  <div class="panel fighter-strip">
+    <div id="playerStatus" class="fighter"></div>
+    <div class="vs">VS</div>
+    <div id="enemyStatus" class="fighter enemy"></div>
+  </div>
+
+  <div class="play">
+    <aside class="side">
+      <div class="panel box tutorial">
+        <strong id="tutorialTitle">Your turn</strong>
+        <span id="tutorialText">Click your blue figure.</span>
+      </div>
+      <div class="panel box signature-box">
+        <h3>Your signature</h3>
+        <div id="signatureName" class="signature"></div>
+        <div id="signatureText" class="desc"></div>
+      </div>
+      <div class="panel box">
+        <h3>Engagement</h3>
+        <div class="duel-rules">
+          Move next to the rival to start a duel.<br>
+          <b>Strike</b> beats Prepare.<br>
+          <b>Counter</b> beats Strike.<br>
+          <b>Prepare</b> beats Counter.
+        </div>
+      </div>
+    </aside>
+
+    <main class="board-wrap"><div id="board" class="board"></div></main>
+
+    <aside class="side">
+      <div class="panel box preview">
+        <h3>What happens next</h3>
+        <div id="previewTitle" class="preview-title">Close the distance</div>
+        <div id="previewBody" class="preview-body">Move beside the rival to begin a direct duel.</div>
+        <div id="previewDetail" class="preview-detail">Forum and Stage grant small combat advantages.</div>
+      </div>
+      <div class="panel box">
+        <h3>Win this duel</h3>
+        <div class="duel-rules">
+          Reduce the rival's Resolve to 0.<br>
+          Objectives help, but fighting decides the match.
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="actions">
+    <button class="action" data-action="engage" disabled><strong>Engage</strong><small>Start a duel when adjacent</small></button>
+    <button class="action" data-action="advance" disabled><strong>Advance</strong><small>Move toward the rival again</small></button>
+    <button class="action" data-action="recover" disabled><strong>Recover</strong><small>Gain 1 Resolve, once per match</small></button>
+    <button class="action special" data-action="special" disabled><strong>Signature</strong><small id="specialShort">Unique move</small></button>
+  </div>
+</section>
+</div>
+
+<div id="duelOverlay" class="duel-overlay">
+  <div class="panel duel-card">
+    <div class="duel-head">
+      <div id="duelPlayerName" class="duel-fighter"></div>
+      <h2>Choose Your Move</h2>
+      <div id="duelEnemyName" class="duel-fighter enemy"></div>
+    </div>
+    <div id="duelTip" class="duel-tip">Read the rival, then commit.</div>
+    <div class="duel-choices">
+      <button class="duel-choice strike" data-duel="strike"><strong>Strike</strong><small>Beats Prepare. Loses to Counter.</small></button>
+      <button class="duel-choice counter" data-duel="counter"><strong>Counter</strong><small>Beats Strike. Loses to Prepare.</small></button>
+      <button class="duel-choice prepare" data-duel="prepare"><strong>Prepare</strong><small>Beats Counter. Loses to Strike.</small></button>
+      <button id="duelSpecial" class="duel-choice special" data-duel="special"><strong>Signature</strong><small>Use this figure's defining move.</small></button>
+    </div>
+    <div class="duel-log">
+      <div id="duelResult" class="duel-result">No move chosen yet.</div>
+      <div id="duelDetail">The rival's move is hidden until you commit.</div>
+    </div>
+  </div>
+</div>
+
+<div id="helpOverlay" class="overlay">
+  <div class="panel modal">
+    <button class="icon-btn close" onclick="closeHelp()">Close</button>
+    <h2>How to Play</h2>
+    <div class="help-grid">
+      <div class="help-item"><b>1. Move</b>Click your figure, then a green space.</div>
+      <div class="help-item"><b>2. Engage</b>Move next to the rival and press Engage.</div>
+      <div class="help-item"><b>3. Duel</b>Choose Strike, Counter, Prepare, or Signature.</div>
+      <div class="help-item"><b>4. Win</b>Reduce the rival's Resolve to zero.</div>
+    </div>
+    <p class="small">Strike beats Prepare. Counter beats Strike. Prepare beats Counter. Objectives grant a small bonus, but direct duels decide the match.</p>
+  </div>
+</div>
+
+<div id="resultOverlay" class="overlay"><div id="resultCard" class="panel modal result"></div></div>
+<div id="receiptOverlay" class="overlay">
+  <div class="panel modal">
+    <button class="icon-btn close" onclick="closeReceipts()">Close</button>
+    <h2>Deterministic Receipts</h2>
+    <div id="receiptList" class="receipts"></div>
+  </div>
+</div>
+
+<script>
+const FIGURES=[
+ {id:"CAE",name:"Julius Caesar",role:"Direct commander",power:3,guard:1,
+  movement:[[1,0],[-1,0],[0,1],[0,-1],[2,0],[-2,0]],
+  style:"Closes distance quickly and hits hard.",
+  sn:"Cross the Rubicon",st:"A powerful Strike that also pushes the rival back.",sp:"rubicon"},
+ {id:"SOC",name:"Socrates",role:"Relentless questioner",power:1,guard:3,
+  movement:[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]],
+  style:"Reads patterns and punishes predictable attacks.",
+  sn:"Expose Contradiction",st:"Reveals the rival's move, then lets Socrates choose.",sp:"contradiction"},
+ {id:"SHA",name:"William Shakespeare",role:"Master of the stage",power:2,guard:2,
+  movement:[[1,1],[1,-1],[-1,1],[-1,-1],[2,2],[2,-2],[-2,2],[-2,-2]],
+  style:"Stronger near the Stage and dangerous after preparing.",
+  sn:"All the World's a Stage",st:"Turns the current exchange into a dramatic reversal.",sp:"worldstage"},
+ {id:"SWI",name:"Taylor Swift",role:"Momentum strategist",power:2,guard:2,
+  movement:[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]],
+  style:"Builds momentum across repeated exchanges.",
+  sn:"Eras Shift",st:"Changes stance after seeing the result and gains momentum.",sp:"eras"}
+];
+const OBJECTIVES={"2,2":{name:"FORUM"},"4,2":{name:"STAGE"}};
+let selectedId=null,g=null,phase="select",legal=[],duelOpen=false;
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const K=(x,y)=>`${x},${y}`,inside=(x,y)=>x>=0&&x<7&&y>=0&&y<5,D=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
+const initials=n=>n.split(" ").map(p=>p[0]).join("").slice(0,2);
+
+function checksum(text){let h=2166136261;for(const c of text){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return("00000000"+(h>>>0).toString(16)).slice(-8)}
+function record(type,details){const prev=g.receipts.length?g.receipts.at(-1).hash:"GENESIS",n=g.receipts.length+1;g.receipts.push({n,type,details,hash:checksum(JSON.stringify({n,type,details,prev}))})}
+
+function renderCards(){
+  $("#cards").innerHTML=FIGURES.map(f=>`<button class="card ${selectedId===f.id?"selected":""}" data-id="${f.id}">
+    <div class="avatar">${initials(f.name)}</div><div class="card-name">${f.name}</div><div class="role">${f.role}</div>
+    <div class="style">${f.style}</div><div class="chip">${f.sn}</div></button>`).join("");
+  $$(".card").forEach(c=>c.onclick=()=>{selectedId=c.dataset.id;$("#selectionText").textContent="Selected: "+FIGURES.find(f=>f.id===selectedId).name;$("#startButton").disabled=false;renderCards()})
+}
+function startGame(){
+  const pf=FIGURES.find(f=>f.id===selectedId),i=FIGURES.findIndex(f=>f.id===selectedId),ef=FIGURES[(i+1)%FIGURES.length];
+  g={round:1,turn:"player",over:false,
+    player:{f:pf,x:0,y:2,res:8,momentum:0,specialUsed:false,recoverUsed:false,stance:null},
+    enemy:{f:ef,x:6,y:2,res:8,momentum:0,specialUsed:false,recoverUsed:false,stance:null},
+    owners:{"2,2":null,"4,2":null},receipts:[]};
+  record("MATCH_OPEN",{player:pf.id,enemy:ef.id});
+  $("#selectScreen").classList.remove("active");$("#gameScreen").classList.add("active");
+  buildBoard();setPhase("select");render();message("Close the distance","Click your blue figure, then choose a green space.","Move beside the rival to unlock Engage.")
+}
+function buildBoard(){
+  let h="";for(let y=0;y<5;y++)for(let x=0;x<7;x++){const o=OBJECTIVES[K(x,y)];h+=`<div class="cell ${o?"objective":""}" data-x="${x}" data-y="${y}" data-key="${K(x,y)}">${o?`<div class="obj-label">${o.name}</div>`:""}</div>`}
+  $("#board").innerHTML=h;$$(".cell").forEach(c=>c.onclick=()=>cellClicked(c))
+}
+function occupied(x,y){return(g.player.x===x&&g.player.y===y)||(g.enemy.x===x&&g.enemy.y===y)}
+function movementCells(u){
+  return[...new Set(u.f.movement.map(([dx,dy])=>[u.x+dx,u.y+dy]).filter(([x,y])=>inside(x,y)&&!occupied(x,y)).map(([x,y])=>K(x,y)))]
+}
+function clearHighlights(){legal=[];$$(".cell").forEach(c=>c.classList.remove("legal","engage","duel-zone"))}
+function highlight(keys){legal=keys;keys.forEach(q=>document.querySelector(`[data-key="${q}"]`)?.classList.add("legal"))}
+function setPhase(p){
+  phase=p;clearHighlights();
+  const act=p==="act"&&g.turn==="player"&&!g.over;
+  $$(".action").forEach(b=>{const a=b.dataset.action;let en=act;
+    if(a==="engage")en=act&&D(g.player,g.enemy)===1;
+    if(a==="advance")en=act;
+    if(a==="recover")en=act&&!g.player.recoverUsed&&g.player.res<8;
+    if(a==="special")en=act&&!g.player.specialUsed&&(g.player.f.sp!=="contradiction"||D(g.player,g.enemy)===1);
+    b.disabled=!en;b.classList.toggle("available",en)
+  });
+  const t={select:["Your turn","Click your blue figure."],move:["Choose a move","Click one green space."],act:["Choose what happens next","Engage if adjacent, or keep advancing."],enemy:["Opponent's turn","Watch the response."]};
+  if(t[p]){$("#tutorialTitle").textContent=t[p][0];$("#tutorialText").textContent=t[p][1]}
+}
+function cellClicked(c){
+  if(!g||g.over||g.turn!=="player"||duelOpen)return;
+  const x=+c.dataset.x,y=+c.dataset.y,q=c.dataset.key;
+  if(phase==="select"&&q===K(g.player.x,g.player.y)){
+    const m=movementCells(g.player);
+    setPhase("move");
+    highlight(m);
+    message("Choose a destination",`${m.length} legal spaces are highlighted.`,"Moving beside the rival lets you start a duel.");
+  } else if((phase==="move"||phase==="advanceMove")&&legal.includes(q)){
+    moveUnit("player",x,y);
+  }
+}
+function claim(side){
+  const u=g[side],q=K(u.x,u.y),o=OBJECTIVES[q];
+  if(o&&g.owners[q]!==side){g.owners[q]=side;u.momentum=Math.min(3,u.momentum+1);record("OBJECTIVE",{round:g.round,side,objective:o.name});return`${o.name} controlled. +1 Momentum.`}
+  return""
+}
+function moveUnit(side,x,y){
+  const u=g[side],from=[u.x,u.y],wasAdvanceMove=(side==="player"&&phase==="advanceMove");
+  u.x=x;u.y=y;
+  record("MOVE",{round:g.round,side,from,to:[x,y],secondMove:wasAdvanceMove});
+  const c=claim(side);
+  render();
+  animate(side,"pop");
+
+  if(side==="player"){
+    if(wasAdvanceMove){
+      clearHighlights();
+      message("Advance complete",c||"Your second move is complete.","The rival now takes a turn.");
+      setTimeout(()=>finishTurn("player",c||`${u.f.name} completed a second move.`),260);
+      return;
+    }
+    setPhase("act");
+    message(
+      D(g.player,g.enemy)===1?"Rival in range":"Move complete",
+      D(g.player,g.enemy)===1?"Press Engage to begin a direct duel.":c||"Advance again or choose another action.",
+      "Objectives help, but Resolve decides the match."
+    );
+  } else {
+    const note=c||`${u.f.name} completed its move.`;
+    if(D(g.enemy,g.player)===1){
+      setTimeout(enemyInitiatedDuel,320);
+    }else{
+      setTimeout(()=>finishTurn("enemy",note),320);
+    }
+  }
+}
+function advanceAgain(side){
+  const u=g[side],m=movementCells(u);
+  if(!m.length){
+    finishTurn(side,`${u.f.name} could not advance.`);
+    return;
+  }
+  if(side==="player"){
+    setPhase("move");
+    phase="advanceMove";
+    highlight(m);
+    message("Advance again","Choose one more highlighted movement space.","This second move ends your turn.");
+    $("#tutorialTitle").textContent="Choose your second move";
+    $("#tutorialText").textContent="Click one highlighted space. Your turn will then end.";
+  }
+}
+function recover(side){
+  const u=g[side];u.recoverUsed=true;u.res=Math.min(8,u.res+1);record("RECOVER",{round:g.round,side,resolve:u.res});render();finishTurn(side,`${u.f.name} recovered 1 Resolve.`)
+}
+function openDuel(){
+  duelOpen=true;g.player.stance=null;g.enemy.stance=null;
+  $("#duelPlayerName").textContent=g.player.f.name;$("#duelEnemyName").textContent=g.enemy.f.name;
+  $("#duelSpecial").disabled=g.player.specialUsed;
+  $("#duelTip").textContent=duelHint();
+  $("#duelResult").textContent="Choose your move.";$("#duelDetail").textContent="The rival's move is hidden until you commit.";
+  $("#duelOverlay").classList.add("show")
+}
+function duelHint(){
+  if(g.enemy.f.id==="CAE")return"Caesar often favors Strike when he has momentum.";
+  if(g.enemy.f.id==="SOC")return"Socrates tends to Counter predictable aggression.";
+  if(g.enemy.f.id==="SHA")return"Shakespeare prepares more often near the Stage.";
+  return"Taylor becomes more aggressive as momentum rises."
+}
+function enemyChoice(){
+  const e=g.enemy;
+  if(e.f.id==="CAE")return e.momentum>0?"strike":(g.round%3===0?"counter":"strike");
+  if(e.f.id==="SOC")return g.player.stance==="strike"?"counter":(g.round%2===0?"prepare":"counter");
+  if(e.f.id==="SHA")return K(e.x,e.y)==="4,2"?"prepare":(g.round%2===0?"strike":"prepare");
+  return e.momentum>=2?"strike":(g.round%2===0?"prepare":"counter");
+}
+function baseDamage(u){let n=1+Math.floor(u.f.power/2)+u.momentum;if(K(u.x,u.y)==="2,2")n++;if(K(u.x,u.y)==="4,2"&&u.f.id==="SHA")n++;return Math.min(4,n)}
+function winner(a,b){
+  if(a===b)return"tie";
+  if(a==="strike"&&b==="prepare")return"player";
+  if(a==="counter"&&b==="strike")return"player";
+  if(a==="prepare"&&b==="counter")return"player";
+  return"enemy"
+}
+function resolveDuel(playerMove){
+  if(g.over)return;
+  let enemyMove=enemyChoice();
+  if(playerMove==="special"){resolvePlayerSpecial(enemyMove);return}
+  g.player.stance=playerMove;g.enemy.stance=enemyMove;
+  const result=winner(playerMove,enemyMove);
+  let detail="";
+  if(result==="tie"){
+    g.player.momentum=Math.min(3,g.player.momentum+1);g.enemy.momentum=Math.min(3,g.enemy.momentum+1);
+    detail=`Both chose ${cap(playerMove)}. No damage; both gain 1 Momentum.`;
+  }else{
+    const attacker=result==="player"?g.player:g.enemy,defender=result==="player"?g.enemy:g.player;
+    const move=result==="player"?playerMove:enemyMove;
+    let dmg=move==="strike"?baseDamage(attacker):1+attacker.momentum;
+    if(move==="counter")dmg=Math.max(1,dmg-1);
+    defender.res=Math.max(0,defender.res-dmg);attacker.momentum=Math.min(3,attacker.momentum+1);defender.momentum=Math.max(0,defender.momentum-1);
+    float(result==="player"?"enemy":"player",dmg);animate(result==="player"?"enemy":"player","shake");
+    detail=`${attacker.f.name}'s ${cap(move)} wins and deals ${dmg} Resolve damage.`;
+    if(attacker.f.id==="CAE"&&move==="strike")pushBack(result==="player"?"enemy":"player");
+  }
+  record("DUEL",{round:g.round,playerMove,enemyMove,result,playerResolve:g.player.res,enemyResolve:g.enemy.res});
+  render();$("#duelResult").textContent=`You chose ${cap(playerMove)}. Rival chose ${cap(enemyMove)}.`;$("#duelDetail").textContent=detail;
+  setTimeout(()=>closeDuelAfter(detail),850)
+}
+function resolvePlayerSpecial(enemyMove){
+  const p=g.player,e=g.enemy;p.specialUsed=true;let detail="";
+  if(p.f.sp==="rubicon"){const dmg=baseDamage(p)+1;e.res=Math.max(0,e.res-dmg);pushBack("enemy");float("enemy",dmg);detail=`Cross the Rubicon overwhelms the exchange for ${dmg} damage and pushback.`}
+  else if(p.f.sp==="contradiction"){const best=enemyMove==="strike"?"counter":enemyMove==="counter"?"prepare":"strike";p.stance=best;const dmg=1+p.momentum;e.res=Math.max(0,e.res-dmg);float("enemy",dmg);detail=`Socrates reveals ${cap(enemyMove)}, answers with ${cap(best)}, and deals ${dmg} damage.`}
+  else if(p.f.sp==="worldstage"){const dmg=2+p.momentum;e.res=Math.max(0,e.res-dmg);p.res=Math.min(8,p.res+1);float("enemy",dmg);detail=`A dramatic reversal deals ${dmg} damage and restores 1 Resolve.`}
+  else{p.momentum=3;const dmg=2;e.res=Math.max(0,e.res-dmg);float("enemy",dmg);detail=`Eras Shift resets the exchange, deals ${dmg} damage, and fills Momentum.`}
+  record("SPECIAL_DUEL",{round:g.round,name:p.f.sn,enemyMove,playerResolve:p.res,enemyResolve:e.res});
+  render();$("#duelResult").textContent=p.f.sn;$("#duelDetail").textContent=detail;setTimeout(()=>closeDuelAfter(detail),900)
+}
+function pushBack(side){
+  const d=g[side],a=g[side==="player"?"enemy":"player"],dx=Math.sign(d.x-a.x),dy=Math.sign(d.y-a.y),nx=d.x+dx,ny=d.y+dy;
+  if(inside(nx,ny)&&!occupied(nx,ny)){d.x=nx;d.y=ny}
+}
+function closeDuelAfter(detail){
+  $("#duelOverlay").classList.remove("show");duelOpen=false;
+  if(checkEnd())return;
+  finishTurn("player",detail)
+}
+function enemyAct(){
+  if(g.over)return;
+  if(D(g.enemy,g.player)===1){enemyInitiatedDuel();return}
+  const m=movementCells(g.enemy);
+  m.sort((a,b)=>scoreEnemy(b)-scoreEnemy(a)||a.localeCompare(b));
+  if(m.length){
+    const[x,y]=m[0].split(",").map(Number);
+    moveUnit("enemy",x,y);
+  }else{
+    finishTurn("enemy",`${g.enemy.f.name} held position.`);
+  }
+}
+function enemyInitiatedDuel(){
+  const enemyMove=enemyChoice(),playerMove=g.round%3===0?"counter":"prepare",result=winner(playerMove,enemyMove);
+  let detail="";
+  if(result==="tie"){g.player.momentum=Math.min(3,g.player.momentum+1);g.enemy.momentum=Math.min(3,g.enemy.momentum+1);detail="The exchange ends evenly."}
+  else{const attacker=result==="player"?g.player:g.enemy,defender=result==="player"?g.enemy:g.player,move=result==="player"?playerMove:enemyMove;const dmg=move==="strike"?baseDamage(attacker):1+attacker.momentum;defender.res=Math.max(0,defender.res-dmg);float(result==="player"?"enemy":"player",dmg);detail=`${attacker.f.name} wins the exchange for ${dmg} damage.`}
+  record("ENEMY_DUEL",{round:g.round,playerMove,enemyMove,result});render();message("The rival engaged",detail,"Your defensive response was chosen automatically.");setTimeout(()=>finishTurn("enemy",detail),650)
+}
+function scoreEnemy(q){
+  const[x,y]=q.split(",").map(Number);let s=0;if(Math.abs(x-g.player.x)+Math.abs(y-g.player.y)===1)s+=10;if(OBJECTIVES[q])s+=3;s-=Math.abs(x-g.player.x)+Math.abs(y-g.player.y);return s
+}
+function finishTurn(side,text){
+  if(checkEnd())return;
+  if(side==="player"){g.turn="enemy";setPhase("enemy");render();message("Opponent's turn",text,"The rival will move or engage.");setTimeout(enemyTurn,520)}
+  else{g.round++;g.turn="player";setPhase("select");render();message("Your turn","Click your blue figure.","Move beside the rival to start another duel.");checkEnd()}
+}
+function enemyTurn(){if(!g.over)enemyAct()}
+function checkEnd(){
+  if(g.player.res<=0){endGame("The computer wins","Your Resolve reached zero.");return true}
+  if(g.enemy.res<=0){endGame("You win","The rival's Resolve reached zero.");return true}
+  if(g.round>14){const p=g.player.res+g.player.momentum+Object.values(g.owners).filter(v=>v==="player").length,e=g.enemy.res+g.enemy.momentum+Object.values(g.owners).filter(v=>v==="enemy").length;endGame(p>=e?"You win":"The computer wins","The fourteen-round duel score decided the match.");return true}
+  return false
+}
+function endGame(title,reason){
+  g.over=true;record("MATCH_CLOSE",{title,reason});
+  $("#resultCard").innerHTML=`<h2>${title}</h2><p>${reason}</p><p class="small">Final receipt: <b>${g.receipts.at(-1).hash}</b></p><button class="btn primary" onclick="location.reload()">Play Again</button> <button class="btn" onclick="showReceipts()">View Receipts</button>`;
+  $("#resultOverlay").classList.add("show");render()
+}
+function message(t,b,d){$("#previewTitle").textContent=t;$("#previewBody").textContent=b;$("#previewDetail").textContent=d||""}
+function render(){
+  if(!g)return;const p=g.player,e=g.enemy;
+  $("#roundLabel").textContent=`ROUND ${Math.min(g.round,14)} · DIRECT DUEL`;
+  $("#playerStatus").innerHTML=statusHTML(p);$("#enemyStatus").innerHTML=statusHTML(e);
+  $("#signatureName").textContent=p.f.sn;$("#signatureText").textContent=p.f.st+(p.specialUsed?" Used this match.":"");$("#specialShort").textContent=p.f.sn;
+  $$(".cell").forEach(c=>{c.querySelectorAll(".token,.owner").forEach(n=>n.remove());const s=g.owners[c.dataset.key];if(s){const o=document.createElement("div");o.className="owner "+s;c.appendChild(o)}});
+  [["player",p],["enemy",e]].forEach(([s,u])=>{const t=document.createElement("div");t.className=`token ${s} ${g.turn===s&&!g.over?"active":""}`;t.textContent=initials(u.f.name);document.querySelector(`[data-key="${K(u.x,u.y)}"]`).appendChild(t)});
+  if(D(p,e)===1){document.querySelector(`[data-key="${K(p.x,p.y)}"]`)?.classList.add("duel-zone");document.querySelector(`[data-key="${K(e.x,e.y)}"]`)?.classList.add("duel-zone")}
+}
+function statusHTML(u){return`<div class="face">${initials(u.f.name)}</div><div style="min-width:0"><div class="fname">${u.f.name}</div><div class="stats"><span>Resolve <b>${u.res}/8</b></span><span>Momentum <b>${u.momentum}/3</b></span></div></div>`}
+function animate(side,cls){const u=g[side],t=document.querySelector(`[data-key="${K(u.x,u.y)}"] .token`);if(t){t.classList.add(cls);setTimeout(()=>t.classList.remove(cls),600)}}
+function float(side,n){const u=g[side],c=document.querySelector(`[data-key="${K(u.x,u.y)}"]`),d=document.createElement("div");d.className="damage";d.textContent=`-${n}`;c.appendChild(d);setTimeout(()=>d.remove(),850)}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function showHelp(){$("#helpOverlay").classList.add("show")}function closeHelp(){$("#helpOverlay").classList.remove("show")}
+function showReceipts(){if(!g)return;$("#receiptList").innerHTML=g.receipts.slice().reverse().map(r=>`#${r.n} ${r.type} → ${r.hash}<br>${JSON.stringify(r.details)}`).join("<hr>");$("#receiptOverlay").classList.add("show")}
+function closeReceipts(){$("#receiptOverlay").classList.remove("show")}
+
+renderCards();$("#startButton").onclick=startGame;$("#helpButton").onclick=showHelp;
+$$(".action").forEach(b=>b.onclick=()=>{
+  if(!g||phase!=="act"||g.turn!=="player"||g.over||b.disabled)return;
+  const a=b.dataset.action;
+  if(a==="engage")openDuel();
+  else if(a==="advance")advanceAgain("player");
+  else if(a==="recover")recover("player");
+  else if(a==="special"){if(D(g.player,g.enemy)===1)openDuel();else{g.player.specialUsed=true;g.player.momentum=Math.min(3,g.player.momentum+1);record("FIELD_SPECIAL",{round:g.round,name:g.player.f.sn});render();finishTurn("player",`${g.player.f.name} prepared the signature and gained 1 Momentum.`)}}
+});
+$$(".duel-choice").forEach(b=>b.onclick=()=>{if(!b.disabled)resolveDuel(b.dataset.duel)});
+</script>
+</body>
+</html>

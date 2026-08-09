@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pre-Mortem: Investment Logic Tester</title>
+<style>
+*{box-sizing:border-box;margin:0}
+body{background:#08090d;color:#f8f2e7;font:14px/1.5 Inter,sans-serif;padding:20px;min-height:100vh;display:flex;justify-content:center;align-items:center}
+.app{max-width:1300px;width:100%;background:linear-gradient(145deg,#11151d,#191e28);border:1px solid #343948;border-radius:20px;padding:24px;box-shadow:0 30px 80px #000b}
+.grid{display:grid;grid-template-columns:1fr 320px;gap:24px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}}
+.panel{background:#0d1118;border:1px solid #2b313d;border-radius:12px;padding:16px}
+h2{font:700 18px Georgia,serif;color:#d7aa57;margin-bottom:4px}
+.sub{color:#aaa7a0;font-size:12px;margin-bottom:12px}
+.board{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;aspect-ratio:7/5;background:#0a0e14;border-radius:10px;padding:4px;border:1px solid #2b313d}
+.cell{aspect-ratio:1;border-radius:4px;border:1px solid #2b313d;background:#141a22;display:grid;place-items:center;font-size:9px;color:#555;cursor:pointer;transition:all .12s}
+.cell.player{background:#1a2a3a;border-color:#4d8bd8;box-shadow:inset 0 0 20px #4d8bd826}
+.cell.enemy{background:#2a1a1a;border-color:#c64f5b;box-shadow:inset 0 0 20px #c64f5b26}
+.cell.objective{background:#1a1a0a;border-color:#d7aa57}
+.cell.legal{outline:2px solid #6bc690;cursor:pointer}
+.cell.escape{outline:2px solid #d7aa57;cursor:pointer}
+.cell.selected{outline:2px solid #fff;outline-offset:-2px}
+.cell .label{font-size:6px;color:#888;position:absolute;bottom:1px;right:2px}
+.cell .token{font-size:20px;font-weight:900;text-shadow:0 2px 8px #000}
+.cell .owner{position:absolute;bottom:2px;left:2px;width:6px;height:6px;border-radius:50%}
+.cell .owner.player{background:#4d8bd8}
+.cell .owner.enemy{background:#c64f5b}
+.cell .res{font-size:7px;color:#aaa;position:absolute;top:1px;right:3px}
+.resources{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.resource{background:#0a0f16;border-radius:6px;padding:6px 8px;border-left:3px solid var(--c,#d7aa57)}
+.resource .num{font:700 16px Georgia,serif;color:#f8f2e7}
+.resource .lbl{font-size:8px;color:#aaa;text-transform:uppercase;letter-spacing:.06em}
+.premortem-log{background:#060a10;border-radius:8px;padding:8px;max-height:180px;overflow:auto;font-size:11px;font-family:monospace;color:#bbc4d0;border:1px solid #1f2530}
+.premortem-log .entry{padding:3px 0;border-bottom:1px solid #141a24}
+.premortem-log .entry .tag{color:#d7aa57;font-weight:700}
+.premortem-log .entry .fail{color:#c64f5b}
+.premortem-log .entry .pass{color:#6bc690}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.actions button{padding:8px;border-radius:8px;border:1px solid #2b313d;background:#141a24;color:#f8f2e7;font-weight:700;font-size:12px;cursor:pointer;transition:all .12s}
+.actions button:hover{border-color:#d7aa57;background:#1f2632}
+.actions button.primary{background:linear-gradient(180deg,#e0bd74,#c8953f);border-color:#f2d394;color:#1a1207}
+.actions button:disabled{opacity:.35;cursor:not-allowed}
+.feedback{background:#0a0f16;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#d8dde5;border-left:4px solid #d7aa57}
+.feedback strong{color:#d7aa57}
+.insight{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;font-size:11px;color:#aaa}
+.insight .badge{padding:2px 8px;border-radius:99px;border:1px solid #2b313d;background:#0a0f16}
+.insight .badge.yes{color:#6bc690;border-color:#6bc690}
+.insight .badge.no{color:#c64f5b;border-color:#c64f5b}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:6px">
+    <div><h2 style="margin:0">⚡ Pre-Mortem: Investment Logic Tester</h2>
+    <div style="color:#aaa7a0;font-size:11px">Test your thesis logic against adversarial scenarios — no predictions, just clarity.</div></div>
+    <div style="display:flex;gap:6px;font-size:11px;color:#aaa">
+      <span>🏷️ <span id="thesisLabel">Tech Rotation</span></span>
+      <span>🔄 <span id="roundLabel">1/10</span></span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: Board + Controls -->
+    <div>
+      <div class="board" id="board"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px">
+        <div class="panel" style="padding:8px">
+          <div style="font-size:8px;color:#aaa;text-transform:uppercase">Your Thesis</div>
+          <div style="font-weight:700;font-size:13px;color:#4d8bd8" id="playerName">Growth Rotation</div>
+          <div style="font-size:10px;color:#aaa">Power <b id="playerPower">2</b> · Focus <b id="playerFocus">1</b></div>
+        </div>
+        <div class="panel" style="padding:8px;text-align:center">
+          <div style="font-size:8px;color:#aaa;text-transform:uppercase">VS</div>
+          <div style="font-weight:700;font-size:13px;color:#c64f5b" id="enemyName">Market Sentiment</div>
+          <div style="font-size:10px;color:#aaa">Power <b id="enemyPower">1</b> · Focus <b id="enemyFocus">0</b></div>
+        </div>
+        <div class="panel" style="padding:8px;text-align:right">
+          <div style="font-size:8px;color:#aaa;text-transform:uppercase">Scenario</div>
+          <div style="font-weight:700;font-size:13px;color:#d7aa57" id="scenarioName">The Forge</div>
+          <div style="font-size:10px;color:#aaa">Tension: <span id="tensionLevel">Medium</span></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="nextTurnBtn">▶ Test Your Logic</button>
+        <button id="resetBtn">⟳ New Scenario</button>
+        <button id="autoBtn" style="grid-column:span 2">🤖 Run Pre-Mortem (10 rounds)</button>
+      </div>
+
+      <div class="feedback" id="feedback">
+        <strong>🔍 Current insight:</strong> <span id="insightText">Click "Test Your Logic" to see if your move holds up against the scenario.</span>
+      </div>
+    </div>
+
+    <!-- RIGHT: Premortem Log + Insights -->
+    <div>
+      <div class="panel" style="height:100%;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-weight:700;color:#d7aa57">📋 Pre-Mortem Log</span>
+          <span style="font-size:9px;color:#aaa" id="logCount">0 entries</span>
+        </div>
+        <div class="premortem-log" id="log"></div>
+
+        <div style="margin-top:10px;border-top:1px solid #1f2530;padding-top:10px">
+          <div style="font-size:10px;color:#aaa;margin-bottom:4px">🧠 Decision Pattern Insights</div>
+          <div class="insight" id="insights">
+            <span class="badge">Risk tolerance: <span id="riskTolerance">—</span></span>
+            <span class="badge">Consistency: <span id="consistency">—</span></span>
+            <span class="badge">Bias exposure: <span id="biasExposure">—</span></span>
+          </div>
+        </div>
+
+        <div style="margin-top:8px;padding:8px;background:#060a10;border-radius:6px;font-size:10px;color:#777">
+          <b style="color:#d7aa57">How this works:</b> Each "move" tests your logic against an adversarial scenario. 
+          The engine doesn't predict markets — it reveals where your reasoning <span style="color:#c64f5b">breaks</span> before you commit real capital.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ===== MINIMAL ENGINE =====
+const K=(x,y)=>`${x},${y}`;
+const inside=(x,y)=>x>=0&&x<7&&y>=0&&y<5;
+const dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
+
+// Thesis templates — these are "logical positions", not predictions
+const THESES = [
+  { id:"GROWTH", name:"Growth Rotation", desc:"Betting on expansion sectors", power:2, focus:1, guard:0 },
+  { id:"VALUE", name:"Value Capture", desc:"Undervalued assets with cash flow", power:1, focus:2, guard:1 },
+  { id:"DEFENSIVE", name:"Defensive Shield", desc:"Low-volatility, dividend-heavy", power:0, focus:1, guard:3 },
+  { id:"MOMENTUM", name:"Momentum Play", desc:"Following the trend", power:3, focus:0, guard:0 },
+  { id:"CONTRARIAN", name:"Contrarian Bet", desc:"Against the consensus", power:2, focus:2, guard:0 },
+];
+
+// Scenarios — these are "adversarial market conditions"
+const SCENARIOS = [
+  { name:"The Forge", desc:"High pressure, close quarters", tension:"High", open:["1,1","2,1","3,1","4,1","5,1","1,2","2,2","3,2","4,2","5,2","1,3","2,3","3,3","4,3","5,3"] },
+  { name:"The Wildroot", desc:"Uncertain, branching paths", tension:"Medium", open:["0,2","1,2","2,2","3,2","4,2","5,2","6,2","2,1","2,0","4,1","4,0","1,3","1,4","5,3","5,4"] },
+  { name:"The Spine", desc:"Narrow, one-directional", tension:"High", open:["0,2","1,2","2,2","3,2","4,2","5,2","6,2","1,1","3,1","5,1","1,3","3,3","5,3"] },
+  { name:"The Sieve", desc:"Leaky, many exits", tension:"Low", open:["0,1","1,1","3,1","5,1","6,1","0,2","2,2","3,2","4,2","6,2","0,3","1,3","3,3","5,3","6,3","2,0","4,4"] },
+];
+
+let g = null;
+let logEntries = [];
+let round = 0;
+const MAX_ROUND = 10;
+
+function makeArena(scenario) {
+  const t = SCENARIOS.find(s => s.name === scenario) || SCENARIOS[0];
+  let open = new Set(t.open);
+  for(let x=0;x<7;x++) open.add(K(x,2));
+  open.add("0,2"); open.add("6,2");
+  // ensure connectivity
+  const seen = new Set(), queue = ["0,2"];
+  while(queue.length){ const k=queue.shift(); if(seen.has(k)||!open.has(k))continue; seen.add(k); const [x,y]=k.split(",").map(Number); [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{const n=K(x+dx,y+dy); if(open.has(n)&&!seen.has(n)) queue.push(n)})}
+  open = seen;
+  // objectives
+  const keys = [...open].filter(k=>k!=="0,2"&&k!=="6,2");
+  const obj = {};
+  const degree = k => { const [x,y]=k.split(",").map(Number); return [[1,0],[-1,0],[0,1],[0,-1]].reduce((n,[dx,dy])=>n+(open.has(K(x+dx,y+dy))?1:0),0) };
+  const sorted = keys.slice().sort((a,b)=>degree(b)-degree(a)||a.localeCompare(b));
+  const forum = sorted[0]||"2,2", stage = sorted[1]||"3,2", workshop = sorted[2]||"4,2";
+  obj[forum]={name:"FORUM",type:"read"}; obj[stage]={name:"STAGE",type:"push"}; obj[workshop]={name:"WORKSHOP",type:"special"};
+  return { name:t.name, open, objectives:obj, tension:t.tension };
+}
+
+function initGame(thesisId, scenarioName) {
+  const thesis = THESES.find(t => t.id === thesisId) || THESES[0];
+  const arena = makeArena(scenarioName);
+  g = {
+    thesis,
+    arena,
+    round: 1,
+    over: false,
+    player: { x:0, y:2, res:10, power:thesis.power||2, focus:thesis.focus||1, guard:0, name:"Your Thesis" },
+    enemy: { x:6, y:2, res:10, power:1, focus:0, guard:0, name:"Market Sentiment" },
+    owners: {},
+    receipts: [],
+  };
+  round = 0;
+  logEntries = [];
+  document.getElementById('log').innerHTML = '';
+  document.getElementById('logCount').textContent = '0 entries';
+  render();
+  updateFeedback('Click "Test Your Logic" to simulate a decision cycle against the current scenario.');
+  updateInsights();
+}
+
+function moves(u) {
+  const norm = [[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>K(u.x+dx,u.y+dy));
+  // for this demo, also allow some diagonal for interest
+  const diag = [[1,1],[1,-1],[-1,1],[-1,-1]];
+  const all = [...norm, ...diag].filter(q => {
+    const [x,y]=q.split(",").map(Number);
+    return inside(x,y) && g.arena.open.has(q) && !(g.player.x===x&&g.player.y===y) && !(g.enemy.x===x&&g.enemy.y===y);
+  });
+  const unique = [...new Set(all)];
+  if(unique.length) return unique;
+  // cornered: allow current tile
+  return [K(u.x,u.y)];
+}
+
+function getLegal(player) {
+  const ms = moves(player);
+  // if enemy is adjacent, add "escape" logic
+  const adj = dist(g.player, g.enemy) <= 1;
+  if(adj && ms.length > 0) {
+    // prefer moves that increase distance
+    const escape = ms.filter(q => {
+      const [x,y]=q.split(",").map(Number);
+      return dist({x,y}, g.enemy) > dist(g.player, g.enemy);
+    });
+    if(escape.length) return escape.map(q => ({key:q, type:'escape'}));
+  }
+  return ms.map(q => ({key:q, type:'normal'}));
+}
+
+function executeMove(side, key) {
+  const u = side === 'player' ? g.player : g.enemy;
+  const [x,y] = key.split(",").map(Number);
+  const oldDist = dist(u, g[side === 'player' ? 'enemy' : 'player']);
+  u.x = x; u.y = y;
+  const newDist = dist(u, g[side === 'player' ? 'enemy' : 'player']);
+  // resource effects
+  if(side === 'player' && newDist < oldDist) u.power = Math.min(5, u.power + 1);
+  if(side === 'player' && newDist > oldDist) u.focus = Math.min(3, u.focus + 1);
+  // claim objective
+  const obj = g.arena.objectives[key];
+  if(obj && !g.owners[key]) {
+    g.owners[key] = side;
+    if(obj.type === 'read') u.focus = Math.min(3, u.focus + 1);
+    else if(obj.type === 'push') u.power = Math.min(5, u.power + 1);
+    else { u.power = Math.min(5, u.power + 1); u.focus = Math.min(3, u.focus + 1); }
+  }
+  render();
+}
+
+function autoResolve() {
+  if(!g || g.over) return;
+  const legal = getLegal(g.player);
+  if(!legal.length) { updateFeedback('⚠️ No legal moves — scenario is too constrained. Try a different scenario.'); return; }
+  // pick best move by logic
+  const scored = legal.map(m => {
+    const [x,y]=m.key.split(",").map(Number);
+    let score = 0;
+    const d = dist({x,y}, g.enemy);
+    score += (5 - d) * 2;
+    if(g.arena.objectives[m.key]) score += 4;
+    if(d <= 1) score -= 3;
+    if(g.player.res < 5) score += 2;
+    return {...m, score};
+  });
+  scored.sort((a,b)=>b.score-a.score);
+  const best = scored[0];
+  executeMove('player', best.key);
+  // enemy move
+  const enemyLegal = moves(g.enemy);
+  if(enemyLegal.length) {
+    const eScored = enemyLegal.map(k => {
+      const [x,y]=k.split(",").map(Number);
+      let s = 0;
+      const d = dist({x,y}, g.player);
+      s += (5 - d) * 1.5;
+      if(g.arena.objectives[k]) s += 3;
+      return {key:k, score:s};
+    });
+    eScored.sort((a,b)=>b.score-a.score);
+    executeMove('enemy', eScored[0].key);
+  }
+  // resolve conflict
+  const adj = dist(g.player, g.enemy) <= 1;
+  let damage = 0;
+  if(adj) {
+    damage = Math.max(1, 2 + g.player.power + g.player.focus - (g.enemy.guard ? 2 : 0));
+    g.enemy.res = Math.max(0, g.enemy.res - damage);
+    g.player.power = Math.max(0, g.player.power - 1);
+    g.player.focus = 0;
+    g.enemy.guard = 0;
+  }
+  // record
+  const entry = {
+    round: g.round,
+    move: best.key,
+    damage: damage,
+    playerRes: g.player.res,
+    enemyRes: g.enemy.res,
+    playerPower: g.player.power,
+    playerFocus: g.player.focus,
+  };
+  logEntries.push(entry);
+  document.getElementById('logCount').textContent = logEntries.length + ' entries';
+  const logEl = document.getElementById('log');
+  const div = document.createElement('div');
+  div.className = 'entry';
+  const pass = damage > 0 || g.player.res > g.enemy.res;
+  div.innerHTML = `<span class="tag">R${g.round}</span> ${g.thesis.name} moved to <b>${best.key}</b> ${damage > 0 ? `<span class="pass">→ ${damage} damage</span>` : `<span class="fail">→ no impact</span>`} (Res: ${g.player.res}/${g.enemy.res})`;
+  logEl.prepend(div);
+  if(logEl.children.length > 50) logEl.lastChild?.remove();
+
+  g.round++;
+  if(g.round > MAX_ROUND || g.player.res <= 0 || g.enemy.res <= 0) {
+    g.over = true;
+    const verdict = g.player.res > g.enemy.res ? '✅ Your thesis logic held up.' : '❌ The scenario exposed a gap in your reasoning.';
+    updateFeedback(`<strong>🏁 Pre-Mortem Complete</strong> — ${verdict} Review the log to see where your logic succeeded or failed.`);
+    document.getElementById('nextTurnBtn').disabled = true;
+    document.getElementById('autoBtn').disabled = true;
+    updateInsights();
+    render();
+    return;
+  }
+  updateFeedback(`🔄 Round ${g.round-1} complete. ${damage > 0 ? 'Your thesis applied pressure.' : 'No breakthrough — scenario is resilient.'}`);
+  updateInsights();
+  render();
+}
+
+function runFullPremortem() {
+  if(!g || g.over) return;
+  document.getElementById('autoBtn').disabled = true;
+  document.getElementById('nextTurnBtn').disabled = true;
+  updateFeedback('⏳ Running full pre-mortem...');
+  let count = 0;
+  const interval = setInterval(() => {
+    if(g.over || count >= MAX_ROUND) {
+      clearInterval(interval);
+      document.getElementById('autoBtn').disabled = false;
+      document.getElementById('nextTurnBtn').disabled = g.over;
+      return;
+    }
+    autoResolve();
+    count++;
+  }, 350);
+}
+
+function updateFeedback(text) {
+  document.getElementById('insightText').innerHTML = text;
+}
+
+function updateInsights() {
+  if(logEntries.length < 2) {
+    document.getElementById('riskTolerance').textContent = '—';
+    document.getElementById('consistency').textContent = '—';
+    document.getElementById('biasExposure').textContent = '—';
+    return;
+  }
+  // Calculate simple patterns
+  const aggression = logEntries.filter(e => e.damage > 0).length / logEntries.length;
+  const risk = aggression > 0.6 ? 'High (aggressive)' : aggression > 0.3 ? 'Moderate' : 'Low (defensive)';
+  document.getElementById('riskTolerance').textContent = risk;
+  // Consistency: how often did the move produce the expected outcome?
+  const expected = logEntries.map(e => e.playerRes > e.enemyRes);
+  const consistent = expected.filter((v,i,a) => i === 0 || v === a[i-1]).length / expected.length;
+  document.getElementById('consistency').textContent = consistent > 0.7 ? 'High' : consistent > 0.4 ? 'Moderate' : 'Low (unpredictable)';
+  // Bias: overshooting when low on resources?
+  const desperate = logEntries.filter(e => e.playerRes < 5);
+  const overshoot = desperate.filter(e => e.damage > 0).length / (desperate.length || 1);
+  document.getElementById('biasExposure').textContent = overshoot > 0.7 ? 'High (tilt risk)' : overshoot > 0.3 ? 'Moderate' : 'Low (disciplined)';
+}
+
+function render() {
+  if(!g) return;
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  for(let y=0; y<5; y++) {
+    for(let x=0; x<7; x++) {
+      const key = K(x,y);
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      if(g.arena.open.has(key)) {
+        if(g.arena.objectives[key]) cell.classList.add('objective');
+        if(g.player.x === x && g.player.y === y) {
+          cell.classList.add('player');
+          cell.innerHTML = `<span class="token">⚡</span><span class="res">${g.player.res}</span>`;
+        } else if(g.enemy.x === x && g.enemy.y === y) {
+          cell.classList.add('enemy');
+          cell.innerHTML = `<span class="token">⛰️</span><span class="res">${g.enemy.res}</span>`;
+        } else {
+          const obj = g.arena.objectives[key];
+          if(obj) cell.innerHTML = `<span style="font-size:10px;color:#d7aa57">${obj.name === 'FORUM' ? '🔍' : obj.name === 'STAGE' ? '⚔' : '🛠'}</span>`;
+          else cell.innerHTML = '·';
+        }
+        if(g.owners[key]) {
+          const own = document.createElement('span');
+          own.className = 'owner ' + g.owners[key];
+          cell.appendChild(own);
+        }
+      } else {
+        cell.style.opacity = '0.2';
+        cell.innerHTML = '×';
+      }
+      cell.dataset.key = key;
+      board.appendChild(cell);
+    }
+  }
+  document.getElementById('playerName').textContent = g.thesis.name;
+  document.getElementById('playerPower').textContent = g.player.power;
+  document.getElementById('playerFocus').textContent = g.player.focus;
+  document.getElementById('enemyPower').textContent = g.enemy.power;
+  document.getElementById('enemyFocus').textContent = g.enemy.focus;
+  document.getElementById('scenarioName').textContent = g.arena.name;
+  document.getElementById('tensionLevel').textContent = g.arena.tension;
+  document.getElementById('thesisLabel').textContent = g.thesis.id;
+  document.getElementById('roundLabel').textContent = `${g.round}/${MAX_ROUND}`;
+}
+
+// ===== INIT =====
+function resetGame() {
+  const thesis = THESES[Math.floor(Math.random() * THESES.length)];
+  const scenario = SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
+  document.getElementById('nextTurnBtn').disabled = false;
+  document.getElementById('autoBtn').disabled = false;
+  initGame(thesis.id, scenario.name);
+  updateFeedback(`🔄 New scenario: <strong>${scenario.name}</strong> — ${scenario.desc}. Your thesis: <strong>${thesis.name}</strong>. Click "Test Your Logic" to begin.`);
+}
+
+document.getElementById('nextTurnBtn').addEventListener('click', autoResolve);
+document.getElementById('autoBtn').addEventListener('click', runFullPremortem);
+document.getElementById('resetBtn').addEventListener('click', resetGame);
+
+resetGame();
+</script>
+</body>
+</html>

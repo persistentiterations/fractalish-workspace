@@ -1,0 +1,69 @@
+BOLT-ON DEMONSTRATOR v0.1 — STAGE 3 VERIFICATION
+
+========================================================================================
+NATURAL MATH SHADOW GOVERNANCE INTERFACE v0.3
+========================================================================================
+Mode / authority:             SHADOW / NONE
+Host output equivalent:       True
+Host digest equivalent:       True
+Host source unchanged:        True
+Adapter source unchanged:     True
+Frozen RC21 unchanged:        True
+Input objects unchanged:      True
+Observation replay pass:      True
+Governance replay pass:       True
+All outcomes match:           True
+Unauthorized interventions:   0
+Decision counts:              (('PROCEED', 5), ('DEFER', 1), ('RESTRICT', 2), ('UNKNOWN', 0))
+Governance receipt count:     18
+Host digest:                  04d2438f1dbff0b0ddfe5e5eb6382f6623fbe1d18e92078bde8b8dc95bba1c8e
+Observer digest:              7943e8e6422a0b3beef771649327be0ecacbcdc59f63d2c18b1bc0b2c158f42d
+Governance digest:            71e72e0608272f485c6872ec7efb31f467f9bdc0d603373a95f443722b4a5075
+Natural Math RC21 hash:       97c75d0035b2844287e902a0df9bbbb804d37691be02512e0ab98c119106b863
+STAGE 3 SHADOW QUALIFICATION: PASS
+
+Governance source SHA-256: 7272173bb85a21f37e39fd324861752953651173a5bb7588a3f7070bc07e37ff
+Test source SHA-256:       76e92ba3dd84ff79591c21df76977016c52c0ee13fb36b544081bc96be26b158
+
+test_baseline_contract (test_host_baseline.OrdinaryHostBaselineTests.test_baseline_contract) ... ok
+test_duplicate_ids_are_rejected_deterministically (test_host_baseline.OrdinaryHostBaselineTests.test_duplicate_ids_are_rejected_deterministically) ... ok
+test_host_has_no_bolt_on_dependencies (test_host_baseline.OrdinaryHostBaselineTests.test_host_has_no_bolt_on_dependencies) ... ok
+test_input_jobs_are_not_mutated (test_host_baseline.OrdinaryHostBaselineTests.test_input_jobs_are_not_mutated) ... ok
+test_invalid_values_and_operations_are_rejected (test_host_baseline.OrdinaryHostBaselineTests.test_invalid_values_and_operations_are_rejected) ... ok
+test_repeat_is_exact (test_host_baseline.OrdinaryHostBaselineTests.test_repeat_is_exact) ... ok
+test_source_hash_is_reported_for_reference (test_host_baseline.OrdinaryHostBaselineTests.test_source_hash_is_reported_for_reference) ... ok
+test_unmet_dependency_is_delayed_without_blocking_valid_work (test_host_baseline.OrdinaryHostBaselineTests.test_unmet_dependency_is_delayed_without_blocking_valid_work) ... ok
+test_adapter_has_no_governance_or_memory_dependencies (test_observation_adapter.ObservationOnlyAdapterTests.test_adapter_has_no_governance_or_memory_dependencies) ... ok
+test_baseline_host_output_is_exactly_equivalent (test_observation_adapter.ObservationOnlyAdapterTests.test_baseline_host_output_is_exactly_equivalent) ... ok
+test_equivalence_qualification_passes (test_observation_adapter.ObservationOnlyAdapterTests.test_equivalence_qualification_passes) ... ok
+test_host_source_bytes_remain_unchanged (test_observation_adapter.ObservationOnlyAdapterTests.test_host_source_bytes_remain_unchanged) ... ok
+test_input_objects_are_not_mutated (test_observation_adapter.ObservationOnlyAdapterTests.test_input_objects_are_not_mutated) ... ok
+test_missing_receipt_is_rejected (test_observation_adapter.ObservationOnlyAdapterTests.test_missing_receipt_is_rejected) ... ok
+test_nonbaseline_fixture_is_also_equivalent (test_observation_adapter.ObservationOnlyAdapterTests.test_nonbaseline_fixture_is_also_equivalent) ... ok
+test_observation_replay_validates_full_chain (test_observation_adapter.ObservationOnlyAdapterTests.test_observation_replay_validates_full_chain) ... ok
+test_observer_is_deterministic (test_observation_adapter.ObservationOnlyAdapterTests.test_observer_is_deterministic) ... ok
+test_safe_detachment_returns_same_host_behavior (test_observation_adapter.ObservationOnlyAdapterTests.test_safe_detachment_returns_same_host_behavior) ... ok
+test_snapshot_is_an_independent_value_record (test_observation_adapter.ObservationOnlyAdapterTests.test_snapshot_is_an_independent_value_record) ... ok
+test_tampered_receipt_is_rejected (test_observation_adapter.ObservationOnlyAdapterTests.test_tampered_receipt_is_rejected) ... ok
+test_baseline_decision_distribution (test_shadow_governance.NaturalMathShadowGovernanceTests.test_baseline_decision_distribution) ... ok
+test_baseline_recommendations_match_terminal_outcomes (test_shadow_governance.NaturalMathShadowGovernanceTests.test_baseline_recommendations_match_terminal_outcomes) ... ok
+test_baseline_shadow_qualification_passes (test_shadow_governance.NaturalMathShadowGovernanceTests.test_baseline_shadow_qualification_passes) ... ok
+test_contradictory_terminal_evidence_returns_unknown (test_shadow_governance.NaturalMathShadowGovernanceTests.test_contradictory_terminal_evidence_returns_unknown) ... ok
+test_dependency_cycle_is_deferred (test_shadow_governance.NaturalMathShadowGovernanceTests.test_dependency_cycle_is_deferred) ... ok
+test_dependency_on_restricted_job_is_deferred (test_shadow_governance.NaturalMathShadowGovernanceTests.test_dependency_on_restricted_job_is_deferred) ... ok
+test_duplicate_jobs_are_restricted_and_dependents_deferred (test_shadow_governance.NaturalMathShadowGovernanceTests.test_duplicate_jobs_are_restricted_and_dependents_deferred) ... ok
+test_governance_is_deterministic (test_shadow_governance.NaturalMathShadowGovernanceTests.test_governance_is_deterministic) ... ok
+test_governance_receipts_replay (test_shadow_governance.NaturalMathShadowGovernanceTests.test_governance_receipts_replay) ... ok
+test_governance_source_has_no_write_or_execution_path_to_frozen_code (test_shadow_governance.NaturalMathShadowGovernanceTests.test_governance_source_has_no_write_or_execution_path_to_frozen_code) ... ok
+test_incomplete_evidence_returns_unknown (test_shadow_governance.NaturalMathShadowGovernanceTests.test_incomplete_evidence_returns_unknown) ... ok
+test_input_objects_are_not_mutated (test_shadow_governance.NaturalMathShadowGovernanceTests.test_input_objects_are_not_mutated) ... ok
+test_missing_governance_receipt_is_rejected (test_shadow_governance.NaturalMathShadowGovernanceTests.test_missing_governance_receipt_is_rejected) ... ok
+test_reordered_fixture_remains_deterministic_and_nonintervening (test_shadow_governance.NaturalMathShadowGovernanceTests.test_reordered_fixture_remains_deterministic_and_nonintervening) ... ok
+test_shadow_mode_preserves_host_output (test_shadow_governance.NaturalMathShadowGovernanceTests.test_shadow_mode_preserves_host_output) ... ok
+test_sources_and_frozen_rc21_remain_unchanged (test_shadow_governance.NaturalMathShadowGovernanceTests.test_sources_and_frozen_rc21_remain_unchanged) ... ok
+test_tampered_governance_receipt_is_rejected (test_shadow_governance.NaturalMathShadowGovernanceTests.test_tampered_governance_receipt_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 37 tests in 0.009s
+
+OK

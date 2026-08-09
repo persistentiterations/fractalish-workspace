@@ -1,0 +1,31 @@
+BOLT-ON DEMONSTRATOR v0.1 â€” FROZEN RELEASE RECORD
+================================================
+
+Release: bolt-on-demonstrator-v0.1
+Source commit: 0b7c54832d061bd929c8d61bb44b9d77e6d9e814
+Release mode: SHADOW
+Intervention authority: NONE
+Qualified test count: 76
+Integrated campaigns: 6
+Fault injections: 6
+Attach-detach cycles: 5
+Unauthorized interventions: 0
+
+Campaign digest:
+9ff12f5a0776c93c11fe4d020bcaf8b756caff82c5f3a1076c23c6ed152f6eab
+
+Shared memory digest:
+6ba2c70e929777e37feeb6798aba39fc5f2e95b574e8872867f5e53017d66a73
+
+QUALIFIED CLAIM
+---------------
+A deterministic shadow-only bolt-on can attach to an ordinary host, observe
+it, produce replayable governance recommendations, preserve bounded evidence
+memory, contain the tested evidence faults, and detach without modifying the
+host or its frozen foundations.
+
+CLAIM BOUNDARY
+--------------
+This release does not claim active control, production readiness,
+compatibility with every external system, autonomous intervention, or zero
+drift. Active bounded intervention belongs in v0.2 development.

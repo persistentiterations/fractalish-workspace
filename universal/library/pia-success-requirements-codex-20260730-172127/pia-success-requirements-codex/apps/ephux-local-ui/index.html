@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#214634">
+  <title>EphUX Local Integration</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <style>
+    :root {
+      --paper: #f3ecdc;
+      --panel: rgba(255, 253, 247, 0.9);
+      --ink: #172219;
+      --accent: #214634;
+      --accent-2: #8a5a32;
+      --line: #c9ceb9;
+      --soft: #e3dfd0;
+      --danger: #8b3c32;
+      --ok: #1f5c40;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Georgia", "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,0.95), transparent 34%),
+        linear-gradient(160deg, #f8f4ea 0%, #ece4d0 52%, #e0dccd 100%);
+    }
+    header, main { max-width: 1380px; margin: 0 auto; padding: 1rem; }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      justify-content: space-between;
+      gap: 1rem;
+      padding-top: 1.5rem;
+    }
+    h1, h2, h3 { margin: 0 0 0.5rem; font-family: "Palatino Linotype", "Book Antiqua", serif; }
+    p { line-height: 1.45; }
+    .banner {
+      background: linear-gradient(135deg, rgba(33,70,52,0.92), rgba(138,90,50,0.88));
+      color: #fff8eb;
+      border-radius: 1.5rem;
+      padding: 1.2rem 1.3rem;
+      box-shadow: 0 20px 40px rgba(23,34,25,0.12);
+    }
+    .banner strong { display: block; font-size: 1.2rem; margin-bottom: 0.35rem; }
+    .chips { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 999px;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.9rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      gap: 1rem;
+      align-items: start;
+    }
+    .stack { display: grid; gap: 1rem; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 1.2rem;
+      padding: 1rem;
+      box-shadow: 0 14px 28px rgba(23,34,25,0.08);
+      backdrop-filter: blur(6px);
+    }
+    .panel[data-tone="accent"] { background: rgba(227, 239, 228, 0.86); }
+    .panel[data-tone="warn"] { background: rgba(248, 238, 231, 0.9); }
+    .cluster { display: grid; gap: 0.8rem; }
+    .row { display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+    label { display: grid; gap: 0.35rem; font-size: 0.95rem; }
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid #b9c2ac;
+      border-radius: 0.85rem;
+      padding: 0.75rem 0.85rem;
+      font: inherit;
+      background: rgba(255,255,255,0.92);
+      color: var(--ink);
+    }
+    textarea { min-height: 7rem; resize: vertical; }
+    button {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fffdf7;
+      padding: 0.72rem 1rem;
+      font: inherit;
+      cursor: pointer;
+      transition: transform 0.12s ease, background 0.12s ease;
+    }
+    button.secondary { background: #6b7f62; }
+    button.warn { background: var(--accent-2); }
+    button.danger { background: var(--danger); }
+    button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+      outline: 3px solid rgba(33,70,52,0.2);
+      outline-offset: 2px;
+    }
+    button:hover { transform: translateY(-1px); }
+    .button-row { display: flex; gap: 0.55rem; flex-wrap: wrap; }
+    .session-list { display: grid; gap: 0.55rem; }
+    .session-list button {
+      text-align: left;
+      background: #f8f6ef;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 1rem;
+      padding: 0.8rem;
+    }
+    .session-list button.active { background: #e1eddc; border-color: #99b191; }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.75rem;
+    }
+    .metric {
+      background: #fbfaf5;
+      border: 1px solid var(--soft);
+      border-radius: 1rem;
+      padding: 0.8rem;
+    }
+    .metric strong { display: block; font-size: 1.05rem; }
+    .list-card {
+      border: 1px solid var(--soft);
+      border-radius: 1rem;
+      padding: 0.8rem;
+      background: #fbfaf5;
+    }
+    .list-card ul { margin: 0; padding-left: 1.1rem; }
+    .timeline {
+      display: grid;
+      gap: 0.5rem;
+      max-height: 26rem;
+      overflow: auto;
+    }
+    .timeline article {
+      border-left: 4px solid var(--accent);
+      background: #fbfaf5;
+      border-radius: 0 1rem 1rem 0;
+      padding: 0.75rem 0.9rem;
+    }
+    .state {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 0.2rem 0.55rem;
+      font-size: 0.85rem;
+      background: #ebefe8;
+      border: 1px solid #b8c6b3;
+    }
+    .state.warn { background: #f6ece5; border-color: #d5b49a; }
+    .state.danger { background: #f4e4e2; border-color: #d1a2a0; }
+    .statusbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 1rem;
+      background: #fbfaf5;
+      border: 1px solid var(--line);
+    }
+    .statusbar strong { display: block; }
+    .mono { font-family: "Consolas", "Courier New", monospace; }
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 18rem;
+      overflow: auto;
+      background: #fbfaf5;
+      border: 1px solid var(--soft);
+      border-radius: 1rem;
+      padding: 0.8rem;
+    }
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="banner">
+      <strong>EphUX Local Integration</strong>
+      <p>Loopback-only private product surface for BasinLab-backed review, intake, activation, and governed session work. Not deployed.</p>
+      <div class="chips">
+        <span class="chip">Local only</span>
+        <span class="chip">No cached secrets</span>
+        <span class="chip">Governed actions</span>
+        <span class="chip">Persisted sessions</span>
+      </div>
+    </div>
+    <section class="panel" aria-labelledby="connection-heading">
+      <h2 id="connection-heading">Connection</h2>
+      <div class="cluster">
+        <label for="tokenInput">Local token
+          <input id="tokenInput" autocomplete="off" spellcheck="false">
+        </label>
+        <label for="providerPreference">Provider preference
+          <select id="providerPreference">
+            <option value="scripted">scripted</option>
+            <option value="generalist">generalist</option>
+            <option value="compact-reasoner">compact-reasoner</option>
+            <option value="openai-compatible">openai-compatible</option>
+            <option value="vibethinker">vibethinker</option>
+          </select>
+        </label>
+        <label for="participantSelect">Participant
+          <select id="participantSelect">
+            <option value="">UNKNOWN</option>
+            <option value="James Clow">James Clow</option>
+            <option value="Melissa Clow">Melissa Clow</option>
+          </select>
+        </label>
+        <label for="visibilitySelect">Visibility
+          <select id="visibilitySelect">
+            <option value="shared-project">SHARED_PROJECT</option>
+            <option value="private-james">PRIVATE_JAMES</option>
+            <option value="private-melissa">PRIVATE_MELISSA</option>
+            <option value="session-only">SESSION_ONLY</option>
+            <option value="exportable-redacted">EXPORTABLE_REDACTED</option>
+            <option value="audit-retained">AUDIT_RETAINED</option>
+          </select>
+        </label>
+        <button id="refreshSessions">Load Sessions</button>
+      </div>
+    </section>
+  </header>
+
+  <main class="grid">
+    <aside class="stack" aria-label="Session controls">
+      <section class="panel" data-tone="accent">
+        <h2>New Session</h2>
+        <div class="cluster">
+          <label for="purposeInput">Purpose
+            <input id="purposeInput">
+          </label>
+          <label for="contextInput">Context
+            <textarea id="contextInput"></textarea>
+          </label>
+          <div class="button-row">
+            <button id="createSession">Create Session</button>
+            <button id="startActivation" class="secondary">Activation</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Guardian Intake</h2>
+        <div class="cluster">
+          <label for="intakeText">Text
+            <textarea id="intakeText"></textarea>
+          </label>
+          <label for="sanitizationEvidence">Sanitization evidence
+            <input id="sanitizationEvidence" value="reviewed locally">
+          </label>
+          <button id="submitIntake" class="secondary">Submit Intake</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Sessions</h2>
+        <div class="session-list" id="sessionList" aria-live="polite"></div>
+      </section>
+
+      <section class="panel" data-tone="warn">
+        <h2>Import / Export</h2>
+        <div class="cluster">
+          <div class="button-row">
+            <button id="exportSession">Export Session</button>
+            <button id="openReport" class="secondary">Open Report</button>
+          </div>
+          <label for="importBundle">Import bundle
+            <input id="importBundle" type="file" accept=".json,application/json">
+          </label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Local Labs</h2>
+        <p>Run the deterministic evaluation and Natural Math surfaces against the selected persisted session.</p>
+        <div class="button-row">
+          <button id="runEvaluationLab" class="secondary">Run Evaluation Lab</button>
+          <button id="runNaturalMathLab" class="secondary">Run Natural Math Lab</button>
+        </div>
+      </section>
+    </aside>
+
+    <section class="stack" aria-label="Session detail">
+      <section class="panel">
+        <h2>Current Session</h2>
+        <div class="metrics" id="metrics"></div>
+        <div class="statusbar">
+          <div>
+            <strong id="activeSession">No session selected</strong>
+            <span id="connectionState">Awaiting token and session.</span>
+          </div>
+          <span class="state warn" id="localOnlyBadge">LOCAL ONLY / NOT DEPLOYED</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Actions And Review</h2>
+        <div class="row">
+          <label for="actionSummary">Action summary
+            <input id="actionSummary">
+          </label>
+          <label for="actionStepId">Step ID
+            <input id="actionStepId" value="ui-action-1">
+          </label>
+        </div>
+        <label for="actionCode">Action code
+          <textarea id="actionCode"></textarea>
+        </label>
+        <div class="button-row">
+          <button id="runAction">Run Action</button>
+          <button id="submitEvidence" class="secondary">Submit Evidence</button>
+          <button id="submitClaim" class="secondary">Submit Claim</button>
+          <button id="proposeCommit" class="warn">Commit Proposal</button>
+          <button id="holdSession" class="warn">Place HOLD</button>
+          <button id="retractSession" class="danger">Retract</button>
+        </div>
+        <div class="row">
+          <label for="evidenceText">Evidence
+            <textarea id="evidenceText"></textarea>
+          </label>
+          <label for="claimText">Claim
+            <textarea id="claimText"></textarea>
+          </label>
+        </div>
+        <div class="row">
+          <label for="reviewAction">Human review action
+            <select id="reviewAction">
+              <option value="accept_evidence">accept evidence</option>
+              <option value="reject_evidence">reject evidence</option>
+              <option value="mark_unverified">mark unverified</option>
+              <option value="add_contradiction">add contradiction</option>
+              <option value="place_hold">place hold</option>
+              <option value="propose_release">propose release</option>
+              <option value="reject_commit">reject commit</option>
+              <option value="approve_commit">approve commit</option>
+              <option value="note">add note</option>
+            </select>
+          </label>
+          <label for="reviewNote">Review note
+            <textarea id="reviewNote"></textarea>
+          </label>
+        </div>
+        <div class="button-row">
+          <button id="submitReview" class="secondary">Record Review</button>
+          <button id="refreshSession" class="secondary">Refresh Session</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Memory Governance</h2>
+        <div class="row">
+          <label for="memoryId">Memory ID
+            <input id="memoryId">
+          </label>
+          <label for="recoveryRouteId">Recovery route
+            <input id="recoveryRouteId">
+          </label>
+        </div>
+        <div class="row">
+          <label for="retrievalPurpose">Retrieval purpose
+            <textarea id="retrievalPurpose"></textarea>
+          </label>
+          <label for="memoryNote">Promotion / demotion note
+            <textarea id="memoryNote"></textarea>
+          </label>
+        </div>
+        <label for="memoryContradiction">Contradiction state / detail
+          <textarea id="memoryContradiction"></textarea>
+        </label>
+        <div class="button-row">
+          <button id="retrieveMemory" class="secondary">Retrieve Memory</button>
+          <button id="promoteMemory" class="secondary">Promote Memory</button>
+          <button id="demoteMemory" class="warn">Demote Memory</button>
+          <button id="pruneMemory" class="danger">Prune Memory</button>
+        </div>
+        <pre id="memoryState" aria-label="Retained memory, retrieval purpose, evidence state, contradiction state, scars, recovery routes, promotion history, demotion history, pruning history"></pre>
+      </section>
+
+      <section class="panel">
+        <h2>Team Narrative</h2>
+        <div class="row">
+          <label for="contributionText">Contribution
+            <textarea id="contributionText"></textarea>
+          </label>
+          <label for="decisionText">Decision
+            <textarea id="decisionText"></textarea>
+          </label>
+        </div>
+        <div class="row">
+          <label for="supersededDecisionText">Superseded decision
+            <textarea id="supersededDecisionText"></textarea>
+          </label>
+          <label for="disagreementText">Disagreement
+            <textarea id="disagreementText"></textarea>
+          </label>
+        </div>
+        <div class="row">
+          <label for="unresolvedQuestionText">Unresolved disagreement
+            <textarea id="unresolvedQuestionText"></textarea>
+          </label>
+          <label for="commitmentText">Commitment
+            <textarea id="commitmentText"></textarea>
+          </label>
+        </div>
+        <div class="row">
+          <label for="failureText">Failure continuity
+            <textarea id="failureText"></textarea>
+          </label>
+          <label for="recoveryText">Recovery continuity
+            <textarea id="recoveryText"></textarea>
+          </label>
+        </div>
+        <div class="button-row">
+          <button id="addContribution" class="secondary">Add Contribution</button>
+          <button id="addDecision" class="secondary">Add Decision</button>
+          <button id="addDisagreement" class="warn">Add Disagreement</button>
+          <button id="addCommitment" class="secondary">Add Commitment</button>
+        </div>
+        <pre id="narrativeState" aria-label="James contribution history, Melissa contribution history, UNKNOWN contribution history, decisions, disagreements, commitments, superseded decisions"></pre>
+      </section>
+
+      <section class="panel">
+        <h2>Privacy Controls</h2>
+        <label for="privacyReason">Export / deletion / legal hold note
+          <textarea id="privacyReason"></textarea>
+        </label>
+        <div class="button-row">
+          <button id="exportPrivacy" class="secondary">Redacted Export</button>
+          <button id="requestDeletion" class="warn">Deletion Request</button>
+          <button id="placeLegalHold" class="danger">Legal Hold</button>
+        </div>
+        <pre id="privacyState" aria-label="Privacy export controls, deletion-request status, legal-hold status"></pre>
+      </section>
+
+      <section class="panel">
+        <h2>Connector Authority</h2>
+        <div class="row">
+          <label for="connectorId">Connector ID
+            <input id="connectorId" value="github">
+          </label>
+          <label for="connectorOperation">Operation
+            <input id="connectorOperation" value="BRANCH_PUSH">
+          </label>
+        </div>
+        <div class="row">
+          <label for="connectorTarget">Target
+            <input id="connectorTarget" value="refs/heads/build/fixture">
+          </label>
+          <label for="connectorAccount">Account / tenant
+            <input id="connectorAccount" value="sanitized-account">
+          </label>
+        </div>
+        <div class="row">
+          <label for="connectorEnvironment">Environment
+            <select id="connectorEnvironment">
+              <option value="LOCAL">LOCAL</option>
+              <option value="PREVIEW">PREVIEW</option>
+              <option value="PRODUCTION">PRODUCTION</option>
+            </select>
+          </label>
+          <label for="connectorAuthority">Authority label
+            <select id="connectorAuthority">
+              <option value="READ_ONLY">READ ONLY</option>
+              <option value="LOCAL_WRITE">LOCAL WRITE</option>
+              <option value="PRIVATE_REPOSITORY_WRITE">WRITE REQUIRES PERMIT</option>
+              <option value="PREVIEW_DEPLOYMENT">PREVIEW</option>
+              <option value="PRODUCTION_WRITE">PRODUCTION</option>
+              <option value="BILLING_CHANGE">BILLING</option>
+              <option value="DESTRUCTIVE_OPERATION">DESTRUCTIVE</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label for="connectorBranch">Branch / local payload
+            <input id="connectorBranch" value="build/fixture">
+          </label>
+          <label for="connectorUrl">Allowlisted URL
+            <input id="connectorUrl" value="https://status.project.local/health">
+          </label>
+        </div>
+        <div class="row">
+          <label for="connectorCost">Cost class
+            <select id="connectorCost">
+              <option value="FREE">FREE</option>
+              <option value="LOW">LOW</option>
+              <option value="METERED">METERED</option>
+              <option value="BILLING_SENSITIVE">BILLING</option>
+            </select>
+          </label>
+          <label for="connectorAuthHeader">Sensitive header sample
+            <input id="connectorAuthHeader" value="">
+          </label>
+        </div>
+        <div class="row">
+          <label for="connectorRollback">Rollback plan
+            <textarea id="connectorRollback"></textarea>
+          </label>
+          <label for="connectorApprovalNote">Approval / denial / revoke note
+            <textarea id="connectorApprovalNote"></textarea>
+          </label>
+        </div>
+        <div class="row">
+          <label for="externalProposalId">External proposal ID
+            <input id="externalProposalId">
+          </label>
+        </div>
+        <div class="button-row">
+          <button id="refreshConnectors" class="secondary">Refresh Connectors</button>
+          <button id="proposeExternalAction" class="secondary">Propose External Action</button>
+          <button id="approveExternalAction" class="warn">Approve</button>
+          <button id="denyExternalAction" class="warn">Deny</button>
+          <button id="revokeExternalAction" class="danger">Revoke</button>
+          <button id="executeExternalAction">Execute With Permit</button>
+        </div>
+        <pre id="connectorInventory" aria-label="Connector inventory, availability, read and write capabilities, side effects, cost classes"></pre>
+        <pre id="externalActionState" aria-label="External action proposals, required authority, side effects, rollback plans, execution receipts"></pre>
+      </section>
+
+      <section class="panel" data-tone="accent">
+        <h2>Operational Consciousness Model</h2>
+        <p>Operational machine-consciousness surface. Not a claim of human-like subjective experience.</p>
+        <div class="row">
+          <label for="consciousnessPerceptTopic">Percept topic
+            <input id="consciousnessPerceptTopic" value="branch-readiness">
+          </label>
+          <label for="consciousnessSourceType">Source type
+            <select id="consciousnessSourceType">
+              <option value="HUMAN">HUMAN</option>
+              <option value="SYSTEM">SYSTEM</option>
+              <option value="CONNECTOR">CONNECTOR</option>
+              <option value="MEMORY">MEMORY</option>
+              <option value="PROVIDER">PROVIDER</option>
+            </select>
+          </label>
+        </div>
+        <label for="consciousnessPerceptContent">Percept content
+          <textarea id="consciousnessPerceptContent">The branch may be ready.</textarea>
+        </label>
+        <div class="row">
+          <label for="consciousnessConfidence">Confidence
+            <input id="consciousnessConfidence" value="0.8">
+          </label>
+          <label for="consciousnessSalience">Salience
+            <input id="consciousnessSalience" value="0.7">
+          </label>
+          <label for="consciousnessPurposeRelevance">Purpose relevance
+            <input id="consciousnessPurposeRelevance" value="0.9">
+          </label>
+        </div>
+        <div class="row">
+          <label for="consciousnessPurpose">Purpose
+            <input id="consciousnessPurpose" value="verify branch readiness">
+          </label>
+          <label for="consciousnessPriority">Priority weight
+            <input id="consciousnessPriority" value="1.0">
+          </label>
+          <label for="consciousnessUrgency">Priority urgency
+            <input id="consciousnessUrgency" value="0.8">
+          </label>
+        </div>
+        <div class="row">
+          <label for="consciousnessAttentionTarget">Attention lock target
+            <input id="consciousnessAttentionTarget" value="">
+          </label>
+          <label for="consciousnessCapabilityTested">Capability tested
+            <select id="consciousnessCapabilityTested">
+              <option value="false">false</option>
+              <option value="true">true</option>
+            </select>
+          </label>
+          <label for="consciousnessAllowInternal">Allow internal action
+            <select id="consciousnessAllowInternal">
+              <option value="false">false</option>
+              <option value="true">true</option>
+            </select>
+          </label>
+        </div>
+        <div class="button-row">
+          <button id="submitConsciousnessPercept" class="secondary">Add Percept</button>
+          <button id="submitConsciousnessPurpose" class="secondary">Add Purpose</button>
+          <button id="setConsciousnessAttention" class="secondary">Lock Attention</button>
+          <button id="runConsciousnessCycle">Run Consciousness Cycle</button>
+          <button id="pauseConsciousness" class="warn">Pause</button>
+          <button id="resumeConsciousness" class="secondary">Resume</button>
+          <button id="reviewConsciousness" class="secondary">Review</button>
+        </div>
+        <div class="row">
+          <article class="list-card">
+            <h3>Consciousness State</h3>
+            <pre id="consciousnessState"></pre>
+          </article>
+          <article class="list-card">
+            <h3>Global Workspace</h3>
+            <pre id="consciousnessWorkspace"></pre>
+          </article>
+        </div>
+        <article class="list-card">
+          <h3>Conscious Episodes</h3>
+          <pre id="consciousnessEpisodes"></pre>
+        </article>
+      </section>
+
+      <section class="panel" data-tone="cool">
+        <h2>Predictive Cognition Surface</h2>
+        <p>Structured world model, prediction, interoception, causal reasoning, perspectives, planning, rehearsal, anomalies, and calibration.</p>
+        <div class="row">
+          <label for="predictiveEntityType">Entity type
+            <input id="predictiveEntityType" value="BRANCH">
+          </label>
+          <label for="predictiveEntityId">Entity id
+            <input id="predictiveEntityId" value="branch-1">
+          </label>
+          <label for="predictivePropertyName">Property
+            <input id="predictivePropertyName" value="status">
+          </label>
+          <label for="predictivePropertyCategory">Category
+            <select id="predictivePropertyCategory">
+              <option value="OBSERVED">OBSERVED</option>
+              <option value="INFERRED">INFERRED</option>
+              <option value="PREDICTED">PREDICTED</option>
+              <option value="SIMULATED">SIMULATED</option>
+              <option value="REMEMBERED">REMEMBERED</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label for="predictivePropertyValue">Property value
+            <input id="predictivePropertyValue" value="green">
+          </label>
+          <label for="predictiveExpectedValue">Expected value
+            <input id="predictiveExpectedValue" value="green">
+          </label>
+          <label for="predictiveHorizon">Prediction horizon
+            <select id="predictiveHorizon">
+              <option value="NEXT_CYCLE">NEXT_CYCLE</option>
+              <option value="SESSION">SESSION</option>
+              <option value="PROJECT">PROJECT</option>
+            </select>
+          </label>
+          <label for="predictiveConfidence">Prediction confidence
+            <input id="predictiveConfidence" value="0.8">
+          </label>
+        </div>
+        <div class="row">
+          <label for="predictiveAssumption">Assumption
+            <input id="predictiveAssumption" value="tests remain green">
+          </label>
+          <label for="predictiveEvidence">Evidence
+            <input id="predictiveEvidence" value="local deterministic evidence">
+          </label>
+          <label for="predictiveCausalSource">Causal source
+            <input id="predictiveCausalSource" value="ci-green">
+          </label>
+          <label for="predictiveCausalTarget">Causal target
+            <input id="predictiveCausalTarget" value="branch-ready">
+          </label>
+          <label for="predictiveCausalRelation">Causal relation
+            <select id="predictiveCausalRelation">
+              <option value="HYPOTHESIZED">HYPOTHESIZED</option>
+              <option value="CORRELATION">CORRELATION</option>
+              <option value="SIMULATION_SUPPORTED">SIMULATION_SUPPORTED</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label for="predictivePerspectiveOwner">Perspective owner
+            <input id="predictivePerspectiveOwner" value="James Clow">
+          </label>
+          <label for="predictivePerspectiveClass">Perspective class
+            <select id="predictivePerspectiveClass">
+              <option value="PARTICIPANT_JAMES">PARTICIPANT_JAMES</option>
+              <option value="PARTICIPANT_MELISSA">PARTICIPANT_MELISSA</option>
+              <option value="UNKNOWN">UNKNOWN</option>
+            </select>
+          </label>
+          <label for="predictivePerspectiveLabel">Perspective label
+            <select id="predictivePerspectiveLabel">
+              <option value="goal">goal</option>
+              <option value="knowledge">knowledge</option>
+              <option value="belief">belief</option>
+              <option value="uncertainty">uncertainty</option>
+            </select>
+          </label>
+          <label for="predictivePerspectiveEvidence">Evidence category
+            <select id="predictivePerspectiveEvidence">
+              <option value="EXPLICITLY_STATED">EXPLICITLY_STATED</option>
+              <option value="OBSERVED_BEHAVIOR">OBSERVED_BEHAVIOR</option>
+              <option value="UNKNOWN">UNKNOWN</option>
+            </select>
+          </label>
+        </div>
+        <label for="predictivePerspectiveStatement">Perspective statement
+          <textarea id="predictivePerspectiveStatement">Please verify before acting.</textarea>
+        </label>
+        <label for="predictiveRehearsalDetail">Rehearsal detail
+          <textarea id="predictiveRehearsalDetail">simulate connector outage and verify recovery path</textarea>
+        </label>
+        <div class="button-row">
+          <button id="submitWorldObservation" class="secondary">Add World Observation</button>
+          <button id="submitPredictionRequest" class="secondary">Add Prediction</button>
+          <button id="submitCausalHypothesis" class="secondary">Add Causal Hypothesis</button>
+          <button id="submitPerspectiveRecord" class="secondary">Add Perspective</button>
+          <button id="submitRehearsalRequest" class="secondary">Add Rehearsal</button>
+          <button id="reviewPredictiveWorld">Review Predictive State</button>
+        </div>
+        <div class="row">
+          <article class="list-card">
+            <h3>World Model</h3>
+            <pre id="predictiveWorld"></pre>
+          </article>
+          <article class="list-card">
+            <h3>Predictions And Residuals</h3>
+            <pre id="predictivePrediction"></pre>
+          </article>
+          <article class="list-card">
+            <h3>Interoception And Regulation</h3>
+            <pre id="predictiveInteroception"></pre>
+          </article>
+        </div>
+        <div class="row">
+          <article class="list-card">
+            <h3>Causal Model</h3>
+            <pre id="predictiveCausal"></pre>
+          </article>
+          <article class="list-card">
+            <h3>Participant Perspectives</h3>
+            <pre id="predictivePerspectives"></pre>
+          </article>
+          <article class="list-card">
+            <h3>Plans</h3>
+            <pre id="predictivePlans"></pre>
+          </article>
+        </div>
+        <div class="row">
+          <article class="list-card">
+            <h3>Rehearsals</h3>
+            <pre id="predictiveRehearsals"></pre>
+          </article>
+          <article class="list-card">
+            <h3>Anomalies</h3>
+            <pre id="predictiveAnomalies"></pre>
+          </article>
+          <article class="list-card">
+            <h3>Calibration</h3>
+            <pre id="predictiveCalibration"></pre>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Report Summary</h2>
+        <div class="row">
+          <article class="list-card">
+            <h3>Candidate Spectrum</h3>
+            <pre id="candidateSpectrum"></pre>
+          </article>
+          <article class="list-card">
+            <h3>Claims And Evidence</h3>
+            <pre id="claimsEvidence"></pre>
+          </article>
+          <article class="list-card">
+            <h3>HOLD / RETRACT / Recovery</h3>
+            <pre id="holdsRecovery"></pre>
+          </article>
+        </div>
+        <div class="row">
+          <article class="list-card">
+            <h3>Associations / Scars</h3>
+            <pre id="associationsScars"></pre>
+          </article>
+          <article class="list-card">
+            <h3>Action Proposal / Commit Proposal</h3>
+            <pre id="proposalState"></pre>
+          </article>
+        </div>
+        <div class="row">
+          <article class="list-card">
+            <h3>Lab Runs</h3>
+            <pre id="labRuns"></pre>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Timeline</h2>
+        <div class="timeline" id="timeline" aria-live="polite"></div>
+      </section>
+    </section>
+  </main>
+
+  <div class="visually-hidden" aria-live="polite" id="announcer"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

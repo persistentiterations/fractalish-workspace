@@ -1,0 +1,1644 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
+<title>Eracii Arena — Fixed</title>
+<style>
+/* ===== RESET & BASE ===== */
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none;position:fixed;inset:0;background:#08090d;color:#f8f2e7;font:14px/1.4 Inter,system-ui,sans-serif}
+button{font:inherit;color:inherit;background:transparent;border:none;cursor:pointer}
+button:disabled{opacity:.35;cursor:not-allowed}
+
+/* ===== APP LAYOUT ===== */
+.app{
+  display:flex;
+  flex-direction:column;
+  height:100dvh;
+  overflow:hidden;
+  background:radial-gradient(circle at 12% 0,#4d8bd842,transparent 35rem),radial-gradient(circle at 90% 0,#d7aa5730,transparent 34rem),#08090d;
+}
+
+/* ===== TOPBAR ===== */
+.topbar{
+  flex:0 0 48px;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  padding:0 12px;
+  background:#080a0fe8;
+  border-bottom:1px solid #2b303b;
+  backdrop-filter:blur(12px);
+  z-index:10;
+}
+.brand{font-weight:950;letter-spacing:.18em;font-size:11px;color:#f8f2e7}
+.brand b{color:#d7aa57}
+.mode{font:700 12px Georgia,serif;color:var(--accent,#d7aa57);letter-spacing:.08em}
+.top-actions{display:flex;gap:5px;justify-content:flex-end}
+.top-actions button{background:#171d27;border:1px solid #343948;border-radius:8px;padding:5px 10px;font-size:10px;font-weight:800;color:#f8f2e7}
+.top-actions button:hover:not(:disabled){border-color:#d7aa57}
+
+/* ===== ROSTER SCREEN ===== */
+#rosterScreen{display:none;flex:1;padding:12px;overflow-y:auto;align-items:flex-start;justify-content:center}
+#rosterScreen.active{display:flex}
+.roster-shell{width:min(1400px,98vw);padding:16px;background:linear-gradient(145deg,#11151d,#191e28);border:1px solid #343948;border-radius:16px;box-shadow:0 22px 60px #0008}
+.hero{text-align:center;max-width:850px;margin:0 auto 14px}
+.hero .eyebrow{color:#d7aa57;font-size:9px;letter-spacing:.2em;font-weight:900}
+.hero h1{font:700 clamp(28px,4vw,48px)/1 Georgia,serif;margin:6px 0}
+.hero p{color:#aaa7a0;margin:0;font-size:13px}
+.pick-status{
+ display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;
+ background:#0b0f15;border:1px solid #292f3b;border-radius:12px;padding:8px 12px;margin-bottom:12px
+}
+.pick-slot{min-height:36px}.pick-slot.right{text-align:right}.pick-slot small{display:block;color:#aaa7a0;font-size:8px;text-transform:uppercase;letter-spacing:.12em}
+.pick-slot b{font:700 15px Georgia,serif}.pick-vs{color:#d7aa57;font-weight:950}
+.filters{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin:0 0 10px}
+.filter{padding:5px 9px;border:1px solid #343b48;border-radius:99px;background:#111721;color:#cdd2da;cursor:pointer;font-size:9px}
+.filter.active{background:#d7aa57;color:#171006;border-color:#d7aa57}
+.roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.roster-card{
+ position:relative;min-height:250px;padding:0;overflow:hidden;text-align:left;background:#0d1118;
+ border:1px solid #343948;border-radius:11px;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s
+}
+.roster-card.hidden{display:none}
+.roster-card:hover{transform:translateY(-4px);border-color:#d7aa57;box-shadow:0 12px 28px #000b}
+.roster-card .art{
+ height:170px;background:
+ linear-gradient(180deg,transparent 45%,#0d1118 100%),
+ var(--image),
+ radial-gradient(circle at 50% 25%,color-mix(in srgb,var(--lane) 65%,#fff),#131922 65%);
+ background-size:cover;background-position:center 12%;position:relative
+}
+.portrait-mark{position:absolute;inset:0;display:grid;place-items:center;font:700 44px Georgia,serif;color:#fff8;text-shadow:0 4px 12px #000}
+.roster-card .art:after{
+ content:attr(data-crest);position:absolute;right:6px;top:6px;width:24px;height:24px;border-radius:50%;
+ background:#080b10d9;border:1px solid color-mix(in srgb,var(--lane) 70%,white);display:grid;place-items:center;
+ font-weight:950;font-size:11px;color:var(--lane);box-shadow:0 4px 12px #0008
+}
+.roster-card .copy{padding:8px 10px 10px;border-top:3px solid var(--lane)}
+.roster-card .lane{font-size:7px;letter-spacing:.11em;color:var(--lane);text-transform:uppercase;font-weight:950}
+.roster-card h3{font:700 15px/1.05 Georgia,serif;margin:2px 0}
+.roster-card p{font-size:9px;color:#c4c9d1;margin:3px 0 6px;min-height:32px}
+.move-tag{font-size:8px;color:#0d1118;background:var(--lane);display:inline-block;padding:3px 5px;border-radius:4px;font-weight:850}
+.roster-card.player-pick{outline:3px solid #5b9dec;box-shadow:0 0 0 5px #4d8bd826}
+.roster-card.rival-pick{outline:3px solid #dc6875;box-shadow:0 0 0 5px #c64f5b24}
+.roster-footer{display:flex;justify-content:center;gap:8px;margin-top:12px;flex-wrap:wrap}
+.roster-footer button{padding:8px 14px;border:1px solid #343948;border-radius:10px;font-weight:800;font-size:12px;background:#171d27}
+.roster-footer .primary{background:linear-gradient(180deg,#e0bd74,#c8953f);border-color:#f2d394;color:#1a1207}
+.roster-footer button:disabled{opacity:.35}
+.arena-picker{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:8px;color:#aaa7a0;font-size:11px}
+.arena-picker select{background:#0d131c;color:#f8f2e7;border:1px solid #343948;border-radius:8px;padding:5px 8px;font-size:11px}
+
+/* ===== GAME SCREEN ===== */
+#gameScreen{
+  display:none;
+  flex:1;
+  flex-direction:column;
+  padding:4px 6px 4px 6px;
+  gap:3px;
+  overflow:hidden;
+  min-height:0;
+}
+#gameScreen.active{display:flex}
+
+/* ===== FIGHTERS ===== */
+.fighters{
+  flex:0 0 56px;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  gap:8px;
+  align-items:center;
+  padding:4px 8px;
+  background:linear-gradient(145deg,#11151d,#191e28);
+  border:1px solid #343948;
+  border-radius:12px;
+  min-height:0;
+}
+.fighter{display:flex;gap:8px;align-items:center;min-width:0}
+.fighter.enemy{flex-direction:row-reverse;text-align:right}
+.mini-card{width:44px;height:50px;border-radius:8px;border:2px solid var(--lane,var(--gold));background:var(--image),linear-gradient(145deg,var(--lane,var(--gold)),#121722);background-size:cover;background-position:center;flex:none}
+.fighter h2{font:700 15px Georgia,serif;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fighter .lane-name{font-size:8px;color:var(--lane,var(--gold));text-transform:uppercase;letter-spacing:.1em;font-weight:900}
+.stats{display:flex;gap:6px;flex-wrap:wrap;font-size:10px;color:#aaa7a0}
+.stats b{color:#f8f2e7}
+.vs{text-align:center;color:#d7aa57;font-weight:950}
+.dots{display:flex;gap:2px;justify-content:center;margin-top:2px}
+.dot{width:5px;height:5px;border-radius:50%;background:#3b4250}
+.dot.done{background:#d7aa57}
+.lean{font-size:9px;color:#d7aa57;margin-top:1px}
+.power-wrap{margin-top:2px;display:grid;grid-template-columns:auto minmax(60px,120px) auto;gap:4px;align-items:center;font-size:8px;color:#aaa7a0}
+.power-track{height:6px;border-radius:99px;background:#272e3a;overflow:hidden}
+.power-fill{height:100%;background:linear-gradient(90deg,var(--lane,var(--gold)),color-mix(in srgb,var(--lane,var(--gold)) 55%,white));transition:width .25s}
+
+/* ===== BANTER ===== */
+.banter{
+  flex:0 0 28px;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  gap:8px;
+  padding:3px 10px;
+  background:linear-gradient(90deg,#0e131c,#171d28,#0e131c);
+  border-left:3px solid #d7aa57;
+  border-radius:8px;
+  min-height:0;
+}
+.quote{font:italic 11px Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.quote.enemy{text-align:right}
+.banter small{color:#aaa7a0;letter-spacing:.14em;font-size:7px}
+
+/* ===== SPEECH STAGE ===== */
+.speech-stage{
+  flex:0 0 36px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+  align-items:center;
+  padding:0 8px;
+  pointer-events:none;
+  min-height:0;
+  z-index:100;
+}
+.speech-slot{min-height:32px;display:flex;align-items:center}
+.speech-slot.enemy{justify-content:flex-end}
+.speech-bubble{
+  background:#f8f2e7;
+  color:#16110a;
+  border:2px solid var(--lane,#d7aa57);
+  border-radius:8px;
+  padding:4px 8px;
+  font:italic 11px Georgia,serif;
+  max-width:min(300px,46vw);
+  box-shadow:0 4px 12px #000b;
+  animation:bubbleFade 2.4s ease-out forwards;
+  pointer-events:none;
+}
+@keyframes bubbleFade{0%{opacity:0;transform:translateY(6px) scale(.95)}10%,70%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-4px)}}
+
+/* ===== COMBATANTS STRIP ===== */
+.combatants-strip{
+  flex:0 0 22px;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  gap:6px;
+  align-items:center;
+  padding:2px 8px;
+  background:#0a0f16;
+  border:1px solid #343948;
+  border-radius:8px;
+  font-size:10px;
+  min-height:0;
+}
+.combatants-strip .who.enemy{text-align:right}
+.combatants-strip b{font:700 13px Georgia,serif;color:#f8f2e7}
+
+/* ===== ARENA IDENTITY ===== */
+.arena-identity{
+  flex:0 0 20px;
+  display:flex;
+  justify-content:center;
+  gap:6px;
+  align-items:center;
+  font-size:10px;
+  color:#aaa7a0;
+  padding:1px 4px;
+  min-height:0;
+}
+.arena-identity b{color:#d7aa57;font:700 12px Georgia,serif}
+.difficulty-badge{border:1px solid #343948;border-radius:99px;padding:1px 6px;background:#0b1017;font-size:8px}
+
+/* ===== GUIDE RIBBON ===== */
+.guide-ribbon{
+  flex:0 0 32px;
+  margin:0 auto;
+  width:min(720px,96vw);
+  padding:5px 40px 5px 10px;
+  border:1px solid color-mix(in srgb,var(--accent,#d7aa57) 60%,transparent);
+  border-radius:10px;
+  background:linear-gradient(90deg,#0a0f17f5,#161e2bf5);
+  box-shadow:0 6px 18px #0008;
+  color:#f5f0e7;
+  font-weight:850;
+  text-align:center;
+  font-size:13px;
+  position:relative;
+  overflow:hidden;
+  min-height:0;
+}
+.guide-ribbon .guide-step{
+  position:absolute;
+  right:8px;
+  top:50%;
+  transform:translateY(-50%);
+  width:22px;height:22px;
+  border-radius:50%;
+  background:var(--accent,#d7aa57);
+  color:#111;
+  display:grid;
+  place-items:center;
+  font-size:10px;
+  font-weight:950;
+}
+
+/* ===== ARENA GRID ===== */
+.arena-grid{
+  flex:1;
+  display:grid;
+  grid-template-columns:minmax(130px,170px) 1fr minmax(140px,180px);
+  gap:4px;
+  min-height:0;
+  overflow:hidden;
+}
+.side{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  overflow:hidden;
+  min-height:0;
+}
+.side .box{
+  background:linear-gradient(145deg,#11151d,#191e28);
+  border:1px solid #343948;
+  border-radius:10px;
+  padding:6px 8px;
+  overflow:hidden;
+  flex:1;
+}
+.side .box h3{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:#aaa7a0;margin:0 0 3px}
+.side .box .detail-text{font-size:10px;color:#d8dde5;line-height:1.3}
+.side .box .stat-key{font-size:9px;color:#d8dde5;margin-top:4px}
+.side .box .stat-key b{color:#d7aa57}
+.side .box .legend-help{font-size:9px;color:#d8dde5;margin-top:4px;padding:4px 6px;background:#0b1119;border-left:3px solid #d7aa57;border-radius:4px}
+.objective-list{display:grid;gap:4px}
+.objective-info{background:#0c1118;border:1px solid #29313f;border-radius:6px;padding:5px 7px;font-size:9px}
+.objective-info b{color:#d7aa57}
+.objective-info .plain{display:block;color:#d8dde5;margin-top:2px}
+.ask{width:100%;padding:8px;text-align:left;background:#0c1118;border:1px solid #29313f;border-radius:8px}
+.ask b{display:block;color:#d7aa57;font-size:13px}
+.ask small{font-size:9px;color:#aaa7a0}
+
+/* ===== BOARD ===== */
+.board-wrap{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:0;
+  overflow:hidden;
+  padding:2px 2px 6px 2px;
+}
+.board{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  grid-template-rows:repeat(5,1fr);
+  gap:3px;
+  padding:5px;
+  aspect-ratio:7/5;
+  width:100%;
+  max-width:560px;
+  max-height:calc(100dvh - 380px);
+  border:1px solid #3b4350;
+  border-radius:14px;
+  background:#0a0e14;
+  box-shadow:inset 0 0 55px #000,0 20px 45px #000a;
+  position:relative;
+  transform:rotateX(32deg) scale(0.92);
+  transform-origin:center;
+}
+.cell{
+  border:1px solid #313947;
+  border-radius:6px;
+  background:linear-gradient(145deg,#171b22,#202631);
+  display:grid;
+  place-items:center;
+  position:relative;
+  overflow:hidden;
+  min-height:0;
+  min-width:0;
+}
+.cell.objective{box-shadow:inset 0 0 20px #d7aa573c}
+.cell.blocked{background:#06080c;opacity:.3}
+.cell.blocked:after{content:"×";color:#3c4350;font-size:14px}
+.cell.legal{outline:2px solid #6bc690aa;cursor:pointer}
+.cell.legal:before{content:"●";color:#baffd4;font-size:14px;text-shadow:0 0 10px #6bc690}
+.cell.escape{outline-color:#d7aa57;box-shadow:inset 0 0 18px #d7aa5748;cursor:pointer}
+.cell.escape:before{content:"↗";color:#ffe5a8;font-size:17px;font-weight:950;text-shadow:0 0 10px #d7aa57}
+.cell.hold{outline-color:#79a8d1;box-shadow:inset 0 0 18px #79a8d138;cursor:pointer}
+.cell.hold:before{content:"⬟";color:#cce8ff;font-size:13px;text-shadow:0 0 10px #79a8d1}
+.cell.threat{box-shadow:inset 0 0 0 2px #d85b676b}
+.cell.preview-cell{box-shadow:inset 0 0 0 2px #d7aa576b}
+.obj{position:absolute;top:2px;left:4px;font-size:7px;color:#d7aa57;font-weight:950}
+.objective-monument{position:absolute;font-size:14px;opacity:.6}
+.token{
+  width:65%;
+  aspect-ratio:1;
+  border-radius:50%;
+  border:2px solid white;
+  display:grid;
+  place-items:center;
+  background:var(--image),linear-gradient(145deg,var(--lane),#151a23);
+  background-size:cover;
+  background-position:center;
+  box-shadow:0 6px 14px #000a;
+  font-weight:950;
+  font-size:14px;
+  position:relative;
+}
+.token.active{animation:pulse 1.25s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--lane) 28%,transparent),0 6px 14px #000a}}
+.token.low{filter:saturate(.6) brightness(.75)}
+.token-name{position:absolute;bottom:-18px;white-space:nowrap;font-size:7px;background:#080b10e8;padding:1px 6px;border-radius:99px;border:1px solid var(--lane)}
+.owner{position:absolute;right:2px;bottom:2px;width:7px;height:7px;border-radius:50%}
+.owner.player{background:#4d8bd8}
+.owner.enemy{background:#c64f5b}
+
+/* ===== PREVIEW ===== */
+.preview h2{font:700 16px Georgia,serif;color:#d7aa57;margin:0 0 3px}
+.preview p{font-size:11px;color:#d8dde5;margin:0}
+.preview .detail{font-size:9px;color:#aaa7a0;margin-top:4px}
+
+/* ===== LOG ===== */
+.log{flex:1;overflow:auto;background:#090d13;border-radius:8px;padding:5px;font-size:8px}
+.event{border-left:2px solid #465166;padding:3px 0 3px 6px;margin-bottom:3px}
+.event b{display:block;color:#dfe4eb}
+.hash{font:7px monospace;color:#707c8d}
+
+/* ===== UNDO ROW ===== */
+.undo-row{
+  flex:0 0 26px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:6px;
+  min-height:0;
+}
+.undo-row button{background:#171d27;border:1px solid #343948;border-radius:8px;padding:3px 10px;font-size:10px;font-weight:800}
+.undo-row button:disabled{opacity:.35}
+.undo-row div{font-size:9px;color:#aaa7a0}
+
+/* ===== ACTION DOCK ===== */
+.action-dock{
+  flex:0 0 68px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:4px;
+  min-height:0;
+}
+.action{
+  background:#161c25;
+  border:1px solid #343948;
+  border-radius:10px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:4px 4px;
+  min-height:52px;
+}
+.action[data-action=push]{border-bottom:3px solid #c64f5b}
+.action[data-action=read]{border-bottom:3px solid #4d8bd8}
+.action[data-action=block]{border-bottom:3px solid #6bc690}
+.action[data-action=signature]{border-bottom:3px solid #d7aa57}
+.action.ready{box-shadow:inset 0 0 0 1px #ffffff18}
+.action strong{font-size:13px}
+.action small{font-size:8px;color:#aaa7a0;line-height:1.1}
+.action-icon{font-size:18px;margin-bottom:2px}
+
+/* ===== RESPONSIVE: SHORT SCREENS ===== */
+@media (max-height:800px){
+  .banter,.combatants-strip,.arena-identity{display:none!important}
+  .speech-stage{flex-basis:30px!important}
+  .fighters{flex-basis:48px!important}
+  .guide-ribbon{flex-basis:28px!important;font-size:12px!important;padding:4px 34px 4px 8px!important}
+  .arena-grid{grid-template-columns:1fr 1fr!important}
+  .side:first-child{display:none!important}
+  .side:last-child .box:not(.preview){display:none!important}
+  .action-dock{flex-basis:60px!important}
+  .action{min-height:44px!important}
+  .board{max-height:calc(100dvh - 290px)!important}
+  .hero{margin-bottom:8px!important}
+  .hero .eyebrow{display:none!important}
+  .hero h1{font-size:clamp(20px,4vw,32px)!important;margin:2px 0!important}
+  .hero p{font-size:11px!important}
+  .pick-status{padding:5px 10px!important;margin-bottom:8px!important}
+  .filters{margin-bottom:6px!important}
+  .roster-card{min-height:170px!important}
+  .roster-card .art{height:96px!important}
+  .roster-card p{display:none!important}
+  .roster-footer{margin-top:8px!important}
+}
+@media (max-height:680px){
+  .speech-stage{display:none!important}
+  .fighters{flex-basis:44px!important}
+  .guide-ribbon{flex-basis:24px!important;font-size:11px!important;padding:3px 30px 3px 6px!important}
+  .guide-ribbon .guide-step{width:18px;height:18px;font-size:8px!important}
+  .undo-row{flex-basis:22px!important}
+  .undo-row div{display:none!important}
+  .action-dock{flex-basis:54px!important}
+  .action strong{font-size:11px!important}
+  .action small{display:none!important}
+  .action-icon{font-size:14px!important}
+  .board{max-height:calc(100dvh - 200px)!important;transform:rotateX(28deg) scale(0.88)!important}
+  .roster-shell{padding:10px!important}
+  .hero p{display:none!important}
+  .roster-card{min-height:150px!important}
+  .roster-card .art{height:78px!important}
+  .roster-card .copy{padding:5px 7px 6px!important}
+  .arena-picker{margin-top:4px!important}
+}
+
+/* ===== RESPONSIVE: NARROW SCREENS ===== */
+@media (max-width:900px){
+  .arena-grid{grid-template-columns:1fr 1fr!important}
+  .side:first-child{display:none!important}
+  .side:last-child .box:not(.preview){display:none!important}
+  .board{max-width:100%!important}
+}
+@media (max-width:600px){
+  .topbar{grid-template-columns:1fr auto!important}
+  .mode{display:none!important}
+  .roster{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))!important}
+  .roster-card{min-height:210px!important}
+  .roster-card .art{height:130px!important}
+  .hero p{display:none}
+  .fighters{flex-basis:52px!important}
+  .mini-card{width:36px!important;height:40px!important}
+  .fighter h2{font-size:13px!important}
+  .stats{font-size:9px!important;gap:4px!important}
+  .action-dock{grid-template-columns:1fr 1fr!important;flex-basis:96px!important}
+  .action{min-height:44px!important}
+  .board{max-height:calc(100dvh - 260px)!important;transform:rotateX(24deg) scale(0.88)!important}
+  .speech-stage{display:none!important}
+  .guide-ribbon{font-size:11px!important;padding:4px 30px 4px 6px!important}
+}
+
+/* ===== OVERLAYS ===== */
+.overlay{display:none;position:fixed;inset:0;background:#000d;align-items:center;justify-content:center;padding:14px;z-index:999}
+.overlay.show{display:flex}
+.modal{background:linear-gradient(145deg,#11151d,#191e28);border:1px solid #343948;border-radius:16px;padding:18px;max-width:720px;width:96vw;max-height:88dvh;overflow:auto}
+.modal h2{font:700 28px Georgia,serif;margin:0 0 6px}
+.modal .close{float:right;background:transparent;border:1px solid #343948;border-radius:8px;padding:4px 10px;font-weight:800}
+.help-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.help-item{background:#0a0f16;padding:8px;border-radius:8px}
+.help-item b{display:block;color:#d7aa57}
+.result{text-align:center}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left;margin:10px 0}
+.result-card{background:#0b1017;padding:10px;border-radius:10px}
+.bar-row{display:grid;grid-template-columns:70px 1fr 20px;gap:4px;align-items:center;font-size:8px;margin:3px 0}
+.bar{height:6px;background:#252c37;border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:#d7aa57}
+.receipts{font:9px/1.4 ui-monospace,Consolas,monospace;background:#080c11;padding:8px;border-radius:8px;color:#c9d0da;overflow-wrap:anywhere}
+.genesis-board{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:12px auto;width:min(400px,90vw)}
+.genesis-cell{aspect-ratio:1;border:1px solid #343948;border-radius:5px;background:#080c12;display:grid;place-items:center;font:9px monospace;color:#aaa7a0}
+.genesis-cell.on{background:#26342f;border-color:#6bc690;color:#d9ffe8}
+.genesis-cell.off{opacity:.35}
+.genesis-cell.hot{box-shadow:inset 0 0 14px #c64f5b88}
+.genesis-cell.calm{box-shadow:inset 0 0 10px #6bc69055}
+.arena-name{font:700 20px Georgia,serif;color:#d7aa57;text-align:center}
+.arena-meta{text-align:center;color:#aaa7a0;font-size:10px}
+.genesis-actions{display:flex;justify-content:center;margin-top:12px}
+.genesis-enter{
+  min-width:180px;padding:10px 18px;border-radius:10px;
+  background:linear-gradient(180deg,#e0bd74,#c8953f);
+  border:1px solid #f2d394;color:#1a1207;font-weight:950;
+  box-shadow:0 8px 24px #0008
+}
+.genesis-enter:hover,.genesis-enter:focus-visible{filter:brightness(1.08);outline:2px solid #fff;outline-offset:2px}
+
+/* ===== TOAST ===== */
+.feedback-toast{
+  position:fixed;left:50%;top:60px;transform:translateX(-50%);
+  z-index:1000;padding:8px 16px;border-radius:99px;
+  background:#101720ec;border:1px solid #d7aa57;
+  box-shadow:0 8px 20px #000b;color:#fff;
+  font-weight:950;font-size:14px;
+  opacity:0;pointer-events:none;
+  transition:opacity .2s;
+}
+.feedback-toast.show{opacity:1;animation:toastFade 1.8s ease-out forwards}
+@keyframes toastFade{0%{opacity:0;transform:translateX(-50%) translateY(-8px) scale(.95)}15%,70%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-6px)}}
+
+/* ===== FX LAYER ===== */
+.fx-layer{position:fixed;inset:0;pointer-events:none;z-index:900;overflow:hidden}
+.damage-overlay{position:fixed!important;z-index:1000!important;pointer-events:none!important;font-size:24px!important;font-weight:950!important;color:#fff!important;text-shadow:0 2px 8px #000!important}
+.confetti-bit{position:absolute;top:-20px;width:6px;height:10px;background:var(--c);animation:confettiFall 2s linear forwards}
+@keyframes confettiFall{to{translate:var(--drift) 110vh;rotate:720deg}}
+
+/* ===== MISC ===== */
+.insight-click{cursor:pointer;border-bottom:1px dotted currentColor}
+.insight-click:hover{color:#d7aa57}
+.damage-chip{display:inline-block;margin-left:4px;padding:1px 4px;border-radius:4px;background:#4a1f25;color:#ffbec5;font-weight:900;font-size:7px}
+.screen{display:none;flex:1}.screen.active{display:flex}
+.panel{background:linear-gradient(145deg,#11151d,#191e28);border:1px solid #343948;border-radius:12px}
+.thinking{animation:thinkflash .85s ease-out}
+@keyframes thinkflash{40%{filter:sepia(.45) brightness(1.18)}}
+body.finished #board{filter:brightness(.55) saturate(.7)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="topbar">
+ <div class="brand">ERA<b>CII</b> ARENA</div>
+ <div id="modeTitle" class="mode">GALLERY SHOWCASE</div>
+ <div class="top-actions"><button id="logButton" class="small-btn" disabled>Battle Log</button><button id="helpButton" class="small-btn">How to Play</button></div>
+</header>
+
+<section id="rosterScreen" class="screen active">
+ <div class="panel roster-shell">
+  <div class="hero">
+   <div class="eyebrow">TWELVE LANES · TWELVE DISTINCT PLAY STYLES</div>
+   <h1>Choose your champion. Then choose who faces them.</h1>
+   <p>Tap anyone to see how they move. Pick your champion first, then choose a rival. The arena will wake up around them.</p>
+  </div>
+  <div class="pick-status">
+   <div class="pick-slot"><small>Your legend</small><b id="playerPick">Choose first</b></div>
+   <div class="pick-vs">VS</div>
+   <div class="pick-slot right"><small>Rival</small><b id="rivalPick">Choose second</b></div>
+  </div>
+  <div id="filters" class="filters"></div>
+  <div id="roster" class="roster"></div>
+  <div class="arena-picker">
+   <label for="arenaType">Arena style</label><select id="arenaType"><option value="compact">The Forge — close combat</option><option value="branched">The Wildroot — branching paths</option><option value="filament">The Spine — narrow routes</option><option value="porous">The Labyrinth — gaps and shortcuts</option></select>
+   <label for="difficulty">Challenge</label><select id="difficulty"><option value="beginner">Beginner — clear hints</option><option value="skilled" selected>Skilled — fair fight</option><option value="expert">Expert — full strategy</option></select>
+  </div>
+  <div class="roster-footer"><button id="galleryButton" class="btn">Meet the Legends</button><button id="clearButton" class="btn">Clear Picks</button><button id="startButton" class="btn primary" disabled>Enter the Arena</button></div>
+ </div>
+</section>
+
+<section id="gameScreen" class="screen">
+ <div class="panel fighters">
+  <div id="playerStatus" class="fighter"></div><div class="vs">VS<div id="roundDots" class="dots"></div></div><div id="enemyStatus" class="fighter enemy"></div>
+ </div>
+ <div class="panel banter"><div id="playerQuote" class="quote"></div><small>CLASH OF WILLS</small><div id="enemyQuote" class="quote enemy"></div></div><div id="speechStage" class="speech-stage"><div id="playerSpeech" class="speech-slot"></div><div id="enemySpeech" class="speech-slot enemy"></div></div><div id="combatantsStrip" class="combatants-strip"><div class="who"><small>You chose</small><b id="playerArenaName">Your legend</b></div><span>VERSUS</span><div class="who enemy"><small>Your rival</small><b id="enemyArenaName">Rival</b></div></div><div class="arena-identity"><b id="arenaIdentityName">The Forge</b><span id="arenaIdentityStyle">Close combat</span><span id="difficultyBadge" class="difficulty-badge">Skilled</span></div>
+ <div id="guideRibbon" class="guide-ribbon"><span id="guideText">Tap your champion.</span><span id="guideStep" class="guide-step">1</span></div><div class="arena-grid">
+  <aside class="side">
+   <div class="panel box"><h3>Legend Ability</h3><div id="passiveName" style="font:700 14px Georgia,serif;color:#d7aa57"></div><div id="passiveText" style="font-size:9px;color:#d3d9e2;margin-top:3px"></div><div id="legendPlainHelp" class="legend-help"></div><div class="stat-key"><div><b>Health</b> keeps you in the match.</div><div><b>Power</b> and <b>Focus</b> strengthen close attacks.</div><div><b>Guard</b> reduces the next hit.</div></div></div>
+   <div class="panel box objective-box"><h3>Arena Objectives</h3><div class="objective-list"><div class="objective-info" data-objective="FORUM"><b>FORUM</b><span class="plain">Gain 1 Focus for your next close attack.</span><span id="forumPlayerTip" class="example"></span></div><div class="objective-info" data-objective="STAGE"><b>STAGE</b><span class="plain">Gain 1 Power. Taylor gains 2.</span><span id="stagePlayerTip" class="example"></span></div><div class="objective-info" data-objective="WORKSHOP"><b>WORKSHOP</b><span class="plain">Refresh a used Special once; otherwise gain 1 Power and 1 Focus.</span><span id="workshopPlayerTip" class="example"></span></div></div></div>
+   <div class="panel box"><h3>Coach</h3><div id="coachText" style="font-size:10px;color:#d8dde5">Choose a safe route, then inspect the exact result before committing.</div></div><div class="panel box"><h3>Ask your legend</h3><button id="askButton" class="ask btn"><b id="askTitle">Ask for a turn</b><small id="askText">Two uses remaining.</small></button></div>
+  </aside>
+  <main class="board-wrap"><div id="board" class="board"></div></main>
+  <aside class="side">
+   <div class="panel box preview"><h3>Next move</h3><h2 id="previewTitle">Your turn</h2><p id="previewBody">Click your figure, then choose one highlighted destination.</p><div id="previewDetail" class="detail">The game previews actions before you commit.</div></div>
+   <div class="panel box log-box"><h3>Recent events</h3><div id="timeline" class="log"></div></div>
+  </aside>
+ </div>
+ <div class="undo-row"><button id="undoButton" class="small-btn rewind-btn" disabled><span aria-hidden="true">↶</span> Rewind Move</button><div style="font-size:10px;color:#aaa7a0">Changed your mind? Rewind before you act.</div></div><div class="action-dock">
+  <button class="action" data-action="push" disabled><span class="action-icon" aria-hidden="true">⚔</span><strong>Attack</strong><small>Hit nearby, or gain Power from a distance</small></button>
+  <button class="action" data-action="read" disabled><span class="action-icon" aria-hidden="true">◉</span><strong>Study</strong><small>Gain Focus and reveal the rival's plan</small></button>
+  <button class="action" data-action="block" disabled><span class="action-icon" aria-hidden="true">⬟</span><strong>Guard</strong><small>Reduce the next hit and recover 1 Health</small></button>
+  <button class="action" data-action="signature" disabled><span class="action-icon" aria-hidden="true">✦</span><strong>Special</strong><small>Your champion's once-per-match move</small></button>
+ </div>
+</section>
+</div>
+
+<div id="feedbackToast" class="feedback-toast" aria-live="polite"></div>
+<div id="fxLayer" class="fx-layer"></div>
+
+<div id="genesisOverlay" class="overlay"><div class="panel modal"><div class="eyebrow" style="color:#d7aa57;text-align:center">THE ARENA AWAKENS</div><div id="genesisName" class="arena-name">The Forge</div><div id="genesisMeta" class="arena-meta">The ground is taking shape.</div><div id="genesisBoard" class="genesis-board"></div><div id="genesisReceipt" class="receipts" style="max-height:100px;overflow:auto"></div><div class="genesis-actions"><button id="genesisEnterButton" class="genesis-enter" type="button" onclick="closeGenesis()">Enter Arena</button></div></div></div>
+<div id="introOverlay" class="overlay"><div class="panel modal"><div class="eyebrow" style="color:#d7aa57">FIRST MATCH</div><h2>Twelve minds. A living arena. No luck.</h2><p style="color:#aaa7a0">Watch the arena settle, then move your legend and commit one action. The rival and the terrain follow deterministic rules.</p><div class="help-grid"><div class="help-item"><b>Move</b>Click your figure, then a highlighted destination.</div><div class="help-item"><b>Preview</b>Hover over any action to see exact damage and resource changes.</div><div class="help-item"><b>Read</b>The rival's current leaning is visible before it acts.</div><div class="help-item"><b>Undo</b>Change your destination before committing an action.</div></div><div style="text-align:center;margin-top:12px"><button class="btn primary" onclick="closeIntro()">Begin</button></div></div></div>
+<div id="galleryOverlay" class="overlay"><div class="panel modal"><button class="small-btn close" onclick="closeGallery()">Close</button><h2>Meet the Legends</h2><p style="color:#aaa7a0">These are original abstract medallions, not copied portraits. Each card demonstrates a different movement system and category identity.</p><div id="galleryList" class="help-grid"></div></div></div>
+<div id="helpOverlay" class="overlay"><div class="panel modal"><button class="small-btn close" onclick="closeHelp()">Close</button><h2>How to Play</h2><div class="help-grid">
+ <div class="help-item"><b>1. Move</b>Click your figure, then a highlighted space. Each legend has a unique movement map.</div>
+ <div class="help-item"><b>2. Act</b>Choose one of the four large buttons after moving.</div>
+ <div class="help-item"><b>3. Read the rival</b>The rival's current leaning is visible above their card.</div>
+ <div class="help-item"><b>4. Break Away</b>If the rival blocks every route, gold escape tiles let you move past them. Neither player can lose a turn by being cornered.</div>
+ <div class="help-item"><b>5. Win</b>Reduce the rival's Resolve to zero or lead after fourteen rounds.</div>
+ </div><p style="color:#aaa7a0">The same arena and the same choices always produce the same result.</p></div></div>
+<div id="receiptOverlay" class="overlay"><div class="panel modal"><button class="small-btn close" onclick="closeReceipts()">Close</button><h2>Verified Battle Log</h2><p style="color:#aaa7a0">Every important move and result is recorded.</p><div id="receiptList" class="receipts"></div></div></div>
+<div id="resultOverlay" class="overlay"><div id="resultCard" class="panel modal result"></div></div>
+
+<script>
+"use strict";
+const MAX_ROUND=14;
+let OBJ={};
+const ARENA_TEMPLATES={
+ compact:{name:"The Forge",open:["1,1","2,1","3,1","4,1","5,1","1,2","2,2","3,2","4,2","5,2","1,3","2,3","3,3","4,3","5,3"]},
+ branched:{name:"The Wildroot",open:["0,2","1,2","2,2","3,2","4,2","5,2","6,2","2,1","2,0","4,1","4,0","1,3","1,4","5,3","5,4"]},
+ filament:{name:"The Spine",open:["0,2","1,2","2,2","3,2","4,2","5,2","6,2","1,1","3,1","5,1","1,3","3,3","5,3"]},
+ porous:{name:"The Sieve",open:["0,1","1,1","3,1","5,1","6,1","0,2","2,2","3,2","4,2","6,2","0,3","1,3","3,3","5,3","6,3","2,0","4,4"]}
+};
+function arenaOpen(x,y){return !!g?.arena?.open?.has(K(x,y))}
+function topologyDegree(key,open){const [x,y]=key.split(",").map(Number);return [[1,0],[-1,0],[0,1],[0,-1]].reduce((n,[dx,dy])=>n+(open.has(K(x+dx,y+dy))?1:0),0)}
+function connectedArenaCells(open,start="0,2"){
+ const seen=new Set(),queue=[start];
+ while(queue.length){const k=queue.shift();if(seen.has(k)||!open.has(k))continue;seen.add(k);const[x,y]=k.split(",").map(Number);[[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{const n=K(x+dx,y+dy);if(open.has(n)&&!seen.has(n))queue.push(n)})}
+ return seen
+}
+function deriveObjectives(open){
+ const reachable=connectedArenaCells(open);
+ const keys=[...reachable].filter(k=>k!=="0,2"&&k!=="6,2");
+ const ranked=keys.slice().sort((a,b)=>topologyDegree(b,reachable)-topologyDegree(a,reachable)||a.localeCompare(b));
+ const tips=keys.filter(k=>topologyDegree(k,reachable)<=1).sort();
+ const stage=ranked[0]||"3,2", forum=ranked.find(k=>k!==stage)||"2,2", workshop=tips.find(k=>k!==stage&&k!==forum)||ranked.at(-1)||"4,2";
+ return {[forum]:{name:"FORUM",type:"read"},[stage]:{name:"STAGE",type:"push"},[workshop]:{name:"WORKSHOP",type:"special"}}
+}
+function makeArena(type){
+ const t=ARENA_TEMPLATES[type]||ARENA_TEMPLATES.compact;let open=new Set(t.open);
+ for(let x=0;x<7;x++)open.add(K(x,2));
+ open.add("0,2");open.add("6,2");
+ open=new Set(connectedArenaCells(open,"0,2"));
+ const strain={};[...open].forEach(k=>{const d=topologyDegree(k,open);strain[k]=Math.max(0,4-d)});
+ return{type,name:t.name,open,strain,hash:hash(type+":"+[...open].sort().join("|"))}
+}
+const CHARACTERS=[
+ {id:"WAS",name:"George Washington",lane:"Foundations",crest:"F",color:"#c89f5a",role:"Measured founder",moveName:"Measured March",move:"orth1",moveText:"Moves one space in any straight direction.",passive:"Hold the Center",passiveText:"Brace is stronger while standing in the center column.",profile:{push:6,read:5,block:8,rest:6},labels:["Take Ground","Survey","Hold the Line"],signature:"Unify the Field",quote:["A cause survives only when people choose to hold it.","The center must not be abandoned."]},
+ {id:"ALE",name:"Alexander the Great",lane:"Military Commanders",crest:"M",color:"#bd5a49",role:"Relentless conqueror",moveName:"Cavalry Sweep",move:"knight",moveText:"Leaps in an L shape over intervening spaces.",passive:"Unbroken Press",passiveText:"Gains extra Momentum after moving closer to the rival.",profile:{push:10,read:3,block:4,rest:2},labels:["Conquer","Scout Ahead","Form Ranks"],signature:"World Without End",quote:["There are still worlds left to win.","Distance is an invitation."]},
+ {id:"SOC",name:"Socrates",lane:"Philosophers & Theorists",crest:"P",color:"#79a8d1",role:"Patient questioner",moveName:"Dialectic Step",move:"diag1",moveText:"Moves one space diagonally.",passive:"Question the Premise",passiveText:"Read reveals the rival's next action and grants extra Insight.",profile:{push:3,read:10,block:9,rest:5},labels:["Challenge","Question","Corner"],signature:"Expose Contradiction",quote:["Let us examine what victory means.","Your movement has already answered one question."]},
+ {id:"JUN",name:"Carl Jung",lane:"Psychologists & Mind Architects",crest:"Ψ",color:"#9878bd",role:"Pattern interpreter",moveName:"Mirror Walk",move:"mirror",moveText:"Moves to a space mirrored across the board center.",passive:"Balance the Opposites",passiveText:"Alternating actions restores Resolve after every second action.",profile:{push:4,read:9,block:7,rest:7},labels:["Confront","Interpret","Integrate"],signature:"Shadow Emerges",quote:["What is ignored returns in another form.","Every position casts a shadow."]},
+ {id:"CUR",name:"Marie Curie",lane:"Medical Pioneers",crest:"✦",color:"#6dbfa3",role:"Deliberate investigator",moveName:"Research Path",move:"rook2",moveText:"Moves one or two spaces in a straight line.",passive:"Accumulated Discovery",passiveText:"Three Read actions permanently strengthen all later attacks.",profile:{push:4,read:10,block:6,rest:6},labels:["Apply Discovery","Investigate","Contain"],signature:"Radium Breakthrough",quote:["Nothing should be feared; it should be understood.","Discovery rewards patience."]},
+ {id:"TUB",name:"Harriet Tubman",lane:"Spiritual & Humanitarian",crest:"H",color:"#d68b64",role:"Liberator and guide",moveName:"Underground Route",move:"tunnel",moveText:"Moves two spaces straight or one space diagonally.",passive:"Lead to Safety",passiveText:"Moving away while low on Resolve restores one Resolve.",profile:{push:7,read:7,block:8,rest:5},labels:["Break Through","Find a Route","Protect"],signature:"Freedom Passage",quote:["Every path matters when someone depends on it.","There is always a route forward."]},
+ {id:"LEE",name:"Bruce Lee",lane:"Stage & Screen Legends",crest:"S",color:"#e3a447",role:"Fluid performer",moveName:"Be Water",move:"queen1",moveText:"Moves one space in any direction.",passive:"Flow Without Form",passiveText:"Never repeating the previous action adds one damage.",profile:{push:9,read:7,block:6,rest:3},labels:["Attack","Read Motion","Redirect"],signature:"Intercepting Fist",quote:["Be water.","The rigid pattern breaks first."]},
+ {id:"ADA",name:"Ada Lovelace",lane:"Inventors & Systems Engineers",crest:"⚙",color:"#d28aa8",role:"Pattern engineer",moveName:"Analytical Path",move:"bishop2",moveText:"Moves one or two spaces diagonally.",passive:"Programmed Sequence",passiveText:"Press, Read, Brace in that order charges her signature early.",profile:{push:5,read:9,block:6,rest:5},labels:["Execute","Calculate","Gate"],signature:"Analytical Engine",quote:["The machine may compose patterns of any complexity.","A sequence becomes a system."]},
+ {id:"SER",name:"Serena Williams",lane:"Sports Stars",crest:"★",color:"#76b9e8",role:"Explosive competitor",moveName:"Baseline Sprint",move:"lateral",moveText:"Moves up to three spaces sideways or one space forward.",passive:"Power Return",passiveText:"Braceing against Press immediately returns one damage.",profile:{push:9,read:5,block:8,rest:4},labels:["Drive","Read the Serve","Return"],signature:"Championship Point",quote:["Pressure is part of the point.","The return can be stronger than the serve."]},
+ {id:"MRB",name:"MrBeast",lane:"Digital Creators",crest:"D",color:"#61c0d5",role:"Challenge architect",moveName:"Challenge Jump",move:"jump2",moveText:"Jumps exactly two spaces in any direction.",passive:"Raise the Stakes",passiveText:"Claiming an objective adds a second temporary bonus.",profile:{push:7,read:5,block:4,rest:6},labels:["Raise the Stakes","Check the Odds","Change the Rules"],signature:"Last to Leave",quote:["Every board needs a challenge.","The stakes just changed."]},
+ {id:"TAY",name:"Taylor Swift",lane:"Pop Icons",crest:"♪",color:"#c784cf",role:"Momentum strategist",moveName:"Era Shift",move:"ring",moveText:"Moves to any adjacent edge of the surrounding ring.",passive:"Own the Stage",passiveText:"The Stage grants two Momentum instead of one.",profile:{push:7,read:8,block:5,rest:6},labels:["Take the Stage","Read the Crowd","Rewrite"],signature:"Change the Era",quote:["Every ending can become a bridge.","The room always tells you what it needs."]},
+ {id:"RM",name:"RM",lane:"K-pop & Idol Wave",crest:"K",color:"#8c9ee8",role:"Adaptive leader",moveName:"Formation Shift",move:"formation",moveText:"Moves one straight space, or two diagonally toward the center.",passive:"Lead the Formation",passiveText:"Using all three standard actions grants two Momentum.",profile:{push:6,read:8,block:7,rest:5},labels:["Lead Forward","Read the Team","Reform"],signature:"Speak Yourself",quote:["Direction matters more when others can follow.","A voice can reorganize the whole room."]}
+];
+let playerId=null,rivalId=null,g=null,phase="ROSTER",legal=[],busy=false,filter="All";
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const K=(x,y)=>`${x},${y}`,inside=(x,y)=>x>=0&&x<7&&y>=0&&y<5;
+const dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
+const image=f=>`radial-gradient(circle at 50% 32%,color-mix(in srgb,${f.color} 72%,white),${f.color} 34%,#111722 72%)`;
+function hash(text){let h=2166136261;for(const c of text){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return("00000000"+(h>>>0).toString(16)).slice(-8)}
+function record(type,data,summary){
+ const prev=g.receipts.length?g.receipts.at(-1).hash:"GENESIS",n=g.receipts.length+1,h=hash(JSON.stringify({n,type,data,prev}));
+ g.receipts.push({n,type,data,summary,hash:h});renderTimeline()
+}
+function lanes(){return["All",...new Set(CHARACTERS.map(c=>c.lane))]}
+function renderFilters(){
+ $("#filters").innerHTML=lanes().map(l=>`<button class="filter ${l===filter?"active":""}" data-lane="${l}">${l}</button>`).join("");
+ $$(".filter").forEach(b=>b.onclick=()=>{filter=b.dataset.lane;renderFilters();renderRoster()})
+}
+function renderRoster(){
+ $("#roster").innerHTML=CHARACTERS.map(f=>`<button class="roster-card ${playerId===f.id?"player-pick":""} ${rivalId===f.id?"rival-pick":""} ${filter!=="All"&&filter!==f.lane?"hidden":""}" data-id="${f.id}" style="--lane:${f.color};--image:${image(f)}">
+  <div class="art" data-crest="${f.crest}"><span class="portrait-mark">${f.name.split(" ").map(x=>x[0]).join("").slice(0,2)}</span></div><div class="copy"><div class="lane">${f.lane}</div><h3>${f.name}</h3><p>${f.role}. ${f.passive}</p><span class="move-tag">${f.moveName}</span></div></button>`).join("");
+ $$(".roster-card").forEach(c=>c.onclick=()=>pick(c.dataset.id));
+}
+function pick(id){
+ if(!playerId){playerId=id}
+ else if(playerId===id){playerId=null;rivalId=null}
+ else if(!rivalId){rivalId=id}
+ else if(rivalId===id){rivalId=null}
+ else{rivalId=id}
+ updatePicks();renderRoster()
+}
+function updatePicks(){
+ $("#playerPick").textContent=playerId?CHARACTERS.find(c=>c.id===playerId).name:"Choose first";
+ $("#rivalPick").textContent=rivalId?CHARACTERS.find(c=>c.id===rivalId).name:"Choose second";
+ $("#startButton").disabled=!(playerId&&rivalId)
+}
+function clearPicks(){playerId=null;rivalId=null;updatePicks();renderRoster()}
+function theme(f){
+ document.documentElement.style.setProperty("--accent",f.color);
+ document.documentElement.style.setProperty("--accent2",CHARACTERS.find(c=>c.id===rivalId).color);
+}
+function unit(f,x,y){return{f,x,y,res:12,momentum:0,insight:0,guard:0,asks:2,last:null,special:false,history:[],discovery:0,workshopUsed:false}}
+function startGame(){
+ const p=CHARACTERS.find(c=>c.id===playerId),e=CHARACTERS.find(c=>c.id===rivalId);theme(p);
+ const arena=makeArena($("#arenaType").value);OBJ=deriveObjectives(arena.open);const difficulty=$("#difficulty").value;
+ g={round:1,turn:"player",over:false,arena,difficulty,player:unit(p,0,2),enemy:unit(e,6,2),owners:{},receipts:[],dialogue:{},undo:null,totalDamage:{player:0,enemy:0},counts:{player:{push:0,read:0,block:0,rest:0,signature:0},enemy:{push:0,read:0,block:0,rest:0,signature:0}}};
+ record("ARENA_SETTLED",{type:arena.type,name:arena.name,open:[...arena.open].sort(),objectives:OBJ,arenaHash:arena.hash},`${arena.name} settled with ${arena.open.size} playable cells`);
+ record("MATCH_OPEN",{player:p.id,rival:e.id,arenaHash:arena.hash,difficulty},"The match began");
+ $("#rosterScreen").classList.remove("active");$("#gameScreen").classList.add("active");$("#logButton").disabled=false;$("#modeTitle").textContent="ROUND 1 · GALLERY SHOWCASE";
+ buildBoard();enter("PLAYER_SELECT");render();speak("player",0);speak("enemy",1);message("Your turn","Click your figure, then choose a highlighted destination.",`${g.arena.name} · Match code ${g.arena.hash}`);showGenesis()
+}
+function buildBoard(){
+ $("#board").innerHTML=Array.from({length:35},(_,i)=>{const x=i%7,y=Math.floor(i/7),k=K(x,y),o=OBJ[k],open=g.arena.open.has(k),sv=g.arena.strain[k]??0,sc=sv>=3?"strain-high":sv===2?"strain-mid":"strain-low";const purpose=o?.type==="read"?"Forum: gain 1 Focus for your next close attack.":o?.type==="push"?"Stage: gain Power for stronger close attacks.":o?"Workshop: refresh a used Special once, or gain Power and Focus.":"";return`<div class="cell ${open?sc:"blocked"} ${o&&open?"objective":""}" data-x="${x}" data-y="${y}" data-key="${k}" data-purpose="${purpose}">${o&&open?`<span class="obj">${o.name}</span>`:""}</div>`}).join("");
+ $$(".cell").forEach(c=>c.onclick=()=>cellClick(c))
+}
+function offsets(u){
+ const m=u.f.move,dir=u===g.player?1:-1;
+ const basic=[[1,0],[-1,0],[0,1],[0,-1]];
+ let special=[];
+ if(m==="orth1")special=[];
+ else if(m==="knight")special=[[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]];
+ else if(m==="diag1")special=[[1,1],[1,-1],[-1,1],[-1,-1]];
+ else if(m==="rook2")special=[[2,0],[-2,0],[0,2],[0,-2]];
+ else if(m==="tunnel")special=[[2,0],[-2,0],[0,2],[0,-2],[1,1],[1,-1],[-1,1],[-1,-1]];
+ else if(m==="queen1")special=[[1,1],[1,-1],[-1,1],[-1,-1]];
+ else if(m==="bishop2")special=[[1,1],[1,-1],[-1,1],[-1,-1],[2,2],[2,-2],[-2,2],[-2,-2]];
+ else if(m==="lateral")special=[[2,0],[-2,0],[3,0],[-3,0],[0,dir]];
+ else if(m==="jump2")special=[[2,0],[-2,0],[0,2],[0,-2],[2,2],[2,-2],[-2,2],[-2,-2]];
+ else if(m==="ring")special=[[1,1],[1,-1],[-1,1],[-1,-1]];
+ else if(m==="formation")special=[[2,2],[2,-2],[-2,2],[-2,-2]];
+ return [...basic,...special];
+}
+function normalMoves(u){
+ const normal=offsets(u).map(([dx,dy])=>K(u.x+dx,u.y+dy));
+ if(u.f.move==="mirror")normal.push(K(6-u.x,4-u.y));
+ return[...new Set(normal.filter(q=>{const[x,y]=q.split(",").map(Number);return inside(x,y)&&arenaOpen(x,y)&&!occupied(x,y)}))]
+}
+function moveState(u){
+ const normal=normalMoves(u);
+ if(normal.length)return{kind:"normal",targets:normal};
+ const other=u===g.player?g.enemy:g.player;
+ const touching=Math.max(Math.abs(u.x-other.x),Math.abs(u.y-other.y))===1;
+ if(touching){
+  const around=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>K(other.x+dx,other.y+dy)).filter(q=>{
+   const[x,y]=q.split(",").map(Number);
+   return inside(x,y)&&arenaOpen(x,y)&&!occupied(x,y)&&q!==K(u.x,u.y);
+  });
+  if(around.length)return{kind:"breakaway",targets:[...new Set(around)]};
+ }
+ return{kind:"hold",targets:[K(u.x,u.y)]};
+}
+function moves(u){return moveState(u).targets}
+function occupied(x,y){return(g.player.x===x&&g.player.y===y)||(g.enemy.x===x&&g.enemy.y===y)}
+function clearMarks(){legal=[];$$('.cell').forEach(c=>c.classList.remove("legal","escape","hold","threat","preview-cell"))}
+function mark(list){legal=list;list.forEach(q=>$(`[data-key="${q}"]`)?.classList.add("legal"))}
+function enter(next){
+ phase=next;clearMarks();
+ const ready=next==="PLAYER_ACTION"&&g.turn==="player"&&!busy&&!g.over;
+ $$(".action").forEach(b=>{let ok=ready;if(b.dataset.action==="signature")ok=ready&&!g.player.special;b.disabled=!ok;b.classList.toggle("ready",ok)});
+ $("#askButton").disabled=!(next==="PLAYER_SELECT"&&g.turn==="player"&&!busy&&g.player.asks>0)
+}
+function cellClick(c){
+ if(!g||g.over||busy||g.turn!=="player")return;
+ const q=c.dataset.key;
+ if(phase==="PLAYER_SELECT"&&q===K(g.player.x,g.player.y)){
+  const state=moveState(g.player);enter("PLAYER_MOVE");mark(state.targets);
+  if(state.kind==="breakaway"){state.targets.forEach(k=>$(`[data-key="${k}"]`)?.classList.add("escape"));message("Break Away",`The rival blocked every normal route. Choose a gold escape tile to move past them.`,"Cornering can create pressure, but it can never remove a player's turn.")}
+  else if(state.kind==="hold"){state.targets.forEach(k=>$(`[data-key="${k}"]`)?.classList.add("hold"));message("Hold your ground","No destination is open, so click your current tile and take an action.","You never lose a turn because of the arena shape.")}
+  else message("Choose a destination",`${g.player.f.moveName}: ${g.player.f.moveText}`,`${state.targets.length} legal spaces are highlighted.`);
+ }else if(phase==="PLAYER_MOVE"&&legal.includes(q)){const[x,y]=q.split(",").map(Number);commitMove("player",x,y)}
+}
+function commitMove(side,x,y){
+ const u=g[side],otherSide=side==="player"?"enemy":"player",other=g[otherSide],state=moveState(u),target=K(x,y);
+ const breakAway=state.kind==="breakaway"&&state.targets.includes(target),hold=state.kind==="hold"&&target===K(u.x,u.y);
+ const before=dist(u,other),from=[u.x,u.y],otherFrom=[other.x,other.y];
+ if(side==="player")g.undo={from:[u.x,u.y],otherFrom,owners:JSON.parse(JSON.stringify(g.owners)),momentum:u.momentum,res:u.res};
+ u.x=x;u.y=y;
+ const after=dist(u,other);
+ if(u.f.id==="ALE"&&after<before)u.momentum=Math.min(5,u.momentum+1);
+ if(u.f.id==="TUB"&&u.res<=4&&after>before)u.res=Math.min(12,u.res+1);
+ const movement=breakAway?"Break Away":hold?"Hold Ground":u.f.moveName;
+ const summary=breakAway?`${u.f.name} broke out of a corner and moved past the rival.`:hold?`${u.f.name} held position and kept the right to act.`:`${u.f.name} used ${u.f.moveName}`;
+ record("MOVE",{round:g.round,side,from,to:[x,y],movement,emergency:breakAway||hold},summary);
+ claim(side);render();
+ if(side==="player"){enter("PLAYER_ACTION");$("#undoButton").disabled=false;message("Choose an action",breakAway?"You escaped the corner. Now choose your action.":hold?"You held your ground. Now choose your action.":"Your position is committed.","Hover over an action to preview it.")}
+ else setTimeout(enemyAction,420)
+}
+function claim(side){
+ const u=g[side],q=K(u.x,u.y),o=OBJ[q];if(!o||g.owners[q]===side)return;
+ g.owners[q]=side;
+ let result="";
+ if(o.type==="read"){u.insight=Math.min(3,u.insight+1);result="gained 1 Focus for a stronger next Strike";}
+ else if(o.type==="push"){const gain=u.f.id==="TAY"?2:1;u.momentum=Math.min(5,u.momentum+gain);result=`gained ${gain} Power`;}
+ else{if(u.special&& !u.workshopUsed){u.special=false;u.workshopUsed=true;result="restored their Special move";}else{u.momentum=Math.min(5,u.momentum+1);u.insight=Math.min(3,u.insight+1);result="gained 1 Power and 1 Focus";}}
+ record("OBJECTIVE",{round:g.round,side,objective:o.name,result},`${u.f.name} claimed ${o.name} and ${result}.`)
+}
+function observe(side){
+ const me=g[side],other=g[side==="player"?"enemy":"player"];
+ return{adjacent:dist(me,other)===1,distance:dist(me,other),myRes:me.res,otherRes:other.res,myMomentum:me.momentum,otherMomentum:other.momentum,myInsight:me.insight,myBrace:me.guard,last:other.last,objective:OBJ[K(me.x,me.y)]?.name||null,moves:moves(me).length}
+}
+function scores(side){
+ const u=g[side],o=observe(side),s={push:u.f.profile.push,read:u.f.profile.read,block:u.f.profile.block,rest:u.f.profile.rest};
+ if(o.adjacent){s.push+=5;s.block+=3}else{s.read+=2;s.rest+=1}
+ if(o.myRes<=4){s.block+=5;s.rest+=4;s.push-=2}
+ if(o.otherRes<=4)s.push+=4;if(o.last==="push")s.block+=4;if(o.last==="block")s.read+=3;if(o.last==="read")s.push+=3;
+ if(o.myInsight>=2)s.push+=2;if(o.objective==="FORUM")s.read+=2;if(o.objective==="STAGE")s.push+=2;if(o.objective==="WORKSHOP"&&!u.special)s.read+=2;
+ return s
+}
+function decide(side){
+ const u=g[side],o=observe(side),order=["push","block","read","rest"];
+ let s;
+ if(side==="enemy"&&g.difficulty==="beginner"){
+  s={push:u.f.profile.push,read:u.f.profile.read,block:u.f.profile.block,rest:u.f.profile.rest};
+  if(o.adjacent)s.push+=3;else s.read+=1;
+  if(o.objective==="FORUM")s.read+=2;if(o.objective==="STAGE")s.push+=2;
+ }else if(side==="enemy"&&g.difficulty==="skilled"){
+  s={push:u.f.profile.push,read:u.f.profile.read,block:u.f.profile.block,rest:u.f.profile.rest};
+  if(o.adjacent){s.push+=4;s.block+=2}else{s.read+=2;s.rest+=1}
+  if(o.last==="push")s.block+=3;if(o.last==="block")s.read+=2;if(o.myRes<=4){s.block+=3;s.rest+=2}
+ }else{s=scores(side)}
+ const action=order.slice().sort((a,b)=>s[b]-s[a]||order.indexOf(a)-order.indexOf(b))[0];return{action,s,obs:o}
+}
+function label(u,a){return a==="push"?"Attack":a==="read"?"Study":a==="block"?"Guard":a==="rest"?"Recover":u.f.signature}
+function preview(a){
+ if(phase!=="PLAYER_ACTION")return;const u=g.player,o=g.enemy,obs=observe("player");let title=label(u,a),body="",detail="No random roll is used.";
+ if(a==="push"){const dmg=obs.adjacent?Math.max(1,2+u.momentum+u.insight-(o.guard?2:0)):0;body=obs.adjacent?`Exact result: ${dmg} Resolve damage. Momentum ${u.momentum}, Insight ${u.insight}, rival Brace ${o.guard}.`:`Exact result: +1 Momentum. No damage from this distance.`}
+ else if(a==="read"){const gain=u.f.id==="SOC"?2:1;body=`Exact result: +${gain} Insight${u.f.id==="CUR"?" and +1 Discovery":""}. Rival leaning: ${label(o,decide("enemy").action)}.`}
+ else if(a==="block"){const guard=u.f.id==="WAS"&&u.x===3?2:1;body=`Guard is ${guard}. The next hit is reduced, and you recover 1 Health.`}
+ else{body=signatureText(u.f);detail="Usable once per match."}
+ message(title,body,detail);clearMarks();$(`[data-key="${a==="push"?K(o.x,o.y):K(u.x,u.y)}"]`)?.classList.add(a==="push"?"threat":"preview-cell")
+}
+function signatureText(f){
+ const map={WAS:"Strengthens Brace and restores Resolve.",ALE:"Deals a heavy momentum-powered strike.",SOC:"Reads and counters the rival's selected plan.",JUN:"Copies the rival's strongest current resource.",CUR:"Converts accumulated discovery into damage.",TUB:"Moves to safety and restores Resolve.",LEE:"Delivers a fast strike that ignores Brace.",ADA:"Executes a three-part programmed action.",SER:"Returns pressure with a championship strike.",MRB:"Turns all objectives into bonus challenges.",TAY:"Fills Momentum and changes the match tempo.",RM:"Balances Insight, Brace, and Momentum."};return map[f.id]
+}
+function act(side,a,asked=false){
+ const u=g[side],other=g[side==="player"?"enemy":"player"],obs=observe(side),s=scores(side);let damage=0,summary="";const here=K(u.x,u.y),localStrain=g.arena.strain[here]||0;
+ if(a==="signature"){
+  u.special=true;g.counts[side].signature++;
+  if(u.f.id==="WAS"){u.guard=2;u.res=Math.min(12,u.res+2);summary=`${u.f.name} unified the field, restored 2 Resolve, and set a reinforced Brace.`}
+  else if(u.f.id==="ALE"){damage=3+u.momentum;u.momentum=0;summary=`${u.f.name} struck for ${damage} damage.`}
+  else if(u.f.id==="SOC"){damage=2+u.insight+(decide(side==="player"?"enemy":"player").action==="push"?2:0);summary=`${u.f.name} exposed the contradiction for ${damage} damage.`}
+  else if(u.f.id==="JUN"){u.momentum=Math.max(u.momentum,other.momentum);u.insight=Math.max(u.insight,other.insight);u.guard=Math.max(u.guard,other.guard);summary=`${u.f.name} integrated the rival's strongest state.`}
+  else if(u.f.id==="CUR"){damage=3+u.discovery+u.insight;summary=`${u.f.name} converted discovery into ${damage} damage.`}
+  else if(u.f.id==="TUB"){u.res=Math.min(12,u.res+3);u.guard=1;summary=`${u.f.name} opened a freedom passage and restored 3 Resolve.`}
+  else if(u.f.id==="LEE"){damage=4+u.insight;other.guard=0;summary=`${u.f.name} intercepted for ${damage} damage, ignoring Brace.`}
+  else if(u.f.id==="ADA"){u.insight=Math.min(3,u.insight+1);u.guard=1;damage=2;summary=`${u.f.name} executed a programmed sequence for ${damage} damage, Insight, and Brace.`}
+  else if(u.f.id==="SER"){damage=4+(other.last==="push"?2:0);summary=`${u.f.name} reached championship point for ${damage} damage.`}
+  else if(u.f.id==="MRB"){u.momentum=5;summary=`${u.f.name} raised every stake and filled Momentum.`}
+  else if(u.f.id==="TAY"){u.momentum=5;u.insight=Math.min(3,u.insight+1);summary=`${u.f.name} changed the era, filling Momentum and gaining Insight.`}
+  else{u.momentum=Math.max(u.momentum,3);u.insight=Math.max(u.insight,2);u.guard=1;summary=`${u.f.name} spoke clearly, balancing Momentum, Insight, and Brace.`}
+ }else{
+  g.counts[side][a]++;u.history.push(a);u.last=a;
+  if(a==="push"){
+   if(obs.adjacent){damage=Math.max(1,2+u.momentum+u.insight+Math.max(0,localStrain-1)-(other.guard?2:0));if(u.f.id==="LEE"&&u.history.at(-2)!=="push")damage++;other.guard=0;u.insight=0;u.momentum=Math.max(0,u.momentum-1);summary=`${u.f.name} applied ${damage} pressure.`}
+   else{u.momentum=Math.min(5,u.momentum+1);summary=`${u.f.name} advanced and gained Momentum.`}
+  }else if(a==="read"){
+   u.insight=Math.min(3,u.insight+(u.f.id==="SOC"?2:1)+(localStrain===0?1:0));if(u.f.id==="CUR")u.discovery=Math.min(3,u.discovery+1);summary=`${u.f.name} gained Insight${u.f.id==="CUR"?" and advanced a discovery":""}.`
+  }else if(a==="block"){u.guard=u.f.id==="WAS"&&u.x===3?2:1;g.arena.strain[here]=Math.max(0,localStrain-1);summary=`${u.f.name} prepared a Brace.`}
+  else{u.res=Math.min(12,u.res+1);u.momentum=Math.min(5,u.momentum+1);summary=`${u.f.name} regrouped, restoring Resolve and Momentum.`}
+  if(u.f.id==="JUN"&&u.history.length>=2&&u.history.at(-1)!==u.history.at(-2))u.res=Math.min(12,u.res+1);
+  if(u.f.id==="RM"&&["push","read","block"].every(x=>u.history.slice(-5).includes(x)))u.momentum=Math.min(5,u.momentum+2);
+ }
+ if(damage){g.totalDamage[side]+=damage;other.res=Math.max(0,other.res-damage);float(side==="player"?"enemy":"player",damage);if(other.f.id==="SER"&&other.guard&&a==="push"){u.res=Math.max(0,u.res-1)}}
+ record("ACTION",{round:g.round,side,action:a,label:label(u,a),scores:s,observation:obs,asked,result:{damage,playerResolve:g.player.res,enemyResolve:g.enemy.res}},summary);
+ render();
+ if(side==="player"&&g.difficulty==="beginner"){
+  const board=$("#board");board.classList.remove("good-flash");void board.offsetWidth;board.classList.add("good-flash");
+  message(damage>0?"Nice hit!":a==="read"?"Good read!":a==="block"?"Good defense!":"Good move!",summary,"You can see the exact result before every choice.");
+ }else message(label(u,a),summary,asked?"Your legend chose this turn from the current position.":"Move recorded.")
+}
+function playerAct(a){if(g.over||busy||phase!=="PLAYER_ACTION")return;$("#undoButton").disabled=true;g.undo=null;busy=true;enter("RESOLVING");act("player",a);setTimeout(()=>finish("player"),600)}
+function enemyMove(){
+ const list=moves(g.enemy);if(!list.length){enemyAction();return}
+ list.sort((a,b)=>moveScore(b)-moveScore(a)||a.localeCompare(b));const[x,y]=list[0].split(",").map(Number);commitMove("enemy",x,y)
+}
+function moveScore(q){const[x,y]=q.split(",").map(Number);let s=20-(Math.abs(x-g.player.x)+Math.abs(y-g.player.y))*2;if(OBJ[q])s+=5;if(Math.abs(x-g.player.x)+Math.abs(y-g.player.y)===1)s+=7;if(g.enemy.res<=4&&Math.abs(x-g.player.x)+Math.abs(y-g.player.y)===1)s-=4;return s}
+function enemyAction(){const d=decide("enemy");message(`${g.enemy.f.name} commits`,label(g.enemy,d.action),"The choice comes from the board state and character profile.");setTimeout(()=>{act("enemy",d.action);setTimeout(()=>finish("enemy"),600)},450)}
+function finish(side){
+ if(endCheck())return;busy=false;
+ if(side==="player"){g.turn="enemy";enter("ENEMY_TURN");render();const d=decide("enemy");message("Rival's turn",`${g.enemy.f.name} is leaning toward ${label(g.enemy,d.action)}.`,"The rival will move, then commit one action.");setTimeout(enemyMove,700)}
+ else{g.round++;g.turn="player";enter("PLAYER_SELECT");render();message("Your turn","Click your figure, then choose one highlighted destination.","Use the rival's visible leaning to plan ahead.")}
+}
+function askLegend(){
+ if(g.over||busy||phase!=="PLAYER_SELECT"||g.player.asks<=0)return;
+ g.player.asks--;
+ const list=moves(g.player);
+ if(!list.length){record("ASK_FUTURE",{round:g.round,remaining:g.player.asks},`${g.player.f.name} had no legal move to take`);render();return}
+ list.sort((a,b)=>moveScorePlayer(b)-moveScorePlayer(a)||a.localeCompare(b));
+ const[x,y]=list[0].split(",").map(Number),decision=decide("player");
+ record("ASK_FUTURE",{round:g.round,remaining:g.player.asks,chosenMove:[x,y],chosenAction:decision.action},`${g.player.f.name} took this turn automatically`);
+ busy=true;enter("RESOLVING");render();
+ message(`${g.player.f.name} is deciding`,"Your legend is choosing a move and an action for this turn.","Watch the board to see what they choose.");
+ setTimeout(()=>{commitMove("player",x,y);g.undo=null;$("#undoButton").disabled=true;setTimeout(()=>playerActAsked(decision.action),450)},420);
+}
+function moveScorePlayer(q){const[x,y]=q.split(",").map(Number);let s=18-(Math.abs(x-g.enemy.x)+Math.abs(y-g.enemy.y))*2;if(OBJ[q])s+=5;if(Math.abs(x-g.enemy.x)+Math.abs(y-g.enemy.y)===1&&g.player.res>4)s+=5;return s}
+function playerActAsked(a){busy=true;enter("RESOLVING");act("player",a,true);setTimeout(()=>finish("player"),650)}
+function endCheck(){
+ if(g.player.res<=0){endGame("The rival wins","Your Resolve reached zero.");return true}
+ if(g.enemy.res<=0){endGame("You win","The rival's Resolve reached zero.");return true}
+ if(g.round>MAX_ROUND){const score=s=>g[s].res+g[s].momentum+g[s].insight+Object.values(g.owners).filter(x=>x===s).length;endGame(score("player")>=score("enemy")?"You win":"The rival wins","The fourteen-round arena score decided the clash.");return true}
+ return false
+}
+function endGame(title,reason){
+ g.over=true;busy=false;document.body.classList.add("finished");record("MATCH_CLOSE",{title,reason},reason);render();
+ const report=side=>Object.entries(g.counts[side]).map(([k,v])=>`<div class="bar-row"><span>${k==="signature"?"Special":label(g[side],k)}</span><div class="bar"><i style="width:${Math.min(100,v*20)}%"></i></div><b>${v}</b></div>`).join("");
+ $("#resultCard").innerHTML=`<h2>${title}</h2><p>${reason}</p><div class="result-grid"><div class="result-card"><b>${g.player.f.name}</b><br><small>${g.player.f.lane}</small><p><b>${g.totalDamage.player}</b> total damage</p>${report("player")}</div><div class="result-card"><b>${g.enemy.f.name}</b><br><small>${g.enemy.f.lane}</small><p><b>${g.totalDamage.enemy}</b> total damage</p>${report("enemy")}</div></div><p style="color:#aaa7a0">Replay: <b>Exact</b> · Match code: <b>${g.receipts.at(-1).hash}</b></p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn primary" onclick="rematch()">Rematch</button><button class="btn" onclick="returnRoster()">Choose New Legends</button><button class="btn" onclick="showReceipts()">View Battle Log</button></div>`;
+ $("#resultOverlay").classList.add("show")
+}
+function rematch(){$("#resultOverlay").classList.remove("show");$("#receiptOverlay").classList.remove("show");document.body.classList.remove("finished");startGame()}
+function returnRoster(){
+ $("#resultOverlay").classList.remove("show");$("#receiptOverlay").classList.remove("show");$("#helpOverlay").classList.remove("show");document.body.classList.remove("finished","thinking");
+ $("#gameScreen").classList.remove("active");$("#rosterScreen").classList.add("active");$("#logButton").disabled=true;$("#modeTitle").textContent="GALLERY SHOWCASE";g=null;phase="ROSTER";busy=false;clearPicks()
+}
+function render(){
+ if(!g)return;$("#modeTitle").textContent=`ROUND ${Math.min(g.round,MAX_ROUND)} · ${g.arena.name.toUpperCase()}`;
+ $("#arenaIdentityName").textContent=g.arena.name;
+ $("#arenaIdentityStyle").textContent={compact:"Close combat",branched:"Branching paths",filament:"Narrow routes",porous:"Gaps and shortcuts"}[g.arena.type]||"Living arena";
+ $("#difficultyBadge").textContent=g.difficulty[0].toUpperCase()+g.difficulty.slice(1);
+ $("#roundDots").innerHTML=Array.from({length:MAX_ROUND},(_,i)=>`<span class="dot ${i<g.round?"done":""}"></span>`).join("");
+ $("#playerStatus").innerHTML=status("player");$("#enemyStatus").innerHTML=status("enemy");
+ $("#passiveName").textContent=g.player.f.passive;$("#passiveText").textContent=g.player.f.passiveText;const coach=phase==="PLAYER_SELECT"?"Choose your legend to see where they can move.":phase==="PLAYER_MOVE"?`${g.player.f.moveName} is ready. Pick a glowing space.`:phase==="PLAYER_ACTION"?(g.difficulty==="beginner"?`Try an action. The result is shown before you choose.`:`Rival may ${label(g.enemy,decide("enemy").action)} next. Check each action before choosing.`):"Watch the rival's move. Nothing is random.";$("#coachText").textContent=coach;
+ $("#askTitle").textContent=`Ask ${g.player.f.name.split(" ")[0]} for a turn`;$("#askText").textContent=`${g.player.asks} use${g.player.asks===1?"":"s"} remaining.`;
+ const labels={push:"Attack",read:"Study",block:"Guard",signature:g.player.f.signature};
+ $$(".action").forEach(b=>{b.querySelector("strong").textContent=labels[b.dataset.action]});
+ $$(".cell").forEach(c=>{c.querySelectorAll(".token,.owner").forEach(n=>n.remove());const own=g.owners[c.dataset.key];if(own){const d=document.createElement("div");d.className="owner "+own;c.appendChild(d)}});
+ [["player",g.player],["enemy",g.enemy]].forEach(([side,u])=>{const t=document.createElement("div");t.className=`token ${g.turn===side&&!g.over?"active":""} ${u.res<=3?"low":""} ${g.round===1?(side==="player"?"enter-player":"enter-enemy"):""}`;t.style.setProperty("--lane",u.f.color);t.style.setProperty("--image",image(u.f));t.textContent=u.f.name.split(" ").map(x=>x[0]).join("").slice(0,2);$(`[data-key="${K(u.x,u.y)}"]`)?.appendChild(t)})
+}
+function status(side){
+ const u=g[side],lean=side==="enemy"&&!g.over?`<div class="lean">Leaning: ${label(u,decide("enemy").action)}</div>`:"";
+ const power=Math.max(0,Math.min(100,Math.round(((u.res/12)*45)+((u.momentum/5)*30)+((u.insight/3)*15)+(u.guard?10:0))));
+ const insightClass=side==="player"?"insight-click":"";
+ const insightHandler=side==="player"?'onclick="showInsightThought()" title="Click to hear what your legend is thinking"':"";
+ return`<div class="mini-card" style="--lane:${u.f.color};--image:${image(u.f)}"><span style="display:grid;place-items:center;width:100%;height:100%;font:700 18px Georgia,serif;text-shadow:0 2px 5px #000">${u.f.name.split(" ").map(x=>x[0]).join("").slice(0,2)}</span></div><div style="min-width:0"><div class="lane-name" style="--lane:${u.f.color}">${u.f.lane}</div><h2>${u.f.name}</h2><div class="stats"><span>Health <b>${u.res}/12</b></span><span>Power <b>${u.momentum}/5</b></span><span class="${insightClass}" ${insightHandler}>Focus <b>${u.insight}/3</b></span></div><div class="power-wrap"><span>Ready</span><div class="power-track"><div class="power-fill" style="--lane:${u.f.color};width:${power}%"></div></div><b>${power}</b></div>${lean}</div>`
+}
+function showInsightThought(){
+ if(!g||g.over||g.turn!=="player"||phase==="ENEMY_TURN"||phase==="RESOLVING"){
+   message("Insight unavailable","Your legend only shares a thought during your turn.","Wait until control returns to you.");
+   return;
+ }
+ const u=g.player,o=g.enemy,d=decide("enemy"),obs=observe("player");
+ let thought="";
+ if(u.insight===0)thought=`${u.f.name} has not gathered enough information yet. A Read action would reveal more.`;
+ else if(obs.adjacent&&o.guard)thought=`${u.f.name} notices the rival is guarded. A direct Press would be reduced; Read or Brace may be safer.`;
+ else if(obs.adjacent)thought=`${u.f.name} sees an immediate opening. Current Press damage would be ${Math.max(1,2+u.momentum+u.insight-(o.guard?2:0))}.`;
+ else if(d.action==="push")thought=`${u.f.name} expects ${o.f.name} to press forward. Brace can punish that pressure.`;
+ else if(d.action==="block")thought=`${u.f.name} expects a defensive response. Read can gain an advantage without wasting Momentum.`;
+ else if(d.action==="read")thought=`${u.f.name} expects the rival to Read. Press can interrupt that setup.`;
+ else thought=`${u.f.name} believes the rival may regroup. This is a good moment to claim an objective or build pressure.`;
+ message(`${u.f.name}'s thought`,thought,`Current Insight: ${u.insight}/3 · Rival leaning: ${label(o,d.action)}.`);
+}
+function renderTimeline(){if(!g)return;$("#timeline").innerHTML=g.receipts.slice(-6).reverse().map(r=>`<div class="event"><b>${r.summary}${r.data?.result?.damage?` <span class="damage-chip">-${r.data.result.damage} damage</span>`:""}</b><span class="hash">#${r.n} · ${r.hash}</span></div>`).join("")}
+function message(t,b,d){$("#previewTitle").textContent=t;$("#previewBody").textContent=b;$("#previewDetail").textContent=d||""}
+function speak(side,n){const u=g[side],q=u.f.quote[n%u.f.quote.length];(side==="player"?$("#playerQuote"):$("#enemyQuote")).textContent=`"${q}"`}
+function undoMove(){if(!g||!g.undo||phase!=="PLAYER_ACTION"||busy)return;const u=g.player;u.x=g.undo.from[0];u.y=g.undo.from[1];if(g.undo.otherFrom){g.enemy.x=g.undo.otherFrom[0];g.enemy.y=g.undo.otherFrom[1]}u.momentum=g.undo.momentum;u.res=g.undo.res;g.owners=JSON.parse(JSON.stringify(g.undo.owners));record("UNDO_MOVE",{round:g.round,returnedTo:g.undo.from},"The player reconsidered the destination before acting");g.undo=null;$("#undoButton").disabled=true;enter("PLAYER_SELECT");render();message("Move undone","Choose your figure again.","No action was committed.")}
+let genesisTimer=null;
+let genesisAutoClose=null;
+function closeGenesis(){
+ if(genesisTimer){clearInterval(genesisTimer);genesisTimer=null}
+ if(genesisAutoClose){clearTimeout(genesisAutoClose);genesisAutoClose=null}
+ $("#genesisOverlay").classList.remove("show");
+ const board=$("#board");
+ if(board){board.setAttribute("tabindex","-1");board.focus({preventScroll:true})}
+ message("Your turn","Click your figure, then choose a highlighted destination.",`${g.arena.name} · Match code ${g.arena.hash}`);
+}
+function showGenesis(){
+ const overlay=$("#genesisOverlay"),board=$("#genesisBoard"),keys=Array.from({length:35},(_,i)=>K(i%7,Math.floor(i/7)));
+ if(genesisTimer)clearInterval(genesisTimer);
+ if(genesisAutoClose)clearTimeout(genesisAutoClose);
+ $("#genesisName").textContent=g.arena.name;$("#genesisMeta").textContent=`${g.arena.open.size} playable spaces · Match code ${g.arena.hash}`;
+ board.innerHTML=keys.map(k=>`<div class="genesis-cell off" data-gkey="${k}">·</div>`).join("");$("#genesisReceipt").innerHTML="";overlay.classList.add("show");
+ const enterButton=$("#genesisEnterButton");if(enterButton){enterButton.textContent="Enter Arena";setTimeout(()=>enterButton.focus({preventScroll:true}),0)}
+ const order=[...g.arena.open].sort((a,b)=>hash(a+g.arena.hash).localeCompare(hash(b+g.arena.hash)));let i=0;
+ genesisTimer=setInterval(()=>{for(let n=0;n<3&&i<order.length;n++,i++){const k=order[i],el=$(`[data-gkey="${k}"]`);if(el){el.className=`genesis-cell on ${(g.arena.strain[k]||0)>=3?"hot":"calm"}`;el.textContent=(g.arena.strain[k]||0)>=3?"HOT":"SAFE";}$("#genesisReceipt").innerHTML+=`#${i+1} Ground formed at ${k}<br>`;}
+ if(i>=order.length){clearInterval(genesisTimer);genesisTimer=null;$("#genesisReceipt").innerHTML+=`<b>READY:</b> The arena has finished taking shape.`;if(enterButton)enterButton.textContent="Start Moving";genesisAutoClose=setTimeout(closeGenesis,1800)}},90)
+}
+function closeIntro(){localStorage.setItem("eracii_intro_seen","1");$("#introOverlay").classList.remove("show")}
+function showGallery(){$("#galleryList").innerHTML=CHARACTERS.map(f=>`<div class="help-item"><b style="color:${f.color}">${f.crest} ${f.name}</b><span>${f.lane}</span><br><small>${f.moveName}: ${f.moveText}</small></div>`).join("");$("#galleryOverlay").classList.add("show")}
+function closeGallery(){$("#galleryOverlay").classList.remove("show")}
+function showHelp(){$("#helpOverlay").classList.add("show")}function closeHelp(){$("#helpOverlay").classList.remove("show")}
+function showReceipts(){if(!g)return;$("#receiptList").innerHTML=g.receipts.slice().reverse().map(r=>`#${r.n} ${r.type} → ${r.hash}<br>${r.summary}${r.data?.result?.damage?` | DAMAGE: ${r.data.result.damage}`:""}<br>${JSON.stringify(r.data)}`).join("<hr>");$("#receiptOverlay").classList.add("show")}
+function closeReceipts(){$("#receiptOverlay").classList.remove("show")}
+
+renderFilters();renderRoster();updatePicks();
+if(!localStorage.getItem("eracii_intro_seen"))$("#introOverlay").classList.add("show");
+$("#galleryButton").onclick=showGallery;$("#undoButton").onclick=undoMove;$("#clearButton").onclick=clearPicks;$("#startButton").onclick=startGame;$("#helpButton").onclick=showHelp;$("#logButton").onclick=showReceipts;$("#askButton").onclick=askLegend;
+$$(".action").forEach(b=>{b.onmouseenter=()=>preview(b.dataset.action);b.onfocus=()=>preview(b.dataset.action);b.onclick=()=>{if(!b.disabled)playerAct(b.dataset.action)}});
+document.addEventListener("keydown",e=>{
+ if(e.key==="Escape"){if($("#genesisOverlay").classList.contains("show"))closeGenesis();else if($("#introOverlay").classList.contains("show"))closeIntro();else if($("#galleryOverlay").classList.contains("show"))closeGallery();else if($("#receiptOverlay").classList.contains("show"))closeReceipts();else if($("#helpOverlay").classList.contains("show"))closeHelp();else if($("#resultOverlay").classList.contains("show"))returnRoster()}
+});
+</script>
+
+<script>
+/* Toybox Leap interaction layer. */
+(() => {
+  const crestFor = id => ({WAS:"⬟",ALE:"♞",SOC:"?",JUN:"◐",CUR:"✦",TUB:"↝",LEE:"⚡",ADA:"⚙",SER:"★",MRB:"◆",TAY:"♪",RM:"K"}[id] || "●");
+
+  function plainAbility(f){
+    const map={
+      WAS:"Washington is best at holding important ground. Stand Ground is stronger in the middle column.",
+      ALE:"Alexander builds Power by closing distance. Keep moving toward the rival before striking.",
+      SOC:"Socrates gains extra Focus when he Reads the rival. Focus makes his next Strike more dangerous.",
+      JUN:"Jung recovers Health when he changes tactics instead of repeating the same action.",
+      CUR:"Curie becomes stronger after repeated Read actions. Patience turns into a harder Strike.",
+      TUB:"Tubman can recover Health by escaping danger when badly hurt.",
+      LEE:"Bruce Lee hits harder when he changes actions instead of repeating himself.",
+      ADA:"Ada is rewarded for using Strike, Read, then Guard as a planned sequence.",
+      SER:"Serena can answer an incoming Strike after she has prepared Guard.",
+      MRB:"MrBeast earns an extra reward when he captures a special space.",
+      TAY:"Taylor gains twice as much Power when she captures the Stage.",
+      RM:"RM gains extra Power after using Strike, Read, and Guard instead of relying on one tactic."
+    };return map[f.id]||"This legend has a special advantage. Watch the highlighted explanation during play.";
+  }
+  function objectiveTips(f){
+    const forum=(f.id==="SOC"||f.id==="CUR")?`${f.name} is especially good here because Focus supports their patient style.`:`${f.name} can use Focus to make the next close Strike stronger.`;
+    const stage=f.id==="TAY"?"Taylor gains 2 Power here instead of 1.":f.id==="ALE"||f.id==="LEE"||f.id==="SER"?`${f.name} benefits strongly from extra Power because they favor direct attacks.`:`${f.name} can save this Power for a harder close Strike.`;
+    const workshop=f.id==="MRB"?"MrBeast also receives his extra objective reward here.":`For ${f.name}, this is the place to prepare or regain the unique Special move.`;
+    return{forum,stage,workshop};
+  }
+
+  function toast(text){
+    const el=document.getElementById("feedbackToast");
+    if(!el)return;
+    el.textContent=text;el.classList.remove("show");void el.offsetWidth;el.classList.add("show");
+  }
+  function guide(text,step){
+    const t=document.getElementById("guideText"),s=document.getElementById("guideStep");
+    if(t)t.textContent=text;if(s)s.textContent=String(step||"•");
+  }
+  function cellAt(x,y){return document.querySelector(`[data-key="${x},${y}"]`)}
+  function tokenFor(side){
+    if(typeof g==="undefined"||!g)return null;
+    const u=g[side];return cellAt(u.x,u.y)?.querySelector(".token")||null;
+  }
+  function pulseCell(x,y,cls){const c=cellAt(x,y);if(!c)return;c.classList.remove(cls);void c.offsetWidth;c.classList.add(cls);setTimeout(()=>c.classList.remove(cls),1000)}
+  function bubble(side,text){
+    if(typeof g==="undefined"||!g)return;
+    const slot=document.getElementById(side==="player"?"playerSpeech":"enemySpeech");if(!slot)return;
+    slot.innerHTML="";
+    const b=document.createElement("div");b.className="speech-bubble";b.style.setProperty("--lane",g[side].f.color);b.textContent=`${g[side].f.name}: “${text}”`;slot.appendChild(b);setTimeout(()=>{if(b.isConnected)b.remove()},2700)
+  }
+  function shake(){const b=document.getElementById("board");b?.classList.remove("board-shake");void b?.offsetWidth;b?.classList.add("board-shake");setTimeout(()=>b?.classList.remove("board-shake"),500)}
+  function confetti(){
+    const layer=document.getElementById("fxLayer");if(!layer)return;
+    for(let i=0;i<36;i++){
+      const bit=document.createElement("i");bit.className="confetti-bit";bit.style.left=`${(i*37)%100}%`;bit.style.setProperty("--c",i%3===0?"#d7aa57":i%3===1?"#4d8bd8":"#6bc690");bit.style.setProperty("--drift",`${(i%2?1:-1)*(20+(i%7)*8)}px`);bit.style.animationDelay=`${(i%9)*.035}s`;layer.appendChild(bit);setTimeout(()=>bit.remove(),2600)
+    }
+  }
+  function characterLine(side,action){
+    const f=g[side].f;
+    const lines={push:["Now.","Your ground is open.","I press the advantage."],read:["I see the pattern.","Show me your plan.","Interesting."],block:["We hold here.","Not this time.","Steady."],signature:[f.quote?.[0]||"Watch closely."]};
+    const arr=lines[action]||["Onward."];return arr[(g.round+f.id.charCodeAt(0))%arr.length]
+  }
+
+  const oldRenderRoster=window.renderRoster;
+  window.renderRoster=function(){
+    oldRenderRoster();
+    document.querySelectorAll(".roster-card").forEach(card=>{
+      const f=CHARACTERS.find(x=>x.id===card.dataset.id);if(!f)return;
+      const art=card.querySelector(".art");
+      if(art&&!card.querySelector(".hover-quote")){const q=document.createElement("div");q.className="hover-quote";q.textContent=`“${f.quote[0]}”`;art.appendChild(q)}
+    });
+  };
+
+  const oldBuildBoard=window.buildBoard;
+  window.buildBoard=function(){
+    oldBuildBoard();
+    document.querySelectorAll(".cell.objective").forEach(c=>{
+      const o=OBJ[c.dataset.key];if(!o)return;
+      const m=document.createElement("span");m.className="objective-monument";m.textContent=o.name==="FORUM"?"▤":o.name==="STAGE"?"▲":"⚒";c.appendChild(m);
+    });
+  };
+
+  const oldCommitMove=window.commitMove;
+  window.commitMove=function(side,x,y){
+    const u=g[side],from={x:u.x,y:u.y};
+    pulseCell(from.x,from.y,"tile-ripple");
+    oldCommitMove(side,x,y);
+    requestAnimationFrame(()=>{
+      const t=tokenFor(side);if(t){t.classList.add("token-hop");setTimeout(()=>t.classList.remove("token-hop"),650)}
+      pulseCell(x,y,"tile-ripple");
+    });
+    if(side==="player")toast("Moved. Now choose what happens next.");
+  };
+
+  const oldClaim=window.claim;
+  window.claim=function(side){
+    const before={...g.owners};oldClaim(side);
+    const u=g[side],k=`${u.x},${u.y}`;
+    if(before[k]!==g.owners[k]&&g.owners[k]){pulseCell(u.x,u.y,"claim-pop");toast(`${OBJ[k]?.name||"Objective"} claimed!`)}
+  };
+
+  const oldAct=window.act;
+  window.act=function(side,a,asked=false){
+    const me=g[side],other=g[side==="player"?"enemy":"player"],before=other.res;
+    oldAct(side,a,asked);
+    const dmg=Math.max(0,before-other.res),myToken=tokenFor(side),otherToken=tokenFor(side==="player"?"enemy":"player");
+    bubble(side,characterLine(side,a));
+    if(a==="push"){
+      pulseCell(me.x,me.y,"hit-cell");if(dmg){otherToken?.classList.add("token-hit");shake();toast(`Good hit! ${dmg} damage.`)}else toast("Pressure built. Your next hit can be stronger.")
+    }else if(a==="read"){
+      pulseCell(me.x,me.y,"read-cell");myToken?.classList.add("token-read");toast("Plan revealed. Focus increased.")
+    }else if(a==="block"){
+      pulseCell(me.x,me.y,"guard-cell");myToken?.classList.add("token-guard");toast("Guard ready. The next hit is softened.")
+    }else{
+      pulseCell(me.x,me.y,"special-cell");myToken?.classList.add("token-special");shake();toast(`${me.f.signature}!`)
+    }
+    setTimeout(()=>{myToken?.classList.remove("token-read","token-guard","token-special");otherToken?.classList.remove("token-hit")},1000)
+  };
+
+  const oldUndo=window.undoMove;
+  window.undoMove=function(){
+    const b=document.getElementById("board");b?.classList.add("board-rewind");toast("Rewinding… nothing was locked in.");
+    setTimeout(()=>{oldUndo();b?.classList.remove("board-rewind")},430)
+  };
+
+  const oldEnter=window.enter;
+  window.enter=function(next){
+    oldEnter(next);
+    if(next==="PLAYER_SELECT")guide("Tap your champion. Glowing spaces will show where they can step.",1);
+    else if(next==="PLAYER_MOVE")guide("Choose any glowing tile.",2);
+    else if(next==="PLAYER_ACTION")guide("Pick one move. Hover or tap to see exactly what it will do.",3);
+    else if(next==="ENEMY_TURN")guide("Watch the rival. Their next choice follows the visible board.","•");
+    else if(next==="RESOLVING")guide("The arena is responding to the move.","•");
+  };
+
+  const oldRender=window.render;
+  window.render=function(){
+    oldRender();
+    if(typeof g==="undefined"||!g)return;
+    document.getElementById("playerArenaName").textContent=g.player.f.name;
+    document.getElementById("enemyArenaName").textContent=g.enemy.f.name;
+    const ph=document.getElementById("legendPlainHelp");if(ph)ph.textContent=plainAbility(g.player.f);
+    const ot=objectiveTips(g.player.f);const ft=document.getElementById("forumPlayerTip"),st=document.getElementById("stagePlayerTip"),wt=document.getElementById("workshopPlayerTip");if(ft)ft.textContent=`For your legend: ${ot.forum}`;if(st)st.textContent=`For your legend: ${ot.stage}`;if(wt)wt.textContent=`For your legend: ${ot.workshop}`;
+    document.querySelectorAll(".token").forEach(t=>{const cell=t.closest(".cell"),key=cell?.dataset.key;const side=key===`${g.player.x},${g.player.y}`?"player":"enemy";t.textContent=crestFor(g[side].f.id);if(g.turn!==side)t.classList.add("waiting");if(!t.querySelector(".token-name")){const n=document.createElement("span");n.className="token-name";n.textContent=g[side].f.name;t.appendChild(n)}});
+    document.querySelectorAll(".objective-monument").forEach(m=>{const c=m.closest(".cell"),o=OBJ[c.dataset.key];m.textContent=o?.name==="FORUM"?"▤":o?.name==="STAGE"?"▲":"⚒"});
+  };
+
+  const oldPreview=window.preview;
+  window.preview=function(a){oldPreview(a);if(phase==="PLAYER_ACTION"){const names={push:"Attack",read:"Study",block:"Guard",signature:"Special"};guide(`${names[a]} preview: the exact result is shown beside the board.`,3)}};
+
+  const oldEndGame=window.endGame;
+  window.endGame=function(title,reason){oldEndGame(title,reason);if(title.includes("You win")){confetti();toast("Victory! The arena remembers this battle.")}else toast("Battle over. The result can be reviewed in the Battle Log.")};
+
+  window.renderRoster();
+})();
+</script>
+
+<script>
+/* Damage overlay fix */
+(() => {
+  function placeFixedEffect(el, target) {
+    const layer = document.getElementById('fxLayer');
+    if (!layer || !target) return false;
+    const r = target.getBoundingClientRect();
+    el.classList.add('damage-overlay');
+    el.style.left = `${r.left + r.width / 2}px`;
+    el.style.top = `${Math.max(8, r.top + r.height * 0.12)}px`;
+    el.style.translate = '-50% 0';
+    layer.appendChild(el);
+    return true;
+  }
+
+  window.float = function(side, n) {
+    if (typeof g === 'undefined' || !g) return;
+    const u = g[side];
+    const target = document.querySelector(`[data-key="${u.x},${u.y}"] .token`) ||
+                   document.querySelector(`[data-key="${u.x},${u.y}"]`);
+    const d = document.createElement('div');
+    d.className = 'damage';
+    d.textContent = `-${n}`;
+    if (!placeFixedEffect(d, target)) return;
+    setTimeout(() => d.remove(), 1100);
+  };
+
+  let resizeFrame = 0;
+  addEventListener('resize', () => {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(() => {
+      document.querySelectorAll('.damage-overlay').forEach(el => el.remove());
+    });
+  }, {passive:true});
+})();
+</script>
+
+
+<style id="melissa-balance-and-clarity-patch">
+  .roster-shell{width:min(1540px,99vw)!important}
+  .roster{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))!important;gap:10px!important}
+  .hero .eyebrow{font-size:10px!important}
+  .banter{
+    flex:0 0 54px!important;
+    align-items:stretch!important;
+    padding:5px 10px!important;
+  }
+  .quote{
+    white-space:normal!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+    min-height:40px;
+    display:flex;
+    align-items:center;
+    background:#0d131be6;
+    border:1px solid #313948;
+    border-radius:9px;
+    padding:6px 8px;
+    line-height:1.22;
+    box-shadow:inset 0 0 0 1px #0006;
+  }
+  .quote.enemy{justify-content:flex-end;text-align:right}
+  .hover-quote{
+    position:absolute;
+    left:6px;
+    right:6px;
+    bottom:6px;
+    background:#091018ee;
+    border:1px solid #344050;
+    border-radius:8px;
+    padding:6px 8px;
+    color:#f8f2e7;
+    font:italic 10px/1.2 Georgia,serif;
+    text-shadow:none;
+    box-shadow:0 6px 16px #000a;
+  }
+  .objective-info .example{
+    display:block;
+    margin-top:5px;
+    padding:5px 6px;
+    background:#101720;
+    border:1px solid #314155;
+    border-radius:6px;
+    color:#f8f2e7;
+    font-size:9px;
+    line-height:1.35;
+  }
+  .objective-legend{
+    margin-top:6px;
+    padding:6px 8px;
+    background:#0a1017;
+    border:1px solid #29313f;
+    border-radius:6px;
+    color:#d8dde5;
+    font-size:9px;
+    line-height:1.35;
+  }
+  .objective-legend b{color:#d7aa57}
+  .action small{display:block;line-height:1.2}
+  .action .detail-strong{display:block;margin-top:2px;color:#f8f2e7;font-weight:900;font-size:8px}
+  .action .detail-note{display:block;margin-top:2px;color:#d7aa57;font-weight:800;font-size:8px}
+  @media (max-height:800px){
+    .banter{flex-basis:48px!important}
+    .quote{min-height:34px!important;font-size:10px!important;padding:5px 7px!important}
+  }
+  @media (max-width:600px){
+    .hover-quote{font-size:9px!important;padding:5px 6px!important}
+  }
+</style>
+<script>
+(() => {
+  const extraCharacters = [
+    {id:"LIN",name:"Abraham Lincoln",lane:"Foundations",crest:"L",color:"#b88c64",role:"Resolute unifier",moveName:"Union Step",move:"orth1",moveText:"Moves one space in any straight direction.",passive:"Steady Resolve",passiveText:"Balanced profile. Uses a dependable straight-line step and a steady leadership style.",profile:{push:5,read:7,block:8,rest:6},labels:["Hold","Read the Room","Reunite"],signature:"Union Resolve",quote:["A house divided cannot stand.","Steady ground wins hard battles."]},
+    {id:"JOA",name:"Joan of Arc",lane:"Spiritual & Humanitarian",crest:"J",color:"#d6a257",role:"Fearless rally leader",moveName:"Banner Charge",move:"queen1",moveText:"Moves one space in any direction.",passive:"Rally Courage",passiveText:"Balanced profile. Best when she stays close enough to threaten a direct strike.",profile:{push:8,read:6,block:7,rest:4},labels:["Rally","Advance","Stand Fast"],signature:"Banner of Resolve",quote:["Act, and God will act.","Courage can change the field."]},
+    {id:"LEO",name:"Leonardo da Vinci",lane:"Inventors & Systems Engineers",crest:"V",color:"#8eb388",role:"Curious systems thinker",moveName:"Sketch Path",move:"bishop2",moveText:"Moves one or two spaces diagonally.",passive:"Measured Curiosity",passiveText:"Balanced profile. Favors thoughtful positioning and strong Study turns.",profile:{push:4,read:9,block:6,rest:6},labels:["Observe","Design","Refine"],signature:"Master Study",quote:["Study without desire spoils the memory.","Every position teaches something."]},
+    {id:"SUN",name:"Sun Tzu",lane:"Military Commanders",crest:"S",color:"#7da8b7",role:"Strategic planner",moveName:"Formation Doctrine",move:"formation",moveText:"Moves one straight space, or two diagonally toward the center.",passive:"Know the Field",passiveText:"Balanced profile. Best when building Insight before committing to pressure.",profile:{push:6,read:9,block:7,rest:4},labels:["Assess","Position","Strike"],signature:"Art of War",quote:["Know the enemy and know yourself.","Victory is prepared before it is fought."]},
+    {id:"CLE",name:"Cleopatra",lane:"Foundations",crest:"C",color:"#c78d6d",role:"Political tactician",moveName:"Royal Mirror",move:"mirror",moveText:"Moves to a space mirrored across the board center.",passive:"Court Advantage",passiveText:"Balanced profile. Excels at sudden repositioning and timing.",profile:{push:6,read:8,block:5,rest:5},labels:["Reposition","Influence","Seize"],signature:"Royal Decree",quote:["All strange and terrible events are welcome.","Timing can defeat force."]},
+    {id:"TES",name:"Nikola Tesla",lane:"Inventors & Systems Engineers",crest:"T",color:"#7aa7df",role:"Restless experimenter",moveName:"Arc Leap",move:"jump2",moveText:"Jumps exactly two spaces in any direction.",passive:"Charged Mind",passiveText:"Balanced profile. Uses unusual jumps to reach objectives and angles others miss.",profile:{push:5,read:9,block:4,rest:5},labels:["Charge","Experiment","Disrupt"],signature:"Lightning Circuit",quote:["The present is theirs; the future is mine.","A bold angle reveals hidden paths."]}
+  ];
+  extraCharacters.forEach(ch => { if (!CHARACTERS.some(x => x.id === ch.id)) CHARACTERS.push(ch); });
+
+  function patchStaticCopy(){
+    const eyebrow = document.querySelector('.hero .eyebrow');
+    if (eyebrow) eyebrow.textContent = 'EIGHTEEN LEGENDS · SIX MORE HISTORICAL FIGURES';
+    const heroTitle = document.querySelector('.hero h1');
+    if (heroTitle) heroTitle.textContent = 'Choose your champion. Then choose who faces them.';
+    const heroP = document.querySelector('.hero p');
+    if (heroP) heroP.textContent = 'Tap any card to choose your champion, then choose a rival. Historical and modern legends now share the roster.';
+    const introEyebrow = document.querySelector('#introOverlay .eyebrow');
+    if (introEyebrow) introEyebrow.textContent = 'FIRST MATCH';
+    const introTitle = document.querySelector('#introOverlay h2');
+    if (introTitle) introTitle.textContent = 'Eighteen minds. A living arena. No luck.';
+    const introP = document.querySelector('#introOverlay p');
+    if (introP) introP.textContent = 'Watch the arena settle, then move your legend and commit one action. Stage, Forum, and Workshop tiles now explain their exact benefits.';
+  }
+
+  function ensureObjectiveLegend(){
+    const box = document.querySelector('.objective-box .objective-list');
+    if (!box || document.getElementById('objectiveLegend')) return;
+    const div = document.createElement('div');
+    div.id = 'objectiveLegend';
+    div.className = 'objective-legend';
+    div.innerHTML = '<b>What the rewards mean</b><br>Power makes your next close <b>Attack</b> stronger. Focus also adds damage to your next close <b>Attack</b>. Guard reduces the next hit you take. Resolve is your health.';
+    box.appendChild(div);
+  }
+
+  function objectiveTextForPlayer(){
+    if (typeof g === "undefined" || !g) return {
+      forum:'Landing here gives +1 Focus. Focus adds damage to your next close Attack.',
+      stage:'Landing here gives +1 Power. Taylor gets +2. Power adds damage to your next close Attack.',
+      workshop:'Landing here refreshes a used Special once. If your Special is still unused, you gain +1 Power and +1 Focus instead.'
+    };
+    const u = g.player;
+    const onKey = `${u.x},${u.y}`;
+    const onObjective = OBJ[onKey]?.name || '';
+    const forum = 'Landing here gives +1 Focus. Focus adds damage to your next close Attack.' + (onObjective === 'FORUM' ? ' You are standing on FORUM now.' : '');
+    const stage = `Landing here gives ${u.f.id === 'TAY' ? '+2' : '+1'} Power. Power adds damage to your next close Attack.` + (onObjective === 'STAGE' ? ' You are standing on STAGE now.' : '');
+    const workshop = `${u.special ? 'Because your Special was already used, landing here will refresh it once.' : 'Because your Special is still available, landing here gives +1 Power and +1 Focus.'}` + (onObjective === 'WORKSHOP' ? ' You are standing on WORKSHOP now.' : '');
+    return {forum, stage, workshop};
+  }
+
+  function exactAttackDamage(u, o){
+    if (typeof g === "undefined" || !g) return 0;
+    const adjacent = Math.abs(u.x - o.x) + Math.abs(u.y - o.y) === 1;
+    if (!adjacent) return 0;
+    const localStrain = g.arena?.strain?.[`${u.x},${u.y}`] || 0;
+    let dmg = Math.max(1, 2 + u.momentum + u.insight + Math.max(0, localStrain - 1) - (o.guard ? 2 : 0));
+    if (u.f.id === 'LEE' && u.history?.at(-1) !== 'push') dmg += 1;
+    return dmg;
+  }
+
+  function specialSummary(u, o){
+    const f = u.f.id;
+    if (f === 'WAS') return 'Special: +2 Resolve and Guard 2.';
+    if (f === 'ALE') return `Special: heavy strike for ${3 + u.momentum} damage.`;
+    if (f === 'SOC') return `Special: counter-strike for ${2 + u.insight + (decide('enemy').action === 'push' ? 2 : 0)} damage.`;
+    if (f === 'JUN') return 'Special: copies the rival’s best current resource state.';
+    if (f === 'CUR') return `Special: discovery burst for ${3 + (u.discovery || 0) + u.insight} damage.`;
+    if (f === 'TUB') return 'Special: +3 Resolve and Guard 1.';
+    if (f === 'LEE') return `Special: ${4 + u.insight} damage and ignores Guard.`;
+    if (f === 'ADA') return 'Special: 2 damage, +1 Focus, and Guard 1.';
+    if (f === 'SER') return `Special: ${4 + (o.last === 'push' ? 2 : 0)} damage.`;
+    if (f === 'MRB') return 'Special: fill Power to 5.';
+    if (f === 'TAY') return 'Special: fill Power to 5 and gain +1 Focus.';
+    if (f === 'RM') return 'Special: set Power to at least 3, Focus to at least 2, and Guard 1.';
+    return 'Special: set Power to at least 3, Focus to at least 2, and Guard 1.';
+  }
+
+  function updateActionExplanations(){
+    if (typeof g === "undefined" || !g || !g.player) return;
+    const u = g.player, o = g.enemy;
+    const adjacent = Math.abs(u.x - o.x) + Math.abs(u.y - o.y) === 1;
+    const buttons = Array.from(document.querySelectorAll('.action'));
+    buttons.forEach(btn => {
+      const action = btn.dataset.action;
+      const small = btn.querySelector('small');
+      if (!small) return;
+      if (action === 'push') {
+        const dmg = exactAttackDamage(u, o);
+        small.innerHTML = adjacent
+          ? `Current close Attack: <span class="detail-strong">${dmg} exact damage now</span><span class="detail-note">Power ${u.momentum}/5 + Focus ${u.insight}/3 are being added here.</span>`
+          : `Rival not adjacent.<span class="detail-strong">This gives +1 Power instead of damage.</span><span class="detail-note">Move closer, then Attack to spend those bonuses.</span>`;
+      } else if (action === 'read') {
+        let gain = (u.f.id === 'SOC' ? 2 : 1) + ((g.arena?.strain?.[`${u.x},${u.y}`] || 0) === 0 ? 1 : 0);
+        small.innerHTML = `Study gives <span class="detail-strong">+${gain} Focus now</span>${u.f.id === 'CUR' ? '<span class="detail-note">Curie also gains +1 Discovery.</span>' : '<span class="detail-note">Focus boosts your next close Attack.</span>'}`;
+      } else if (action === 'block') {
+        const guard = (u.f.id === 'WAS' && u.x === 3) ? 2 : 1;
+        small.innerHTML = `Guard sets <span class="detail-strong">Guard ${guard}</span><span class="detail-note">The next hit you take is reduced.</span>`;
+      } else if (action === 'signature') {
+        small.innerHTML = `${u.special ? 'Already used this match.' : '<span class="detail-strong">' + specialSummary(u,o) + '</span>'}`;
+      }
+    });
+  }
+
+  function updateObjectiveExplanations(){
+    ensureObjectiveLegend();
+    const tips = objectiveTextForPlayer();
+    const ft = document.getElementById('forumPlayerTip');
+    const st = document.getElementById('stagePlayerTip');
+    const wt = document.getElementById('workshopPlayerTip');
+    if (ft) ft.textContent = tips.forum;
+    if (st) st.textContent = tips.stage;
+    if (wt) wt.textContent = tips.workshop;
+  }
+
+  function fixRosterQuotes(){
+    document.querySelectorAll('.roster-card').forEach(card => {
+      const f = CHARACTERS.find(x => x.id === card.dataset.id); if (!f) return;
+      const art = card.querySelector('.art');
+      if (art && !card.querySelector('.hover-quote')) {
+        const q = document.createElement('div');
+        q.className = 'hover-quote';
+        q.textContent = '“' + (f.quote?.[0] || '') + '”';
+        art.appendChild(q);
+      }
+    });
+  }
+
+  function fixTokenMarks(){
+    if (typeof g === "undefined" || !g) return;
+    const marks = {LIN:'L',JOA:'J',LEO:'V',SUN:'S',CLE:'C',TES:'T'};
+    document.querySelectorAll('.token').forEach(t => {
+      const cell = t.closest('.cell');
+      if (!cell) return;
+      const key = cell.dataset.key;
+      const side = key === `${g.player.x},${g.player.y}` ? 'player' : key === `${g.enemy.x},${g.enemy.y}` ? 'enemy' : null;
+      if (!side) return;
+      const mark = marks[g[side].f.id];
+      if (!mark) return;
+      if (t.firstChild && t.firstChild.nodeType === Node.TEXT_NODE) t.firstChild.nodeValue = mark;
+      else t.insertBefore(document.createTextNode(mark), t.firstChild || null);
+    });
+  }
+
+  const oldClaim = window.claim;
+  window.claim = function(side){
+    const before = JSON.stringify(g?.owners || {});
+    oldClaim(side);
+    if (typeof g === "undefined" || !g) return;
+    const u = g[side];
+    const k = `${u.x},${u.y}`;
+    const o = OBJ[k];
+    if (!o) return;
+    if (side === 'player') {
+      let text = '';
+      if (o.name === 'FORUM') text = 'FORUM claimed: +1 Focus. Your next close Attack hits harder.';
+      else if (o.name === 'STAGE') text = `STAGE claimed: ${u.f.id === 'TAY' ? '+2' : '+1'} Power. Your next close Attack hits harder.`;
+      else text = (u.special ? 'WORKSHOP claimed: your used Special was refreshed.' : 'WORKSHOP claimed: +1 Power and +1 Focus because your Special was still unused.');
+      const el = document.getElementById('feedbackToast');
+      if (el) { el.textContent = text; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); }
+      if (typeof message === 'function') message(o.name + ' reward', text, 'The action buttons below now reflect your new bonuses.');
+    }
+  };
+
+  const oldRender = window.render;
+  window.render = function(){
+    oldRender();
+    patchStaticCopy();
+    updateObjectiveExplanations();
+    updateActionExplanations();
+    fixRosterQuotes();
+    fixTokenMarks();
+  };
+
+  const oldShowHelp = window.showHelp;
+  window.showHelp = function(){
+    oldShowHelp();
+    const grid = document.querySelector('#helpOverlay .help-grid');
+    if (grid && !document.getElementById('resourceHelpItem')) {
+      const div = document.createElement('div');
+      div.className = 'help-item';
+      div.id = 'resourceHelpItem';
+      div.innerHTML = '<b>5. Read the rewards</b>Forum gives Focus, Stage gives Power, and Workshop refreshes a used Special or gives Power + Focus if the Special is still unused.';
+      grid.appendChild(div);
+    }
+  };
+
+  patchStaticCopy();
+  ensureObjectiveLegend();
+  renderFilters();
+  renderRoster();
+  updatePicks();
+  if (typeof render === 'function' && typeof g !== 'undefined' && g) render();
+})();
+</script>
+
+
+<style id="eracii-rule-clarity-patch">
+.action{position:relative;overflow:visible}
+.action-bonus{
+  position:absolute;right:4px;top:3px;max-width:58%;
+  padding:1px 5px;border-radius:99px;background:#080c12;
+  border:1px solid #596477;color:#fff;font-size:7px;font-weight:950;
+  line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.action[data-action="push"] .action-bonus{border-color:#c64f5b;color:#ffc8ce}
+.action[data-action="read"] .action-bonus{border-color:#4d8bd8;color:#cde5ff}
+.action[data-action="block"] .action-bonus{border-color:#6bc690;color:#d5ffe5}
+.action[data-action="signature"] .action-bonus{border-color:#d7aa57;color:#ffe7b0}
+.cell.objective{cursor:help}
+.cell.objective:hover,.cell.objective:focus-visible{outline:2px solid #d7aa57;outline-offset:1px}
+.rule-tooltip{
+  display:none;position:fixed;z-index:2200;width:min(350px,calc(100vw - 20px));
+  padding:10px 12px;border-radius:10px;background:#080d14f7;
+  border:1px solid #d7aa57;box-shadow:0 14px 38px #000d;
+  color:#f8f2e7;font-size:11px;line-height:1.4;pointer-events:none;
+}
+.rule-tooltip.show{display:block}
+.rule-tooltip b{color:#f2c96f}
+.rule-tooltip .tip-title{display:block;margin-bottom:3px;color:#f2c96f;font:700 14px Georgia,serif}
+.rule-tooltip .tip-combo{display:block;margin-top:5px;padding-top:5px;border-top:1px solid #344050;color:#d7e2ee}
+.objective-info{cursor:help}
+@media(max-height:680px){
+  .action-bonus{display:block!important;font-size:7px!important}
+}
+</style>
+<div id="ruleTooltip" class="rule-tooltip" role="tooltip" aria-live="polite"></div>
+<script id="eracii-rule-clarity-script">
+(() => {
+  const orthogonallyAdjacent = (a,b) => Math.abs(a.x-b.x)+Math.abs(a.y-b.y)===1;
+  const touchingAnyDirection = (a,b) => Math.max(Math.abs(a.x-b.x),Math.abs(a.y-b.y))===1;
+
+  function currentAttackDamage(){
+    if(typeof g==='undefined'||!g||!orthogonallyAdjacent(g.player,g.enemy))return 0;
+    const u=g.player,o=g.enemy;
+    const strain=g.arena?.strain?.[`${u.x},${u.y}`]||0;
+    let damage=Math.max(1,2+u.momentum+u.insight+Math.max(0,strain-1)-(o.guard?2:0));
+    if(u.f.id==='LEE'&&u.history.at(-1)!=='push')damage++;
+    return damage;
+  }
+
+  function workshopOutcome(u){
+    if(u.special&&!u.workshopUsed)return 'refresh your already-used Special once';
+    if(u.special&&u.workshopUsed)return 'give +1 Power and +1 Focus because the one Workshop refresh was already used';
+    return 'give +1 Power and +1 Focus because your Special is still ready';
+  }
+
+  function objectiveTip(name){
+    const u=(typeof g!=='undefined'&&g)?g.player:null;
+    if(name==='FORUM'){
+      const now=u?u.insight:0;
+      return `<span class="tip-title">FORUM</span>Landing here gives <b>+1 Focus</b> (up to 3). Focus is shown beside your champion and adds directly to the bottom <b>Attack</b> button when the rival is exactly up, down, left, or right.<span class="tip-combo">Current Focus: <b>${now}/3</b>. A diagonal rival does not count as melee.</span>`;
+    }
+    if(name==='STAGE'){
+      const gain=u&&u.f.id==='TAY'?2:1,now=u?u.momentum:0;
+      return `<span class="tip-title">STAGE</span>Landing here gives <b>+${gain} Power</b>${gain===2?' for Taylor':' (Taylor gains +2)'}. Power adds directly to close Attack damage.<span class="tip-combo">Current Power: <b>${now}/5</b>. The Attack button’s BOOST badge updates immediately.</span>`;
+    }
+    if(name==='WORKSHOP'){
+      const outcome=u?workshopOutcome(u):'refresh a used Special once, or give +1 Power and +1 Focus';
+      return `<span class="tip-title">WORKSHOP</span>Landing here will <b>${outcome}</b>.<span class="tip-combo">Watch the bottom <b>Special</b> and <b>Attack</b> buttons: READY/USED and BOOST update as soon as the tile is claimed.</span>`;
+    }
+    return '';
+  }
+
+  function actionTip(action){
+    if(typeof g==='undefined'||!g)return '';
+    const u=g.player,o=g.enemy,adj=orthogonallyAdjacent(u,o),diag=touchingAnyDirection(u,o)&&!adj;
+    const strain=g.arena?.strain?.[`${u.x},${u.y}`]||0;
+    if(action==='push'){
+      if(adj){
+        const damage=currentAttackDamage();
+        return `<span class="tip-title">ATTACK — ${damage} damage now</span>The rival is orthogonally adjacent, so Attack deals damage. Base 2 + Power ${u.momentum} + Focus ${u.insight}${strain>1?` + terrain ${strain-1}`:''}${o.guard?' − 2 rival Guard':''}.<span class="tip-combo"><b>Stage</b> adds Power. <b>Forum</b> adds Focus. Both increase this exact number.</span>`;
+      }
+      return `<span class="tip-title">ATTACK — builds Power</span>${diag?'The rival is diagonal, which is not melee in this ruleset. ':'The rival is not one tile directly up, down, left, or right. '}Attack therefore deals no damage and gives <b>+1 Power</b> instead.<span class="tip-combo">Power is saved for a later orthogonal Attack. If you are pinned diagonally with no move, <b>Break Away</b> now activates.</span>`;
+    }
+    if(action==='read'){
+      const gain=(u.f.id==='SOC'?2:1)+(strain===0?1:0);
+      return `<span class="tip-title">STUDY — +${gain} Focus</span>Study reveals the rival’s leaning and adds Focus. Focus is then included in your next successful orthogonal Attack.<span class="tip-combo"><b>Forum</b> also adds +1 Focus, so the tile and this button stack up to the 3-point cap.</span>`;
+    }
+    if(action==='block'){
+      const guard=u.f.id==='WAS'&&u.x===3?2:1;
+      return `<span class="tip-title">GUARD — set Guard ${guard}</span>Guard reduces the next incoming close hit. It does <b>not</b> restore Resolve in the current game logic.<span class="tip-combo">Resolve is your health. Forum, Stage, and Workshop do not directly restore Resolve.</span>`;
+    }
+    const ready=!u.special;
+    return `<span class="tip-title">SPECIAL — ${ready?'READY':'USED'}</span>${ready?`Use ${u.f.signature}, your champion’s once-per-match move.`:'This Special has already been used.'}<span class="tip-combo"><b>Workshop</b> can refresh a used Special once; otherwise it gives +1 Power and +1 Focus.</span>`;
+  }
+
+  function ensureBadgesAndTips(){
+    if(typeof g==='undefined'||!g)return;
+    document.querySelectorAll('.action').forEach(btn=>{
+      let badge=btn.querySelector('.action-bonus');
+      if(!badge){badge=document.createElement('span');badge.className='action-bonus';btn.appendChild(badge)}
+      const a=btn.dataset.action;
+      if(a==='push')badge.textContent=orthogonallyAdjacent(g.player,g.enemy)?`${currentAttackDamage()} DMG`:`POWER +1`;
+      else if(a==='read'){
+        const strain=g.arena?.strain?.[`${g.player.x},${g.player.y}`]||0;
+        badge.textContent=`FOCUS +${(g.player.f.id==='SOC'?2:1)+(strain===0?1:0)}`;
+      }else if(a==='block')badge.textContent='NEXT HIT ↓';
+      else badge.textContent=g.player.special?'USED':'READY';
+      btn.dataset.ruleTip=actionTip(a);
+      btn.setAttribute('aria-description',btn.textContent.trim().replace(/\s+/g,' '));
+    });
+    document.querySelectorAll('.cell.objective').forEach(cell=>{
+      const name=OBJ[cell.dataset.key]?.name;
+      if(name){cell.dataset.ruleTip=objectiveTip(name);cell.tabIndex=0;cell.setAttribute('aria-label',`${name} objective tile`)}
+    });
+    document.querySelectorAll('.objective-info').forEach(box=>{
+      const name=box.dataset.objective;
+      box.dataset.ruleTip=objectiveTip(name);
+      box.tabIndex=0;
+    });
+  }
+
+  const tooltip=document.getElementById('ruleTooltip');
+  let hideTimer=null;
+  function showTip(target){
+    const html=target?.dataset?.ruleTip;
+    if(!tooltip||!html)return;
+    clearTimeout(hideTimer);tooltip.innerHTML=html;tooltip.classList.add('show');
+    const r=target.getBoundingClientRect();
+    const width=Math.min(350,window.innerWidth-20);
+    tooltip.style.width=`${width}px`;
+    tooltip.style.left=`${Math.max(10,Math.min(window.innerWidth-width-10,r.left+r.width/2-width/2))}px`;
+    requestAnimationFrame(()=>{
+      const h=tooltip.offsetHeight;
+      let top=r.top-h-8;
+      if(top<8)top=Math.min(window.innerHeight-h-8,r.bottom+8);
+      tooltip.style.top=`${Math.max(8,top)}px`;
+    });
+  }
+  function scheduleHide(){clearTimeout(hideTimer);hideTimer=setTimeout(()=>tooltip?.classList.remove('show'),120)}
+  document.addEventListener('pointerover',e=>{const t=e.target.closest?.('[data-rule-tip]');if(t)showTip(t)});
+  document.addEventListener('pointerout',e=>{const t=e.target.closest?.('[data-rule-tip]');if(t&&!t.contains(e.relatedTarget))scheduleHide()});
+  document.addEventListener('focusin',e=>{const t=e.target.closest?.('[data-rule-tip]');if(t)showTip(t)});
+  document.addEventListener('focusout',e=>{if(e.target.closest?.('[data-rule-tip]'))scheduleHide()});
+  document.addEventListener('pointerdown',e=>{const t=e.target.closest?.('.cell.objective,.objective-info');if(t){showTip(t);hideTimer=setTimeout(()=>tooltip?.classList.remove('show'),2600)}});
+
+  const previousRender=window.render;
+  window.render=function(){previousRender();ensureBadgesAndTips()};
+
+  const previousBuildBoard=window.buildBoard;
+  window.buildBoard=function(){previousBuildBoard();ensureBadgesAndTips()};
+
+  const previousPreview=window.preview;
+  window.preview=function(action){
+    previousPreview(action);
+    if(phase==='PLAYER_ACTION'){
+      const button=document.querySelector(`.action[data-action="${action}"]`);
+      if(button)showTip(button);
+      if(action==='block')message('Guard',`Exact result: Guard is prepared. It reduces the next incoming close hit.`,`Guard does not restore Resolve in the current rules.`);
+      if(action==='push'&&typeof g!=='undefined'&&g){
+        const adj=orthogonallyAdjacent(g.player,g.enemy);
+        if(adj)message('Attack',`Exact result: ${currentAttackDamage()} Resolve damage.`,`Stage Power ${g.player.momentum} + Forum/Study Focus ${g.player.insight} are included. Melee requires direct up/down/left/right adjacency.`);
+        else message('Attack',`Exact result: +1 Power and no damage.`,`${touchingAnyDirection(g.player,g.enemy)?'The rival is diagonal, not orthogonally adjacent.':'The rival is outside melee range.'} Saved Power strengthens a later close Attack.`);
+      }
+    }
+  };
+
+  const previousClaim=window.claim;
+  window.claim=function(side){
+    const before=(typeof g!=='undefined'&&g)?{special:g[side].special,workshopUsed:g[side].workshopUsed,key:`${g[side].x},${g[side].y}`} : null;
+    previousClaim(side);
+    if(side==='player'&&before&&typeof g!=='undefined'&&g){
+      const objective=OBJ[before.key]?.name;
+      if(objective){
+        let text='';
+        if(objective==='FORUM')text='FORUM: +1 Focus. The Attack BOOST badge now includes it.';
+        else if(objective==='STAGE')text=`STAGE: +${g.player.f.id==='TAY'?2:1} Power. The Attack BOOST badge now includes it.`;
+        else if(before.special&&!before.workshopUsed)text='WORKSHOP: your used Special is READY again.';
+        else text='WORKSHOP: +1 Power and +1 Focus. The Attack BOOST badge now includes both.';
+        message(`${objective} claimed`,text,'Hover the tile or any bottom action button for the exact interaction.');
+      }
+      ensureBadgesAndTips();
+    }
+  };
+
+  const helpGrid=document.querySelector('#helpOverlay .help-grid');
+  if(helpGrid&&!document.getElementById('meleeHelpItem')){
+    const item=document.createElement('div');item.className='help-item';item.id='meleeHelpItem';
+    item.innerHTML='<b>6. Melee and diagonal pins</b>Attack hits only one tile directly up, down, left, or right. Diagonal does not count. If every normal move is blocked while the rival touches you orthogonally or diagonally, Break Away activates.';
+    helpGrid.appendChild(item);
+  }
+  const breakHelp=[...document.querySelectorAll('#helpOverlay .help-item')].find(x=>x.textContent.includes('Break Away'));
+  if(breakHelp)breakHelp.innerHTML='<b>4. Break Away</b>If every normal route is blocked, including a diagonal pin, gold escape tiles let you move around the rival. Neither player can be frozen out of a turn.';
+
+  if(typeof g!=='undefined'&&g)ensureBadgesAndTips();
+})();
+</script>
+
+</body>
+</html>

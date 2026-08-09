@@ -1,0 +1,64 @@
+{
+  "version": "1.0",
+  "prohibited": [
+    "PLACEHOLDER", "INSERT CODE", "ADD CODE HERE", "FULL CODE HERE",
+    "IMPLEMENT LATER", "MOCK SUCCESS", "SIMULATED SUCCESS", "TODO", "TBD"
+  ],
+  "include_paths": [
+    "packages/**",
+    "python/**",
+    "apps/**",
+    "ops/manifests/**",
+    ".github/workflows/**",
+    "tests/**"
+  ],
+  "exclude_paths": [
+    "evidence/**",
+    "ops/verification/**",
+    "ops/policies/placeholder-scan-policy.json",
+    "tools/ci/scan_placeholders.py",
+    "tests/test_completion_integrity_acceptance.py",
+    "tests/test_cognitive_basin_scenarios.py",
+    "tests/test_placeholder_scanner.py"
+  ],
+  "authorized": {
+    "PLACEHOLDER": [
+      "packages/completion_integrity/guard.py",
+      "ops/manifests/capability-registry.json",
+      "packages/contracts/capability_registry.py",
+      ".github/workflows/ci.yml",
+      "ops/manifests/capability-states.md"
+    ],
+    "INSERT CODE": [
+      "packages/completion_integrity/guard.py"
+    ],
+    "ADD CODE HERE": [
+      "packages/completion_integrity/guard.py"
+    ],
+    "FULL CODE HERE": [
+      "packages/completion_integrity/guard.py"
+    ],
+    "IMPLEMENT LATER": [
+      "packages/completion_integrity/guard.py"
+    ],
+    "MOCK SUCCESS": [
+      "packages/completion_integrity/guard.py"
+    ],
+    "SIMULATED SUCCESS": [
+      "packages/completion_integrity/guard.py"
+    ],
+    "TODO": [
+      "docs/DECISIONS.md",
+      "evidence/legacy/*.py:comment or header",
+      "packages/completion_integrity/guard.py"
+    ],
+    "TBD": [
+      "packages/completion_integrity/guard.py"
+    ]
+  },
+  "rules": {
+    "default": "deny",
+    "require_explicit_scope_for_new_files": true,
+    "fail_closed_on_unknown_scope": true
+  }
+}

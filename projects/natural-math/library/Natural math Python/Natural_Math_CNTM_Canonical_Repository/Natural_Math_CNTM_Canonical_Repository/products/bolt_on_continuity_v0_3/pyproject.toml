@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bolt-on-continuity"
+version = "0.3.0.dev0"
+description = "Observation-first local Docker continuity foundation"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+bolt = "bolt_on.cli.main:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

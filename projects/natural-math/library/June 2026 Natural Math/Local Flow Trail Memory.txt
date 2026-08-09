@@ -1,0 +1,37 @@
+**Local Flow Trail Memory**
+
+A future feature for Natural Math where successful movement leaves a temporary positive trail, like ant pheromones, veins, or a slide/rail path.
+
+Core idea:
+
+```text
+pressure scars = avoid bad/blocked cells
+flow trails = prefer successful paths
+```
+
+Minimal rule:
+
+```text
+trail[edge] *= decay
+
+if move_successful:
+    trail[current_cell -> next_cell] += deposit
+
+score(candidate) =
+    alignment_with_current_direction
+    - scar_weight * pressure_scar[candidate]
+    + trail_weight * trail[current_cell -> candidate]
+```
+
+Important constraints:
+
+- Only local adjacent moves are scored.
+- Trails decay over time.
+- Trails cannot move through walls.
+- Trails do not use BFS, A*, global maps, or stored routes.
+- Edge trails are better than cell trails because they reinforce “move from here to there,” like rails or veins.
+- This should be tested as a future feature, not mixed into v4.0.1 cleanup.
+
+Purpose:
+
+To create self-reinforcing lanes, bridges, or flow paths that nodes can follow naturally after repeated successful movement.

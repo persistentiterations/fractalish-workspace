@@ -1,0 +1,43 @@
+BOLT-ON DEMONSTRATOR v0.2 — STAGE 2.1 DIGEST CORRECTION
+================================================================================
+
+CHANGE CLASS
+--------------------------------------------------------------------------------
+Regression fixture correction only
+
+EXECUTABLE STAGE 2 LOGIC MODIFIED
+--------------------------------------------------------------------------------
+False
+
+FROZEN RELEASE MODIFIED
+--------------------------------------------------------------------------------
+False
+
+OLD EXPECTED MEDIATION DIGEST
+--------------------------------------------------------------------------------
+c8b6a06290db738ffb514d1fb27d9cfd579fcbd54d6e3886cb8c896e632827ec
+
+CORRECTED EXPECTED MEDIATION DIGEST
+--------------------------------------------------------------------------------
+3b90f8f8230e3dfe7791ece89649aa019f641025a8588050d5cc2b7bb5157ac9
+
+CORRECTED TEST SHA-256
+--------------------------------------------------------------------------------
+b7af65d80934bc9e18570e13feb0494f0ec4e9c19d9fefea070bb7192c0f0321
+
+LOCAL PACKAGE VALIDATION
+--------------------------------------------------------------------------------
+Python syntax compilation: PASS
+Obsolete digest occurrences after correction: 0
+Canonical digest occurrences after correction: 1
+
+USER REPOSITORY EVIDENCE
+--------------------------------------------------------------------------------
+Stage 2 qualification: PASS
+Actual mediation digest: 3b90f8f8230e3dfe7791ece89649aa019f641025a8588050d5cc2b7bb5157ac9
+Combined test result before correction: 53 passed, 1 fixed-digest assertion failed
+
+QUALIFICATION STATUS
+--------------------------------------------------------------------------------
+Correction is narrowly limited to aligning the stored regression expectation
+with the deterministic digest emitted by the user's canonical repository.

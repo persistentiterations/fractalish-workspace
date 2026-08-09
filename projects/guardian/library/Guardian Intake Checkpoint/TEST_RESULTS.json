@@ -1,0 +1,47 @@
+{
+  "scan_tests": [
+    {
+      "file": "clean.py",
+      "return_code": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "file": "hold_file_write.py",
+      "return_code": 2,
+      "expected": 2,
+      "passed": true
+    },
+    {
+      "file": "reject_unsafe.py",
+      "return_code": 3,
+      "expected": 3,
+      "passed": true
+    },
+    {
+      "file": "missing_manifest.py",
+      "return_code": 2,
+      "expected": 2,
+      "passed": true
+    }
+  ],
+  "replay_return_code": 0,
+  "replay_output": "Ledger replay passed. Chain integrity confirmed.",
+  "ledger_summary": {
+    "total_entries": 4,
+    "outcomes": {
+      "Let In": 1,
+      "Hold": 2,
+      "Reject": 1
+    },
+    "risk_distribution": {
+      "On Target": 1,
+      "Caution": 0,
+      "Limited": 0,
+      "Serious": 2,
+      "Failed": 1
+    },
+    "ledger_file": "/mnt/data/guardian_demo/test_ledger.jsonl",
+    "hmac_enabled": false
+  }
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "O001_with_context_manager_return_type",
+    "proposal": "Arbitrary context manager returns a dangerous object through __enter__.",
+    "reason": "Requires general type and interprocedural return analysis beyond the documented lightweight analyzer."
+  },
+  {
+    "id": "O002_runtime_monkey_patch",
+    "proposal": "Metaclass, descriptor, __getattribute__, __getattr__, or monkey-patching changes a target at runtime.",
+    "reason": "Runtime object mutation is outside static AST assurance."
+  },
+  {
+    "id": "O003_dependency_payload",
+    "proposal": "A declared third-party dependency contains malicious code.",
+    "reason": "Guardian scans one submitted file and does not inspect installed dependency source in this stage."
+  },
+  {
+    "id": "O004_cross_file_call_graph",
+    "proposal": "A safe-looking local module imports another local module containing dangerous behavior.",
+    "reason": "Stage 02C remains single-file and does not perform repository-wide module resolution."
+  },
+  {
+    "id": "O005_native_extension_behavior",
+    "proposal": "A benign-looking native extension performs hidden unsafe operations.",
+    "reason": "Native binary behavior cannot be proven from Python source AST."
+  },
+  {
+    "id": "O006_dynamic_exec_scope_effect",
+    "proposal": "exec dynamically introduces a later name binding that the AST does not contain.",
+    "reason": "The exec call itself is rejected, but names introduced by its string are not separately modeled."
+  },
+  {
+    "id": "O007_precise_path_traversal",
+    "proposal": "Determine whether a computed path escapes an approved directory.",
+    "reason": "Path authorization and taint tracking are not implemented."
+  },
+  {
+    "id": "O008_precise_command_intent",
+    "proposal": "Distinguish harmless and destructive command arguments passed to a process API.",
+    "reason": "Guardian rejects the process API call itself and does not interpret command semantics."
+  }
+]

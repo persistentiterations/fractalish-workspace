@@ -1,0 +1,76 @@
+========================================================================================
+CNTM DOMAIN APPLICATION v3.0F — ADVERSARIAL QUALIFICATION AND INFRASTRUCTURE FREEZE
+========================================================================================
+Candidate implementation: CNTM Domain Application v3.0
+Frozen dependencies:      CNTM Finite v1.3F and Application Layer v2.4
+Execution mode:           integer-only / ternary / deterministic / local / print-only
+
+FROZEN MORPHOLOGY FIXTURE
+----------------------------------------------------------------------------------------
+Setting / seed:           C07 / 900
+Nodes / edges:            26 / 25
+Morphology hash:          c828a0d86f9deb0f78eff10ab6a0b3b69dd15328ed3a4700384a272a3fc24ba8
+Execution hash:           e68327cf26789e946394822fbcb09d77b33da9dbffb06bc477892610f538267c
+Entry nodes:              (23, 24, 25, 19, 20, 16)
+
+ADVERSARIAL DAMAGE QUALIFICATION
+----------------------------------------------------------------------------------------
+suite                    cases exec entry-lost complete-hits partial-hits replay first-failure
+EVERY_NODE               26    20   6          60            60           20     ('NONE',)
+EVERY_EDGE               25    25   0          75            75           25     ('NONE',)
+ARTICULATION_POINTS      21    19   2          57            57           19     ('NONE',)
+HIGH_DEGREE_NODES        3     3    0          9             9            3      ('NONE',)
+LEAF_NODES               5     1    4          3             3            1      ('NONE',)
+DETERMINISTIC_PAIRS      24    24   0          72            72           24     ('NONE',)
+DETERMINISTIC_TRIPLES    24    24   0          72            72           24     ('NONE',)
+
+UNKNOWN / CONTRADICTION QUALIFICATION
+----------------------------------------------------------------------------------------
+exact_known_recovered              3
+partial_known_recovered            3
+empty_unknown                      1
+nonknown_patterns                  725
+unknown_count                      401
+ambiguous_count                    36
+recover_count                      288
+contradictory_unknown_count        329
+false_forced_count                 0
+first_false_forced                 ('NONE',)
+
+DETERMINISM QUALIFICATION
+----------------------------------------------------------------------------------------
+Repeated full registrations:             3
+Hashes, receipts, and decisions match:   True
+Qualification signature hash:            81bad1f0380c195d1ef184de7f3544092de0bcadd2d0ee3c5bbb122395af5a67
+
+MORPHOLOGY VS ORDINARY CONTROL TOPOLOGIES
+----------------------------------------------------------------------------------------
+topology                 edges baseline partial single-node partial hits / possible replay
+expanded_022             25    3/3              60/60       20/20
+CONTROL_PATH             25    3/3              60/60       20/20
+CONTROL_STAR             25    3/3              60/60       20/20
+CONTROL_BINARY_TREE      25    3/3              60/60       20/20
+Frozen morphology no worse on declared single-node ratio: True
+Interpretation: equal or better control performance does not establish morphology-specific advantage.
+
+v3.0F FREEZE DECISION
+----------------------------------------------------------------------------------------
+No floating-point runtime values:        True
+Ternary/local transition audit passes:   True
+All executable damage replays pass:      True
+Known and partial events recover:        True
+Empty/unsupported cues avoid forced guess:True
+Determinism qualification passes:        True
+Frozen v2.4 remains intact:              True
+Frozen v1.3F remains intact:             True
+Morphology-specific advantage proven:    False
+Infrastructure qualification passes:     True
+FREEZE CNTM DOMAIN APPLICATION v3.0F:     True
+
+FAILURE / LIMIT BOUNDARY
+- Entry-node destruction is recorded as loss of the declared input interface, not silently repaired.
+- Articulation damage may partition the tree; recovery statistics define the bounded robustness envelope.
+- Near-known patterns may validly recover under the declared one-mismatch rule.
+- The control comparison does not show that this morphology is superior to ordinary trees.
+- v3.0F is frozen as deterministic local-memory infrastructure, not as proof of novel morphology memory.
+- New association experiments must begin in a separate v3.1 branch.

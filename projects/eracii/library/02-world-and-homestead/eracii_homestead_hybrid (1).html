@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Eracii · Living Homestead</title>
+<style>
+  :root {
+    --panel: rgba(8,6,4,0.94);
+    --border: #7a6a4a;
+    --gold: #e6c875;
+    --ink: #e6dfc7;
+    --muted: #a09070;
+    --green: #7dbf8a;
+    --red: #d97a5a;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; width: 100%; height: 100%; overflow: hidden;
+    background: #1a2b18; font: 13px/1.4 'Courier New', monospace;
+    user-select: none; color: var(--ink);
+  }
+  canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+
+  .hud {
+    position: fixed; inset: 0; pointer-events: none; padding: 10px;
+    display: grid; grid-template-columns: 300px 1fr 260px; gap: 8px;
+    align-items: start; z-index: 10;
+  }
+  .hud-panel {
+    background: var(--panel); border: 2px solid var(--border);
+    border-radius: 10px; padding: 10px 14px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.9); pointer-events: auto;
+  }
+  .hud-panel b {
+    display: block; color: var(--gold); font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px;
+  }
+  .stat-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
+  .stat-box {
+    background: rgba(0,0,0,0.35); padding: 2px 8px; border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.06); font-size: 12px;
+  }
+  .gold { color: var(--gold); font-weight: bold; }
+  .green { color: var(--green); font-weight: bold; }
+  .red { color: var(--red); font-weight: bold; }
+
+  .time-bar {
+    margin-top: 6px; height: 6px; background: #2a2218; border-radius: 3px; overflow: hidden;
+  }
+  .time-fill { height: 100%; transition: width 0.3s, background 0.8s; }
+
+  .journal {
+    position: fixed; bottom: 12px; right: 12px; width: 280px;
+    background: var(--panel); border: 2px solid var(--border);
+    border-radius: 10px; padding: 10px 14px; max-height: 160px; overflow-y: auto;
+    pointer-events: none; z-index: 10; font-size: 11px;
+  }
+  .journal b { color: #c9b88a; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+  .journal p { margin: 4px 0; padding-left: 7px; border-left: 3px solid var(--green); }
+
+  .controls-hint {
+    position: fixed; bottom: 12px; left: 12px;
+    background: var(--panel); border: 1px solid var(--border);
+    padding: 7px 11px; border-radius: 8px; font-size: 11px; color: var(--muted);
+    pointer-events: auto; z-index: 10; max-width: 420px;
+  }
+  .controls-hint strong { color: var(--gold); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 60px; transform: translateX(-50%) translateY(16px);
+    background: var(--panel); border: 2px solid var(--gold); border-radius: 28px;
+    padding: 9px 20px; color: var(--gold); font-weight: bold; font-size: 13px;
+    opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 30;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(8,6,4,0.78);
+    backdrop-filter: blur(4px); display: none; align-items: center;
+    justify-content: center; z-index: 50; padding: 16px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-card {
+    background: #1e1812; border: 2px solid var(--gold); border-radius: 14px;
+    max-width: 440px; width: 100%; padding: 20px; text-align: center;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.7);
+  }
+  .modal-card h2 { margin: 0 0 4px; color: var(--gold); font-size: 18px; }
+  .modal-card .role { font-size: 10px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .modal-card p { font-size: 13px; color: #e6dfd3; line-height: 1.45; margin: 8px 0 14px; }
+  .btn {
+    background: linear-gradient(#3a2a1a, #2a1f14); border: 1px solid var(--gold);
+    color: var(--gold); padding: 8px 14px; border-radius: 7px; font-weight: bold;
+    font-size: 12px; cursor: pointer; font-family: inherit; margin: 3px;
+  }
+  .btn:hover { background: var(--gold); color: #1a140e; }
+  .btn.secondary { border-color: rgba(255,255,255,0.25); color: var(--muted); background: rgba(255,255,255,0.05); }
+
+  #buildMenu {
+    position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%);
+    background: var(--panel); border: 2px solid var(--gold); border-radius: 12px;
+    padding: 16px; color: var(--ink); display: none; z-index: 25;
+    box-shadow: 0 10px 36px rgba(0,0,0,0.95); min-width: 340px; text-align: center;
+  }
+  #buildMenu.active { display: block; }
+  #buildMenu h3 { margin: 0 0 10px; color: var(--gold); font-size: 15px; }
+  .build-btn {
+    background: #2a1f14; border: 1px solid var(--border); color: var(--gold);
+    padding: 8px 12px; margin: 4px; border-radius: 7px; cursor: pointer;
+    font-size: 12px; font-family: inherit; display: inline-block;
+  }
+  .build-btn:hover { background: #4a3525; border-color: var(--gold); }
+  .build-btn.active-mode { background: #5a4030; border-color: var(--gold); box-shadow: 0 0 0 2px rgba(230,200,117,0.3); }
+
+  .sound-btn {
+    position: fixed; top: 10px; right: 10px; z-index: 20; pointer-events: auto;
+    background: var(--panel); border: 1px solid var(--border); color: var(--gold);
+    border-radius: 7px; padding: 5px 10px; font-size: 11px; font-weight: bold; cursor: pointer;
+  }
+
+  .place-hint {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(8,6,4,0.9); border: 2px solid var(--gold); border-radius: 10px;
+    padding: 12px 20px; color: var(--gold); font-size: 14px; pointer-events: none;
+    z-index: 40; display: none; text-align: center;
+  }
+  .place-hint.show { display: block; }
+</style>
+</head>
+<body>
+<canvas id="world"></canvas>
+
+<div class="hud">
+  <div class="hud-panel">
+    <b>🏡 Homestead</b>
+    <div style="font-size:11px; color:var(--muted);">
+      Stamina <span id="staminaBar" class="green">100</span>% ·
+      <span id="dogStatus" class="green">🐕 Ok</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-box">🪓 <span id="wood" class="gold">8</span></span>
+      <span class="stat-box">🥩 <span id="meat" class="gold">0</span></span>
+      <span class="stat-box">🌱 <span id="seeds" class="green">6</span></span>
+      <span class="stat-box">🔩 <span id="scrap" class="gold">0</span></span>
+      <span class="stat-box">🔫 <span id="ammo" class="gold">8</span></span>
+    </div>
+    <div style="margin-top:6px; font-size:11px;">
+      <span id="timeLabel" class="gold">☀ Day</span>
+      <div class="time-bar"><div class="time-fill" id="timeFill" style="width:40%; background:#e6c875;"></div></div>
+    </div>
+    <div style="margin-top:6px; font-size:11px; color:var(--muted);" id="statusText">
+      Press B to build. Place a campsite, fence posts, or move your cabin.
+    </div>
+  </div>
+  <div></div>
+  <div class="hud-panel">
+    <b>Structures</b>
+    <div id="structuresList" style="font-size:12px; color:var(--muted); margin-top:4px;">
+      Cabin · no fence · no camp
+    </div>
+  </div>
+</div>
+
+<div class="journal" id="journal">
+  <b>📜 Journal</b>
+  <p>You arrived with a dog, seeds, and a few boards. The land is open.</p>
+</div>
+
+<div class="controls-hint">
+  <strong>Click</strong> walk/interact · <strong>WASD</strong> · <strong>B</strong> build · <strong>E</strong> eat · <strong>F</strong> feed dog · <strong>R</strong> rest at camp/cabin · <strong>Esc</strong> cancel place
+</div>
+
+<button class="sound-btn" id="soundBtn" onclick="toggleAudio()">🔊 ON</button>
+<div class="toast" id="toast"></div>
+<div class="place-hint" id="placeHint">Click to place · Esc to cancel</div>
+
+<div id="buildMenu">
+  <h3>🛠️ Build / Place</h3>
+  <button class="build-btn" id="btnCamp" onclick="startPlace('camp')">⛺ Campsite (6 Wood)</button>
+  <button class="build-btn" id="btnFence" onclick="startPlace('fence')">🪵 Fence Post (3 Wood)</button>
+  <button class="build-btn" id="btnMoveCabin" onclick="startPlace('moveCabin')">🏠 Move Cabin (free)</button>
+  <button class="build-btn" onclick="craftAmmo()">🔩 Craft Ammo (4 Scrap)</button>
+  <br>
+  <button class="btn secondary" style="margin-top:8px;" onclick="closeBuildMenu()">Close</button>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal-card" id="modalCard"></div>
+</div>
+
+<script>
+// ============================================================
+// AUDIO
+// ============================================================
+let audioMuted = false;
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(type) {
+  if (audioMuted || !audioCtx) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  const tones = {
+    chop:  [90, 40, 0.12, 'triangle', 0.16],
+    pickup:[440,880,0.1,'sine',0.1],
+    shot:  [160,35,0.18,'sawtooth',0.12],
+    build: [200,380,0.2,'triangle',0.12],
+    step:  [100,80,0.04,'sine',0.02],
+    bark:  [280,160,0.12,'square',0.07],
+    eat:   [180,120,0.15,'sine',0.08],
+    night: [60,40,0.4,'sine',0.06]
+  };
+  const t = tones[type] || tones.pickup;
+  osc.type = t[3];
+  osc.frequency.setValueAtTime(t[0], now);
+  osc.frequency.exponentialRampToValueAtTime(Math.max(20, t[1]), now + t[2]);
+  gain.gain.setValueAtTime(t[4], now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + t[2]);
+  osc.start(now); osc.stop(now + t[2] + 0.02);
+}
+function toggleAudio() {
+  audioMuted = !audioMuted;
+  document.getElementById('soundBtn').textContent = audioMuted ? '🔇 OFF' : '🔊 ON';
+}
+
+// ============================================================
+// CANVAS
+// ============================================================
+const canvas = document.getElementById('world');
+const ctx = canvas.getContext('2d');
+const W = 1200, H = 800;
+canvas.width = W; canvas.height = H;
+
+// ============================================================
+// TIME OF DAY
+// ============================================================
+// 0–1 full day cycle. Dawn 0–0.15, Day 0.15–0.55, Evening 0.55–0.75, Night 0.75–1
+const time = {
+  t: 0.25,          // start mid-morning
+  speed: 0.00012,   // full cycle ~ about 2–3 real minutes
+  phase: 'day'
+};
+function getPhase(t) {
+  if (t < 0.15) return 'dawn';
+  if (t < 0.55) return 'day';
+  if (t < 0.75) return 'evening';
+  return 'night';
+}
+function timeLabel(p) {
+  return { dawn: '🌤 Dawn', day: '☀ Day', evening: '🌅 Evening', night: '🌙 Night' }[p];
+}
+function timeColor(p) {
+  return { dawn: '#e8a060', day: '#e6c875', evening: '#d97a5a', night: '#6a8ab0' }[p];
+}
+
+// ============================================================
+// WORLD STATE
+// ============================================================
+const world = {
+  wood: 8, meat: 0, seeds: 6, scrap: 0, ammo: 8,
+  stamina: 100,
+  dogActive: true, dogHunger: 75,
+  cabin: { x: 380, y: 480, w: 100, h: 80 },
+  camp: null,                 // { x, y } when placed
+  fencePosts: [],             // array of { x, y }
+  stumps: [], saplings: [],
+  px: 420, py: 560, targetX: 420, targetY: 560,
+  modalActive: false,
+  pendingAction: null,
+  placeMode: null,            // 'camp' | 'fence' | 'moveCabin' | null
+  hasWorkbench: false,        // unlocked once you place a camp near cabin or just always after first camp
+  dayCount: 1
+};
+
+let trees = [], deer = [], wolves = [], rabbits = [];
+let dog = { x: 400, y: 540, isHunting: false, huntTimer: 0 };
+
+// Light NPCs
+const npcs = [
+  {
+    id: 'mara', x: 260, y: 520, name: 'Mara', role: 'Wanderer', emoji: '👩‍🌾',
+    lines: {
+      default: "This clearing can become home. Place a campsite for rest, fence posts to keep wolves back, and move the cabin wherever feels right. Plant more than you cut.",
+      night: "Nights are longer than they look. Rest at your camp or cabin before the wolves get bold.",
+      camp: "Good camp. Sleep there when the sun goes down — stamina returns fully."
+    }
+  }
+];
+
+// ============================================================
+// HELPERS
+// ============================================================
+function addJournal(text) {
+  const journal = document.getElementById('journal');
+  const entry = document.createElement('p');
+  entry.textContent = '• ' + text;
+  journal.appendChild(entry);
+  while (journal.children.length > 10) journal.removeChild(journal.children[1]);
+}
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2600);
+}
+function showModal(html) {
+  document.getElementById('modalCard').innerHTML = html;
+  document.getElementById('modal').classList.add('active');
+  world.modalActive = true;
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+  world.modalActive = false;
+}
+
+// ============================================================
+// GENERATION
+// ============================================================
+function generateWorld() {
+  trees = [];
+  for (let i = 0; i < 42; i++) {
+    const x = 50 + (i * 37) % 1100;
+    const y = 40 + (i * 53) % 700;
+    if (Math.hypot(x - 400, y - 500) < 140) continue;
+    trees.push({ x, y, size: 0.5 + ((i * 5) % 10) / 12, alive: true, wood: 2 + (i % 3) });
+  }
+  deer = [];
+  for (let i = 0; i < 5; i++) deer.push({ x: 80 + Math.random() * 1040, y: 60 + Math.random() * 620, tx: 0, ty: 0, alive: true });
+  wolves = [];
+  for (let i = 0; i < 3; i++) wolves.push({ x: 80 + Math.random() * 1040, y: 60 + Math.random() * 620, tx: 0, ty: 0, alive: true });
+  rabbits = [];
+  for (let i = 0; i < 8; i++) rabbits.push({ x: 80 + Math.random() * 1040, y: 60 + Math.random() * 620, tx: 0, ty: 0, alive: true });
+}
+
+// ============================================================
+// BUILD / PLACE SYSTEM
+// ============================================================
+function toggleBuildMenu() {
+  if (world.modalActive || world.placeMode) return;
+  document.getElementById('buildMenu').classList.toggle('active');
+}
+function closeBuildMenu() {
+  document.getElementById('buildMenu').classList.remove('active');
+  document.querySelectorAll('.build-btn').forEach(b => b.classList.remove('active-mode'));
+}
+
+function startPlace(mode) {
+  if (mode === 'camp' && world.wood < 6) return showToast('❌ Need 6 Wood for campsite');
+  if (mode === 'fence' && world.wood < 3) return showToast('❌ Need 3 Wood per fence post');
+  if (mode === 'camp' && world.camp) return showToast('You already have a campsite. Move cabin or add fences instead.');
+
+  world.placeMode = mode;
+  closeBuildMenu();
+  const hint = document.getElementById('placeHint');
+  const labels = {
+    camp: '⛺ Click to place Campsite (6 Wood) · Esc cancel',
+    fence: '🪵 Click to plant Fence Post (3 Wood) · Esc cancel',
+    moveCabin: '🏠 Click new spot for Cabin · Esc cancel'
+  };
+  hint.textContent = labels[mode];
+  hint.classList.add('show');
+  document.querySelectorAll('.build-btn').forEach(b => b.classList.remove('active-mode'));
+}
+
+function cancelPlace() {
+  world.placeMode = null;
+  document.getElementById('placeHint').classList.remove('show');
+}
+
+function tryPlace(mx, my) {
+  if (!world.placeMode) return false;
+
+  if (world.placeMode === 'camp') {
+    if (world.wood < 6) { showToast('❌ Need 6 Wood'); return true; }
+    world.wood -= 6;
+    world.camp = { x: mx, y: my };
+    world.hasWorkbench = true; // camp + tools = can craft
+    playSound('build');
+    addJournal('Campsite set. You can rest here at night.');
+    showToast('⛺ Campsite placed');
+  } else if (world.placeMode === 'fence') {
+    if (world.wood < 3) { showToast('❌ Need 3 Wood'); return true; }
+    // don't stack posts on top of each other
+    if (world.fencePosts.some(p => Math.hypot(p.x - mx, p.y - my) < 28)) {
+      showToast('Too close to another post');
+      return true;
+    }
+    world.wood -= 3;
+    world.fencePosts.push({ x: mx, y: my });
+    playSound('build');
+    showToast('🪵 Fence post planted');
+  } else if (world.placeMode === 'moveCabin') {
+    world.cabin.x = mx - world.cabin.w / 2;
+    world.cabin.y = my - world.cabin.h / 2;
+    playSound('build');
+    showToast('🏠 Cabin relocated');
+    addJournal('You moved the cabin to a better spot.');
+  }
+
+  updateHUD();
+  // fence mode stays active so you can plant several posts in a row
+  if (world.placeMode !== 'fence') cancelPlace();
+  return true;
+}
+
+function craftAmmo() {
+  if (!world.hasWorkbench && !world.camp) return showToast('❌ Place a campsite first (acts as work area)');
+  if (world.scrap < 4) return showToast('❌ Need 4 Scrap (dig stumps)');
+  world.scrap -= 4;
+  world.ammo += 3;
+  playSound('build');
+  showToast('🔫 +3 Ammo');
+  updateHUD();
+  closeBuildMenu();
+}
+
+// ============================================================
+// REST / SLEEP
+// ============================================================
+function tryRest() {
+  const nearCabin = Math.hypot(world.px - (world.cabin.x + world.cabin.w/2), world.py - (world.cabin.y + world.cabin.h/2)) < 70;
+  const nearCamp = world.camp && Math.hypot(world.px - world.camp.x, world.py - world.camp.y) < 50;
+  if (!nearCabin && !nearCamp) return showToast('Rest at your cabin or campsite');
+
+  if (time.phase === 'night' || time.phase === 'evening') {
+    // skip to dawn
+    time.t = 0.08;
+    time.phase = 'dawn';
+    world.dayCount++;
+    world.stamina = 100;
+    if (world.dogActive) world.dogHunger = Math.min(100, world.dogHunger + 20);
+    playSound('night');
+    showToast(`😴 Slept · Day ${world.dayCount} begins`);
+    addJournal(`Rested through the night. Day ${world.dayCount}.`);
+    // soft animal refresh
+    if (deer.filter(d => d.alive).length < 3) {
+      deer.push({ x: 60 + Math.random()*1080, y: 50 + Math.random()*650, tx:0, ty:0, alive:true });
+    }
+    if (rabbits.filter(r => r.alive).length < 4) {
+      rabbits.push({ x: 60 + Math.random()*1080, y: 50 + Math.random()*650, tx:0, ty:0, alive:true });
+    }
+  } else {
+    world.stamina = Math.min(100, world.stamina + 40);
+    showToast('😌 Rested · Stamina +40');
+  }
+  updateHUD();
+}
+
+// ============================================================
+// FENCE PROTECTION
+// ============================================================
+function isInsideFence(x, y) {
+  if (world.fencePosts.length < 3) return false;
+  // simple: protected if near several posts (cluster) or near cabin with posts nearby
+  let near = 0;
+  for (const p of world.fencePosts) {
+    if (Math.hypot(p.x - x, p.y - y) < 90) near++;
+  }
+  return near >= 3;
+}
+
+// ============================================================
+// HUD
+// ============================================================
+function updateHUD() {
+  document.getElementById('wood').textContent = world.wood;
+  document.getElementById('meat').textContent = world.meat;
+  document.getElementById('seeds').textContent = world.seeds;
+  document.getElementById('scrap').textContent = world.scrap;
+  document.getElementById('ammo').textContent = world.ammo;
+  document.getElementById('staminaBar').textContent = Math.floor(world.stamina);
+  document.getElementById('staminaBar').className = world.stamina < 30 ? 'red' : 'green';
+
+  const dogEl = document.getElementById('dogStatus');
+  if (!world.dogActive) { dogEl.textContent = '💤 Down'; dogEl.className = 'red'; }
+  else if (world.dogHunger < 35) { dogEl.textContent = '🐕 Hungry'; dogEl.className = 'red'; }
+  else { dogEl.textContent = '🐕 Ok'; dogEl.className = 'green'; }
+
+  document.getElementById('timeLabel').textContent = timeLabel(time.phase) + ` · Day ${world.dayCount}`;
+  const fill = document.getElementById('timeFill');
+  fill.style.width = (time.t * 100) + '%';
+  fill.style.background = timeColor(time.phase);
+
+  const s = document.getElementById('structuresList');
+  const parts = [];
+  parts.push(`Cabin @ ${Math.round(world.cabin.x)},${Math.round(world.cabin.y)}`);
+  parts.push(world.camp ? '⛺ Camp set' : 'no camp');
+  parts.push(world.fencePosts.length ? `${world.fencePosts.length} fence posts` : 'no fence');
+  s.innerHTML = parts.join(' · ');
+  s.style.color = '#c9b88a';
+
+  // status tip
+  const st = document.getElementById('statusText');
+  if (!world.camp) st.textContent = 'Place a campsite (B → Campsite) so you can rest at night.';
+  else if (world.fencePosts.length < 4) st.textContent = 'Plant fence posts around your area to deter wolves.';
+  else if (time.phase === 'night') st.textContent = 'Night. Rest (R) at camp/cabin or stay alert — wolves are bolder.';
+  else st.textContent = 'Chop, plant, hunt, build. Move the cabin anytime. Cycle continues.';
+}
+
+// ============================================================
+// INTERACTIONS
+// ============================================================
+function talkToNpc(npc) {
+  let line = npc.lines.default;
+  if (time.phase === 'night') line = npc.lines.night;
+  else if (world.camp) line = npc.lines.camp;
+  showModal(`<h2>${npc.emoji} ${npc.name}</h2><div class="role">${npc.role}</div><p>"${line}"</p><button class="btn secondary" onclick="closeModal()">Goodbye</button>`);
+}
+
+function petDog() {
+  if (!world.dogActive) { showToast('Rex is down — feed him (F) with meat'); return; }
+  world.stamina = Math.min(100, world.stamina + 6);
+  world.dogHunger = Math.min(100, world.dogHunger + 6);
+  playSound('bark');
+  showToast('🐕 Pet Rex');
+  updateHUD();
+}
+
+function feedDog() {
+  if (world.meat <= 0) return showToast('❌ No meat');
+  world.meat--;
+  if (!world.dogActive) {
+    world.dogActive = true;
+    world.dogHunger = 55;
+    playSound('bark');
+    showToast('🐕 Rex is back up');
+    addJournal('Fed Rex. He stands again.');
+  } else {
+    world.dogHunger = Math.min(100, world.dogHunger + 40);
+    playSound('eat');
+    showToast('🐕 Fed Rex');
+  }
+  updateHUD();
+}
+
+function chopTree(t) {
+  if (world.stamina < 4) return showToast('⚠️ Exhausted — eat (E) or rest (R)');
+  t.alive = false;
+  world.wood += t.wood;
+  world.stamina -= 3;
+  world.stumps.push({ x: t.x, y: t.y });
+  playSound('chop');
+  showToast(`🪓 +${t.wood} Wood`);
+  updateHUD();
+}
+
+function digStump(s, idx) {
+  world.stumps.splice(idx, 1);
+  const n = Math.random() < 0.4 ? 2 : 1;
+  world.scrap += n;
+  playSound('pickup');
+  showToast(`🔧 +${n} Scrap`);
+  updateHUD();
+}
+
+function plantSeed(mx, my) {
+  if (world.seeds <= 0) return;
+  world.seeds--;
+  world.saplings.push({ x: mx, y: my, age: 0 });
+  playSound('pickup');
+  showToast('🌱 Seed planted');
+  updateHUD();
+}
+
+function hunt(animal, meatGain, scrapGain = 0) {
+  if (world.ammo <= 0) return showToast('❌ No ammo');
+  world.ammo--;
+  animal.alive = false;
+  world.meat += meatGain;
+  world.scrap += scrapGain;
+  playSound('shot');
+  showToast(scrapGain ? `🔫 +${meatGain} Meat +${scrapGain} Scrap` : `🔫 +${meatGain} Meat`);
+  updateHUD();
+}
+
+// ============================================================
+// MOVEMENT
+// ============================================================
+const keys = {};
+function movePlayer() {
+  if (world.modalActive) return;
+  let dx = 0, dy = 0;
+  if (keys['w'] || keys['arrowup']) dy -= 1;
+  if (keys['s'] || keys['arrowdown']) dy += 1;
+  if (keys['a'] || keys['arrowleft']) dx -= 1;
+  if (keys['d'] || keys['arrowright']) dx += 1;
+
+  const speed = time.phase === 'night' ? 3.4 : 4.0;
+  if (dx || dy) {
+    const len = Math.hypot(dx, dy);
+    dx /= len; dy /= len;
+    world.px = Math.max(20, Math.min(W - 20, world.px + dx * speed));
+    world.py = Math.max(20, Math.min(H - 20, world.py + dy * speed));
+    if (Math.random() < 0.06) playSound('step');
+  } else {
+    const dist = Math.hypot(world.targetX - world.px, world.targetY - world.py);
+    if (dist > 5) {
+      world.px += (world.targetX - world.px) / dist * speed;
+      world.py += (world.targetY - world.py) / dist * speed;
+    }
+  }
+
+  if (world.pendingAction) {
+    const a = world.pendingAction;
+    if (Math.hypot(world.px - a.x, world.py - a.y) < 42) {
+      world.pendingAction = null;
+      if (a.type === 'npc') talkToNpc(a.target);
+      else if (a.type === 'dog') petDog();
+      else if (a.type === 'tree') chopTree(a.target);
+      else if (a.type === 'stump') digStump(a.target, a.index);
+      else if (a.type === 'deer') hunt(a.target, 4);
+      else if (a.type === 'wolf') hunt(a.target, 0, 2);
+      else if (a.type === 'rabbit') hunt(a.target, 1);
+    }
+  }
+}
+
+// ============================================================
+// DOG (slower)
+// ============================================================
+function tickDog() {
+  if (!world.dogActive) return;
+  world.dogHunger -= 0.0012;
+  if (world.dogHunger <= 0) {
+    world.dogActive = false;
+    showToast('🐕 Rex collapsed — feed him (F)');
+    addJournal('Rex collapsed from hunger.');
+    updateHUD();
+    return;
+  }
+  if (!dog.isHunting) {
+    const d = Math.hypot(world.px - dog.x, world.py - dog.y);
+    if (d > 50) {
+      dog.x += (world.px - dog.x) / d * 1.1;
+      dog.y += (world.py - dog.y) / d * 1.1;
+    }
+  }
+  // hunt chance lower at night
+  const huntChance = time.phase === 'night' ? 0.001 : 0.002;
+  if (world.dogHunger > 30 && Math.random() < huntChance) {
+    dog.isHunting = true;
+    dog.huntTimer = 110;
+    showToast('🐕 Rex hunting');
+  }
+  if (dog.isHunting) {
+    dog.huntTimer--;
+    const target = rabbits.find(r => r.alive);
+    if (target) {
+      const d = Math.hypot(target.x - dog.x, target.y - dog.y);
+      if (d > 16) {
+        dog.x += (target.x - dog.x) / d * 1.8;
+        dog.y += (target.y - dog.y) / d * 1.8;
+      }
+    }
+    if (dog.huntTimer <= 0) {
+      dog.isHunting = false;
+      if (Math.random() < 0.5) {
+        world.meat += 2;
+        world.dogHunger = Math.min(100, world.dogHunger + 15);
+        showToast('🐕 Rex caught a rabbit');
+        playSound('bark');
+        updateHUD();
+      }
+    }
+  }
+}
+
+// ============================================================
+// WORLD TICK (animals slower)
+// ============================================================
+function tickWorld() {
+  // time advances
+  const prevPhase = time.phase;
+  time.t += time.speed;
+  if (time.t >= 1) {
+    time.t = 0;
+    world.dayCount++;
+    addJournal(`A new day begins. Day ${world.dayCount}.`);
+  }
+  time.phase = getPhase(time.t);
+  if (time.phase !== prevPhase) {
+    if (time.phase === 'night') {
+      showToast('🌙 Night falls');
+      playSound('night');
+    } else if (time.phase === 'dawn') {
+      showToast('🌤 Dawn');
+    }
+  }
+
+  // stamina
+  if (world.stamina < 100) world.stamina += time.phase === 'night' ? 0.008 : 0.012;
+  if (time.phase === 'night' && world.stamina > 0) world.stamina -= 0.004; // mild night drain
+  if (world.stamina <= 0) showToast('⚠️ Exhausted');
+
+  // saplings
+  for (let i = world.saplings.length - 1; i >= 0; i--) {
+    world.saplings[i].age += 0.05;
+    if (world.saplings[i].age >= 70) {
+      trees.push({ x: world.saplings[i].x, y: world.saplings[i].y, size: 0.7, alive: true, wood: 3 });
+      world.saplings.splice(i, 1);
+      addJournal('A sapling became a tree.');
+    }
+  }
+
+  // wolf aggression at night if no fence protection near player/cabin
+  if (time.phase === 'night' && !world.dogActive && wolves.some(w => w.alive) && Math.random() < 0.0015) {
+    const cabinCenter = { x: world.cabin.x + world.cabin.w/2, y: world.cabin.y + world.cabin.h/2 };
+    if (!isInsideFence(cabinCenter.x, cabinCenter.y) && !isInsideFence(world.px, world.py)) {
+      world.wood = Math.max(0, world.wood - 2);
+      showToast('🐺 Wolves raided supplies (−2 Wood)');
+    }
+  }
+
+  // --- SLOWER animal movement ---
+  const deerSpeed = 0.7;
+  const wolfSpeed = 1.0;
+  const rabbitSpeed = 0.45;
+
+  deer.forEach(d => {
+    if (!d.alive) return;
+    if (Math.hypot(world.px - d.x, world.py - d.y) < 120) {
+      d.tx = world.px + (d.x - world.px) * 1.8 + (Math.random() - 0.5) * 60;
+      d.ty = world.py + (d.y - world.py) * 1.8 + (Math.random() - 0.5) * 60;
+    } else if (Math.random() < 0.008 || d.tx === 0) {
+      d.tx = 50 + Math.random() * 1100;
+      d.ty = 40 + Math.random() * 680;
+    }
+    const dist = Math.hypot(d.tx - d.x, d.ty - d.y);
+    if (dist > 4) { d.x += (d.tx - d.x) / dist * deerSpeed; d.y += (d.ty - d.y) / dist * deerSpeed; }
+  });
+
+  wolves.forEach(w => {
+    if (!w.alive) return;
+    // more aggressive at night
+    const range = time.phase === 'night' ? 320 : 220;
+    let nearest = null, nd = 999;
+    deer.forEach(d => {
+      if (!d.alive) return;
+      const dist = Math.hypot(w.x - d.x, w.y - d.y);
+      if (dist < nd) { nd = dist; nearest = d; }
+    });
+    if (nearest && nd < range) { w.tx = nearest.x; w.ty = nearest.y; }
+    else if (Math.random() < 0.005) {
+      w.tx = 50 + Math.random() * 1100;
+      w.ty = 40 + Math.random() * 680;
+    }
+    const dist = Math.hypot(w.tx - w.x, w.ty - w.y);
+    if (dist > 4) { w.x += (w.tx - w.x) / dist * wolfSpeed; w.y += (w.ty - w.y) / dist * wolfSpeed; }
+  });
+
+  rabbits.forEach(r => {
+    if (!r.alive) return;
+    if (Math.random() < 0.01) {
+      r.tx = 50 + Math.random() * 1100;
+      r.ty = 40 + Math.random() * 680;
+    }
+    const dist = Math.hypot(r.tx - r.x, r.ty - r.y);
+    if (dist > 4) { r.x += (r.tx - r.x) / dist * rabbitSpeed; r.y += (r.ty - r.y) / dist * rabbitSpeed; }
+  });
+
+  // soft respawn
+  if (deer.filter(d => d.alive).length < 2 && Math.random() < 0.0015) {
+    deer.push({ x: 40 + Math.random()*1120, y: 40 + Math.random()*680, tx:0, ty:0, alive:true });
+  }
+  if (rabbits.filter(r => r.alive).length < 3 && Math.random() < 0.002) {
+    rabbits.push({ x: 40 + Math.random()*1120, y: 40 + Math.random()*680, tx:0, ty:0, alive:true });
+  }
+
+  updateHUD();
+}
+
+// ============================================================
+// RENDER with day/night tint
+// ============================================================
+function skyTint() {
+  // returns overlay rgba for atmosphere
+  const t = time.t;
+  if (t < 0.15) { // dawn
+    const k = t / 0.15;
+    return `rgba(255, 160, 80, ${0.25 - k * 0.15})`;
+  }
+  if (t < 0.55) return null; // clear day
+  if (t < 0.75) { // evening
+    const k = (t - 0.55) / 0.2;
+    return `rgba(220, 100, 50, ${k * 0.22})`;
+  }
+  // night
+  const k = (t - 0.75) / 0.25;
+  return `rgba(10, 20, 50, ${0.35 + k * 0.25})`;
+}
+
+function render() {
+  ctx.clearRect(0, 0, W, H);
+
+  // ground color shifts slightly with time
+  let ground = '#3d5937';
+  if (time.phase === 'dawn') ground = '#4a6340';
+  else if (time.phase === 'evening') ground = '#3a4f32';
+  else if (time.phase === 'night') ground = '#2a3a28';
+  ctx.fillStyle = ground;
+  ctx.fillRect(0, 0, W, H);
+
+  // grass dots
+  ctx.fillStyle = time.phase === 'night' ? '#354a32' : '#4a6a42';
+  for (let i = 0; i < 70; i++) {
+    const gx = (i * 71) % W, gy = (i * 43) % H;
+    ctx.fillRect(gx, gy, 2, 3);
+  }
+
+  // stumps
+  world.stumps.forEach(s => {
+    ctx.fillStyle = '#4a3525';
+    ctx.fillRect(s.x - 6, s.y - 4, 12, 8);
+    ctx.fillStyle = '#3d281d';
+    ctx.fillRect(s.x - 4, s.y - 6, 8, 4);
+  });
+
+  // saplings
+  world.saplings.forEach(s => {
+    const h = 4 + (s.age / 70) * 16;
+    ctx.fillStyle = '#2d5a2d';
+    ctx.fillRect(s.x - 1, s.y - h, 2, h);
+    ctx.fillStyle = '#4a7a4a';
+    ctx.beginPath(); ctx.arc(s.x, s.y - h, 2 + (s.age / 70) * 5, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // trees
+  trees.forEach(t => {
+    if (!t.alive) return;
+    ctx.fillStyle = '#4d3a28';
+    ctx.fillRect(t.x - 3 * t.size, t.y, 6 * t.size, 16 * t.size);
+    ctx.fillStyle = time.phase === 'night' ? '#1e3a1e' : '#2d5a2d';
+    ctx.beginPath(); ctx.arc(t.x, t.y - 8 * t.size, 15 * t.size, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // fence posts
+  world.fencePosts.forEach(p => {
+    ctx.fillStyle = '#6b4f31';
+    ctx.fillRect(p.x - 3, p.y - 18, 6, 22);
+    ctx.fillStyle = '#8a6a40';
+    ctx.fillRect(p.x - 5, p.y - 20, 10, 5);
+    // optional rail toward nearby posts
+    for (const other of world.fencePosts) {
+      if (other === p) continue;
+      const d = Math.hypot(other.x - p.x, other.y - p.y);
+      if (d > 20 && d < 110) {
+        ctx.strokeStyle = 'rgba(107,79,49,0.7)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y - 10);
+        ctx.lineTo(other.x, other.y - 10);
+        ctx.stroke();
+      }
+    }
+  });
+
+  // cabin
+  const c = world.cabin;
+  ctx.fillStyle = '#5a4030';
+  ctx.fillRect(c.x + 4, c.y + 4, c.w, c.h);
+  ctx.fillStyle = '#8b6f47';
+  ctx.fillRect(c.x, c.y, c.w, c.h);
+  ctx.fillStyle = '#5a4030';
+  ctx.beginPath();
+  ctx.moveTo(c.x - 8, c.y);
+  ctx.lineTo(c.x + c.w / 2, c.y - 28);
+  ctx.lineTo(c.x + c.w + 8, c.y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#4a3020';
+  ctx.fillRect(c.x + c.w / 2 - 10, c.y + c.h - 32, 20, 32);
+  // window glow at night
+  if (time.phase === 'night' || time.phase === 'evening') {
+    ctx.fillStyle = '#e6c875';
+    ctx.fillRect(c.x + 12, c.y + 20, 14, 12);
+    ctx.fillRect(c.x + c.w - 26, c.y + 20, 14, 12);
+  }
+
+  // campsite
+  if (world.camp) {
+    const cp = world.camp;
+    // tent
+    ctx.fillStyle = '#6b5a40';
+    ctx.beginPath();
+    ctx.moveTo(cp.x - 22, cp.y + 8);
+    ctx.lineTo(cp.x, cp.y - 22);
+    ctx.lineTo(cp.x + 22, cp.y + 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#4a3a28';
+    ctx.fillRect(cp.x - 3, cp.y - 22, 6, 30);
+    // fire
+    if (time.phase === 'night' || time.phase === 'evening') {
+      ctx.fillStyle = `rgba(255,140,40,${0.5 + Math.sin(Date.now()/150)*0.2})`;
+      ctx.beginPath(); ctx.arc(cp.x + 28, cp.y + 6, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffcc60';
+      ctx.beginPath(); ctx.arc(cp.x + 28, cp.y + 6, 3, 0, Math.PI * 2); ctx.fill();
+    } else {
+      ctx.fillStyle = '#3a2a1a';
+      ctx.beginPath(); ctx.arc(cp.x + 28, cp.y + 6, 5, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  // animals
+  ctx.textAlign = 'center';
+  rabbits.forEach(r => { if (r.alive) { ctx.font = '18px sans-serif'; ctx.fillText('🐇', r.x, r.y); } });
+  deer.forEach(d => { if (d.alive) { ctx.font = '24px sans-serif'; ctx.fillText('🦌', d.x, d.y); } });
+  wolves.forEach(w => { if (w.alive) { ctx.font = '22px sans-serif'; ctx.fillText('🐺', w.x, w.y); } });
+
+  // dog
+  if (world.dogActive) {
+    ctx.font = '20px sans-serif';
+    ctx.fillText('🐕', dog.x, dog.y);
+    if (dog.isHunting) { ctx.font = '11px sans-serif'; ctx.fillStyle = '#e6c875'; ctx.fillText('🏹', dog.x, dog.y - 16); }
+  } else {
+    ctx.font = '18px sans-serif';
+    ctx.fillText('💤', dog.x, dog.y);
+  }
+
+  // NPCs
+  npcs.forEach(n => {
+    ctx.font = '20px sans-serif';
+    ctx.fillText(n.emoji, n.x, n.y);
+    ctx.font = 'bold 10px sans-serif';
+    ctx.fillStyle = '#221c17';
+    ctx.fillText(n.name, n.x, n.y + 16);
+  });
+
+  // player
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.beginPath(); ctx.ellipse(world.px, world.py + 5, 9, 4, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#f4d7b9';
+  ctx.fillRect(world.px - 6, world.py - 14, 12, 11);
+  ctx.fillStyle = '#3b6ea5';
+  ctx.fillRect(world.px - 6, world.py - 3, 12, 14);
+  ctx.fillStyle = '#4a2e1b';
+  ctx.fillRect(world.px - 4, world.py - 16, 8, 5);
+
+  // placement ghost
+  if (world.placeMode) {
+    ctx.globalAlpha = 0.45;
+    if (world.placeMode === 'camp') {
+      ctx.fillStyle = '#6b5a40';
+      ctx.beginPath();
+      ctx.moveTo(mouseX - 22, mouseY + 8);
+      ctx.lineTo(mouseX, mouseY - 22);
+      ctx.lineTo(mouseX + 22, mouseY + 8);
+      ctx.closePath();
+      ctx.fill();
+    } else if (world.placeMode === 'fence') {
+      ctx.fillStyle = '#6b4f31';
+      ctx.fillRect(mouseX - 3, mouseY - 18, 6, 22);
+    } else if (world.placeMode === 'moveCabin') {
+      ctx.fillStyle = '#8b6f47';
+      ctx.fillRect(mouseX - 50, mouseY - 40, 100, 80);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // day/night overlay
+  const tint = skyTint();
+  if (tint) {
+    ctx.fillStyle = tint;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // target ring
+  if (Math.hypot(world.targetX - world.px, world.targetY - world.py) > 10) {
+    ctx.strokeStyle = 'rgba(230,200,117,0.4)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(world.targetX, world.targetY, 7 + Math.sin(Date.now() / 140) * 2, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  ctx.textAlign = 'left';
+}
+
+// ============================================================
+// INPUT
+// ============================================================
+let mouseX = 0, mouseY = 0;
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+  mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
+});
+
+canvas.addEventListener('click', e => {
+  if (world.modalActive) return;
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+  // placement mode first
+  if (world.placeMode) {
+    tryPlace(mx, my);
+    return;
+  }
+
+  // NPCs
+  for (const n of npcs) {
+    if (Math.hypot(mx - n.x, my - n.y) < 32) {
+      world.targetX = n.x; world.targetY = n.y + 18;
+      world.pendingAction = { type: 'npc', target: n, x: n.x, y: n.y };
+      return;
+    }
+  }
+  // dog
+  if (world.dogActive && Math.hypot(mx - dog.x, my - dog.y) < 28) {
+    world.targetX = dog.x; world.targetY = dog.y + 12;
+    world.pendingAction = { type: 'dog', x: dog.x, y: dog.y };
+    return;
+  }
+  // trees
+  for (const t of trees) {
+    if (!t.alive) continue;
+    if (Math.hypot(mx - t.x, my - t.y) < 36) {
+      world.targetX = t.x; world.targetY = t.y + 12;
+      world.pendingAction = { type: 'tree', target: t, x: t.x, y: t.y };
+      return;
+    }
+  }
+  // stumps
+  for (let i = world.stumps.length - 1; i >= 0; i--) {
+    const s = world.stumps[i];
+    if (Math.hypot(mx - s.x, my - s.y) < 26) {
+      world.targetX = s.x; world.targetY = s.y + 8;
+      world.pendingAction = { type: 'stump', target: s, index: i, x: s.x, y: s.y };
+      return;
+    }
+  }
+  // animals
+  for (const d of deer) {
+    if (d.alive && Math.hypot(mx - d.x, my - d.y) < 32) {
+      world.targetX = d.x; world.targetY = d.y + 12;
+      world.pendingAction = { type: 'deer', target: d, x: d.x, y: d.y };
+      return;
+    }
+  }
+  for (const w of wolves) {
+    if (w.alive && Math.hypot(mx - w.x, my - w.y) < 32) {
+      world.targetX = w.x; world.targetY = w.y + 12;
+      world.pendingAction = { type: 'wolf', target: w, x: w.x, y: w.y };
+      return;
+    }
+  }
+  for (const r of rabbits) {
+    if (r.alive && Math.hypot(mx - r.x, my - r.y) < 26) {
+      world.targetX = r.x; world.targetY = r.y + 10;
+      world.pendingAction = { type: 'rabbit', target: r, x: r.x, y: r.y };
+      return;
+    }
+  }
+
+  // plant if have seeds and close
+  if (world.seeds > 0 && Math.hypot(mx - world.px, my - world.py) < 75) {
+    plantSeed(mx, my);
+    return;
+  }
+
+  world.pendingAction = null;
+  world.targetX = mx;
+  world.targetY = my;
+});
+
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  keys[k] = true;
+  if (k === 'b') toggleBuildMenu();
+  if (k === 'e') {
+    if (world.meat <= 0) return showToast('❌ No meat');
+    world.meat--;
+    world.stamina = Math.min(100, world.stamina + 30);
+    playSound('eat');
+    showToast('🍖 +30 Stamina');
+    updateHUD();
+  }
+  if (k === 'f') feedDog();
+  if (k === 'r') tryRest();
+  if (k === 'escape') cancelPlace();
+});
+addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+// ============================================================
+// START
+// ============================================================
+generateWorld();
+addJournal('Boards and seeds in the pack. Place a camp, plant trees, build fences.');
+addJournal('Nights are real. Rest at camp or cabin when the dark comes.');
+updateHUD();
+
+function loop() {
+  tickDog();
+  movePlayer();
+  tickWorld();
+  render();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>

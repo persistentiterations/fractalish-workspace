@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eracii Arena v0.3 — First Duel</title>
+<style>
+:root{
+  --bg:#090d14;--panel:#121925;--panel2:#182232;--line:#344158;
+  --text:#f5eddc;--muted:#a9b3c4;--gold:#e0b866;--blue:#4d8be8;
+  --red:#cf6271;--green:#79d39a;--tile:#172131;--tile2:#1c293c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  radial-gradient(circle at 15% 0,#1a2a49 0,transparent 34rem),
+  radial-gradient(circle at 90% 10%,#3a202c 0,transparent 32rem),
+  var(--bg);color:var(--text);font:15px/1.4 Inter,system-ui,sans-serif;min-height:100vh}
+button{font:inherit}
+header{height:58px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);background:#090d14e8}
+.brand{font-weight:800;letter-spacing:.2em}.brand b{color:var(--gold)}
+main{max-width:1180px;margin:auto;padding:16px}
+.screen{display:none}.screen.active{display:block}
+.panel{background:linear-gradient(145deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 50px #0006}
+.hero{padding:22px}.hero h1{font:700 clamp(32px,5vw,58px)/1 Georgia,serif;margin:0 0 10px;max-width:900px}
+.hero p,.muted{color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}
+.card{border:1px solid var(--line);background:#101722;color:var(--text);border-radius:14px;padding:13px;text-align:left;cursor:pointer}
+.card:hover{border-color:#647591}.card.selected{outline:2px solid var(--gold)}
+.avatar{height:112px;border-radius:11px;background:radial-gradient(circle at 50% 25%,#3d526f,#1b2432 58%,#0d121a);display:grid;place-items:center;font:700 42px Georgia,serif;margin-bottom:10px}
+.name{font:700 20px Georgia,serif}.role{color:var(--muted);font-size:12px}.style{margin-top:8px;color:#d9e0eb;font-size:12px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px}
+button{border:1px solid var(--line);border-radius:10px;background:#1a2639;color:var(--text);padding:10px 13px;cursor:pointer;font-weight:700}
+button:hover:not(:disabled){border-color:var(--gold)}button:disabled{opacity:.38;cursor:not-allowed}.primary{background:var(--gold);color:#17120b;border-color:var(--gold)}
+.game{display:grid;grid-template-columns:220px minmax(450px,1fr) 220px;gap:12px;align-items:start}
+.fighter,.arena{padding:13px}.portrait{height:126px;border-radius:12px;background:radial-gradient(circle at 50% 25%,#3d526f,#1b2432 58%,#0d121a);display:grid;place-items:center;font:700 50px Georgia,serif;margin-bottom:10px}
+.fighter h2{font:700 22px Georgia,serif;margin:0}.tag{color:var(--muted);font-size:12px;min-height:34px}
+.label{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-top:9px}.bar{height:9px;border-radius:99px;background:#0b1018;border:1px solid #263247;overflow:hidden}.fill{height:100%;background:var(--green)}.enemy .fill{background:var(--red)}
+.traits{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}.trait{background:#0d141f;border-radius:8px;padding:7px;text-align:center}.trait span{display:block;color:var(--muted);font-size:9px;text-transform:uppercase}
+.help{padding:10px 12px;background:#0d141f;border-left:3px solid var(--gold);border-radius:8px;margin-bottom:10px}
+.turn{text-align:center;margin:4px 0 10px}.turn small{display:block;color:var(--muted)}.turn b{font:700 24px Georgia,serif}
+.board{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;background:#090e16;border:1px solid var(--line);padding:8px;border-radius:14px}
+.cell{aspect-ratio:1;background:linear-gradient(145deg,var(--tile),var(--tile2));border:1px solid #2b384d;border-radius:10px;position:relative;display:grid;place-items:center;cursor:default;overflow:hidden}
+.cell:nth-child(even){background:linear-gradient(145deg,#151e2c,#1a2637)}
+.cell.legal{outline:3px solid #79d39a99;cursor:pointer}.cell.legal:hover{outline-color:var(--green);transform:translateY(-1px)}
+.cell.target{outline:3px solid #e0b866aa;cursor:pointer}.cell.target:hover{outline-color:var(--gold)}
+.cell.path::after{content:"MOVE";position:absolute;bottom:4px;font-size:8px;color:var(--green);letter-spacing:.1em}
+.objective{position:absolute;top:5px;left:6px;font-size:9px;font-weight:800;color:var(--gold);letter-spacing:.05em;z-index:1}
+.cell.forum{box-shadow:inset 0 0 22px #7a542544}.cell.archive{box-shadow:inset 0 0 22px #325f7d55}.cell.stage{box-shadow:inset 0 0 22px #6f355255}
+.token{width:64%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-weight:900;border:3px solid #fff9;z-index:3;box-shadow:0 8px 20px #0007}
+.token.player{background:var(--blue)}.token.enemy{background:var(--red)}
+.owner-player{border-color:#568fe5}.owner-enemy{border-color:#d46a79}
+.actions{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px}
+.action{text-align:left;min-height:76px;padding:9px}.action strong,.action small{display:block}.action small{color:var(--muted);font-weight:400;margin-top:3px}
+.action.special{border-color:#7b6233}.action.ready{outline:2px solid var(--gold)}
+.preview,.message{margin-top:9px;padding:10px 12px;border-radius:9px;background:#0d141f;min-height:53px}.preview{border:1px solid #29364a;color:#d9e1ec}.message{border-left:3px solid var(--gold)}
+.result{display:none;text-align:center;padding:18px;margin-top:10px}.result.show{display:block}.result h2{font:700 36px Georgia,serif;margin:0}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;color:var(--muted);font-size:11px}.legend span{background:#0d141f;padding:5px 8px;border-radius:6px}
+details{margin-top:10px}summary{color:var(--muted);cursor:pointer}.receipts{max-height:160px;overflow:auto;background:#080c12;border-radius:8px;padding:8px;font:10px/1.45 monospace;color:#bcc6d6;margin-top:7px}
+@media(max-width:900px){.game{grid-template-columns:1fr}.fighter{display:grid;grid-template-columns:110px 1fr;gap:10px}.portrait{height:110px;margin:0}.cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){main{padding:8px}.cards{grid-template-columns:1fr}.actions{grid-template-columns:1fr 1fr}.hero{padding:15px}}
+</style>
+</head>
+<body>
+<header><div class="brand">ERA<b>CII</b> ARENA</div><div class="muted">First Duel · deterministic prototype</div></header>
+<main>
+<section id="selectScreen" class="screen active">
+  <div class="panel hero">
+    <h1>Choose the person whose way of thinking fits the arena.</h1>
+    <p>Move like chess, capture space like checkers, and use a signature move like a fighting game. Every legal destination is shown before you commit.</p>
+    <div id="cards" class="cards"></div>
+    <div class="row"><div id="selectionText" class="muted">Choose a figure.</div><button id="startButton" class="primary" disabled>Enter Arena</button></div>
+  </div>
+</section>
+
+<section id="gameScreen" class="screen">
+<div class="game">
+  <aside class="panel fighter">
+    <div id="playerPortrait" class="portrait"></div>
+    <div>
+      <h2 id="playerName"></h2><div id="playerRole" class="tag"></div>
+      <div class="label"><span>Resolve</span><span id="playerResolveText"></span></div><div class="bar"><div id="playerResolveBar" class="fill"></div></div>
+      <div class="label"><span>Influence</span><span id="playerInfluenceText"></span></div><div class="bar"><div id="playerInfluenceBar" class="fill"></div></div>
+      <div id="playerTraits" class="traits"></div>
+    </div>
+  </aside>
+
+  <section class="panel arena">
+    <div class="help"><b>Win:</b> control two objectives for two full rounds, or reduce the opponent's Resolve to zero.</div>
+    <div class="turn"><small id="roundText">ROUND 1</small><b id="turnText">Your turn</b></div>
+    <div id="board" class="board"></div>
+    <div class="legend">
+      <span>FORUM: persuasion +1</span><span>ARCHIVE: insight +1</span><span>STAGE: influence +1</span>
+    </div>
+    <div class="actions">
+      <button class="action" data-action="move"><strong>Move</strong><small>Show this figure's movement pattern.</small></button>
+      <button class="action" data-action="challenge"><strong>Challenge</strong><small>Pressure an adjacent opponent.</small></button>
+      <button class="action" data-action="claim"><strong>Claim</strong><small>Take control of your current objective.</small></button>
+      <button id="specialButton" class="action special" data-action="special"><strong id="specialName">Special</strong><small id="specialText"></small></button>
+    </div>
+    <div id="preview" class="preview">Choose an action. The result will be explained before it happens.</div>
+    <div id="message" class="message">The arena is ready.</div>
+    <div class="row"><button id="restartButton">Restart</button><button id="cancelButton">Cancel Selection</button></div>
+    <div id="result" class="panel result"></div>
+    <details><summary>Deterministic receipts</summary><div id="receipts" class="receipts"></div></details>
+  </section>
+
+  <aside class="panel fighter enemy">
+    <div id="enemyPortrait" class="portrait"></div>
+    <div>
+      <h2 id="enemyName"></h2><div id="enemyRole" class="tag"></div>
+      <div class="label"><span>Resolve</span><span id="enemyResolveText"></span></div><div class="bar"><div id="enemyResolveBar" class="fill"></div></div>
+      <div class="label"><span>Influence</span><span id="enemyInfluenceText"></span></div><div class="bar"><div id="enemyInfluenceBar" class="fill"></div></div>
+      <div id="enemyTraits" class="traits"></div>
+    </div>
+  </aside>
+</div>
+</section>
+</main>
+
+<script>
+const FIGURES = [
+  {
+    id:"CAE", name:"Julius Caesar", role:"Decisive commander",
+    power:8, insight:5, persuasion:6,
+    movement:[[1,0],[-1,0],[0,1],[0,-1],[2,0],[-2,0]],
+    style:"Rushes lanes and forces direct confrontations.",
+    specialName:"Cross the Rubicon",
+    specialText:"Move up to 2 spaces, then gain 1 Influence.",
+    special:"rubicon"
+  },
+  {
+    id:"SOC", name:"Socrates", role:"Foundational questioner",
+    power:3, insight:9, persuasion:8,
+    movement:[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]],
+    style:"Controls nearby choices and wins through pressure.",
+    specialName:"Expose Contradiction",
+    specialText:"Adjacent opponent loses 2 Influence and 1 Resolve.",
+    special:"contradiction"
+  },
+  {
+    id:"SHA", name:"William Shakespeare", role:"Cultural architect",
+    power:3, insight:8, persuasion:9,
+    movement:[[1,1],[1,-1],[-1,1],[-1,-1],[2,2],[2,-2],[-2,2],[-2,-2]],
+    style:"Moves diagonally and becomes stronger on the Stage.",
+    specialName:"Command the Stage",
+    specialText:"Claim the Stage from one square away.",
+    special:"stage"
+  },
+  {
+    id:"SWI", name:"Taylor Swift", role:"Modern influence strategist",
+    power:4, insight:7, persuasion:10,
+    movement:[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]],
+    style:"Builds momentum by controlling public space.",
+    specialName:"Rally the Audience",
+    specialText:"Gain 3 Influence; gain 1 more on the Stage.",
+    special:"rally"
+  }
+];
+
+const OBJECTIVES = {
+  "2,0":{name:"FORUM", type:"forum"},
+  "2,2":{name:"ARCHIVE", type:"archive"},
+  "2,4":{name:"STAGE", type:"stage"}
+};
+
+let selectedId = null;
+let game = null;
+let mode = null;
+let legalCells = [];
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const initials = name => name.split(" ").map(x=>x[0]).join("").slice(0,2);
+
+function checksum(text){
+  let h=2166136261;
+  for(const c of text){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}
+  return ("00000000"+(h>>>0).toString(16)).slice(-8);
+}
+
+function renderCards(){
+  $("#cards").innerHTML = FIGURES.map(f => `
+    <button class="card ${selectedId===f.id?"selected":""}" data-id="${f.id}">
+      <div class="avatar">${initials(f.name)}</div>
+      <div class="name">${f.name}</div>
+      <div class="role">${f.role}</div>
+      <div class="style">${f.style}</div>
+    </button>`).join("");
+  $$(".card").forEach(card => card.onclick = () => {
+    selectedId = card.dataset.id;
+    $("#selectionText").textContent = "Selected: " + FIGURES.find(f=>f.id===selectedId).name;
+    $("#startButton").disabled = false;
+    renderCards();
+  });
+}
+
+function record(type, details){
+  const previous = game.receipts.length ? game.receipts.at(-1).hash : "GENESIS";
+  const payload = JSON.stringify({number:game.receipts.length+1,type,details,previous});
+  game.receipts.push({number:game.receipts.length+1,type,details,hash:checksum(payload)});
+}
+
+function startGame(){
+  const playerFigure = FIGURES.find(f=>f.id===selectedId);
+  const index = FIGURES.findIndex(f=>f.id===selectedId);
+  const enemyFigure = FIGURES[(index+1)%FIGURES.length];
+  game = {
+    round:1, turn:"player", over:false,
+    player:{figure:playerFigure,x:0,y:2,resolve:12,influence:0,specialUsed:false,hold:0},
+    enemy:{figure:enemyFigure,x:4,y:2,resolve:12,influence:0,specialUsed:false,hold:0},
+    owners:{"2,0":null,"2,2":null,"2,4":null},
+    receipts:[]
+  };
+  record("MATCH_OPEN",{player:playerFigure.id,enemy:enemyFigure.id});
+  $("#selectScreen").classList.remove("active");
+  $("#gameScreen").classList.add("active");
+  buildBoard();
+  clearMode();
+  render();
+  $("#message").textContent = `${playerFigure.name} enters against ${enemyFigure.name}.`;
+}
+
+function buildBoard(){
+  let html="";
+  for(let y=0;y<5;y++){
+    for(let x=0;x<5;x++){
+      const key=`${x},${y}`;
+      const obj=OBJECTIVES[key];
+      html += `<div class="cell ${obj?obj.type:""}" data-key="${key}" data-x="${x}" data-y="${y}">
+        ${obj?`<div class="objective">${obj.name}</div>`:""}
+      </div>`;
+    }
+  }
+  $("#board").innerHTML=html;
+  $$(".cell").forEach(cell => cell.onclick = () => cellClicked(cell));
+}
+
+function isInside(x,y){return x>=0&&x<5&&y>=0&&y<5}
+function occupied(x,y){return (game.player.x===x&&game.player.y===y)||(game.enemy.x===x&&game.enemy.y===y)}
+function distance(a,b){return Math.abs(a.x-b.x)+Math.abs(a.y-b.y)}
+function objectiveBonus(unit){
+  const obj=OBJECTIVES[`${unit.x},${unit.y}`];
+  if(!obj)return 0;
+  if(obj.type==="forum")return 1;
+  if(obj.type==="archive")return 1;
+  if(obj.type==="stage")return 1;
+  return 0;
+}
+
+function movementCells(unit, extended=false){
+  const offsets = extended
+    ? [[1,0],[-1,0],[0,1],[0,-1],[2,0],[-2,0],[0,2],[0,-2]]
+    : unit.figure.movement;
+  const cells=[];
+  for(const [dx,dy] of offsets){
+    const x=unit.x+dx,y=unit.y+dy;
+    if(isInside(x,y)&&!occupied(x,y))cells.push(`${x},${y}`);
+  }
+  return [...new Set(cells)];
+}
+
+function chooseMode(nextMode){
+  if(game.over||game.turn!=="player")return;
+  clearMode();
+  mode=nextMode;
+  const p=game.player,e=game.enemy;
+  if(mode==="move"){
+    legalCells=movementCells(p);
+    $("#preview").textContent=legalCells.length
+      ? "Green spaces are legal moves for this figure. Select one."
+      : "No legal movement spaces are available.";
+  } else if(mode==="challenge"){
+    if(distance(p,e)===1){
+      legalCells=[`${e.x},${e.y}`];
+      const damage=challengeDamage(p,e);
+      $("#preview").textContent=`Preview: challenge ${e.figure.name} for ${damage} Resolve damage.`;
+    } else {
+      $("#preview").textContent="Challenge requires the opponent to be directly adjacent.";
+    }
+  } else if(mode==="claim"){
+    const key=`${p.x},${p.y}`;
+    if(OBJECTIVES[key]){
+      legalCells=[key];
+      $("#preview").textContent=`Preview: claim the ${OBJECTIVES[key].name}.`;
+    } else {
+      $("#preview").textContent="Move onto the Forum, Archive, or Stage before claiming.";
+    }
+  } else if(mode==="special"){
+    prepareSpecial(p,e);
+  }
+  paintLegalCells();
+}
+
+function prepareSpecial(p,e){
+  if(p.specialUsed){
+    $("#preview").textContent="This signature move has already been used.";
+    return;
+  }
+  switch(p.figure.special){
+    case "rubicon":
+      legalCells=movementCells(p,true);
+      $("#preview").textContent="Cross the Rubicon: select a highlighted space, then gain 1 Influence.";
+      break;
+    case "contradiction":
+      if(distance(p,e)===1){
+        legalCells=[`${e.x},${e.y}`];
+        $("#preview").textContent="Expose Contradiction: opponent loses 2 Influence and 1 Resolve.";
+      }else $("#preview").textContent="Expose Contradiction requires an adjacent opponent.";
+      break;
+    case "stage":{
+      const stage={x:2,y:4};
+      if(distance(p,stage)<=2){
+        legalCells=["2,4"];
+        $("#preview").textContent="Command the Stage: take control of the Stage from nearby.";
+      }else $("#preview").textContent="Move within two spaces of the Stage first.";
+      break;
+    }
+    case "rally":
+      legalCells=[`${p.x},${p.y}`];
+      $("#preview").textContent=`Rally the Audience: gain ${OBJECTIVES[`${p.x},${p.y}`]?.type==="stage"?4:3} Influence.`;
+      break;
+  }
+}
+
+function paintLegalCells(){
+  $$(".cell").forEach(c=>c.classList.remove("legal","target","path"));
+  legalCells.forEach(key=>{
+    const c=document.querySelector(`[data-key="${key}"]`);
+    if(!c)return;
+    c.classList.add(mode==="challenge"||mode==="special"?"target":"legal");
+    if(mode==="move")c.classList.add("path");
+  });
+}
+
+function clearMode(){
+  mode=null;legalCells=[];
+  $$(".cell").forEach(c=>c.classList.remove("legal","target","path"));
+  $$(".action").forEach(b=>b.classList.remove("ready"));
+}
+
+function cellClicked(cell){
+  if(!mode||!legalCells.includes(cell.dataset.key)||game.turn!=="player"||game.over)return;
+  const x=Number(cell.dataset.x),y=Number(cell.dataset.y);
+  if(mode==="move")performMove("player",x,y,false);
+  else if(mode==="challenge")performChallenge("player");
+  else if(mode==="claim")performClaim("player");
+  else if(mode==="special")performSpecial("player",x,y);
+}
+
+function challengeDamage(attacker,defender){
+  const attack=attacker.figure.power+Math.floor(attacker.influence/3)+objectiveBonus(attacker);
+  const defense=Math.floor(defender.figure.insight/3)+objectiveBonus(defender);
+  return Math.max(1,Math.min(4,attack-defense));
+}
+
+function performMove(side,x,y,fromSpecial){
+  const unit=game[side];
+  const from=[unit.x,unit.y];
+  unit.x=x;unit.y=y;
+  const obj=OBJECTIVES[`${x},${y}`];
+  const text=`${unit.figure.name} moved from ${from.join(",")} to ${x},${y}${obj?` and entered the ${obj.name}`:""}.`;
+  record("MOVE",{round:game.round,side,from,to:[x,y],special:fromSpecial});
+  finishAction(side,text);
+}
+
+function performChallenge(side){
+  const attacker=game[side],defender=game[side==="player"?"enemy":"player"];
+  const damage=challengeDamage(attacker,defender);
+  defender.resolve=Math.max(0,defender.resolve-damage);
+  attacker.influence=Math.min(10,attacker.influence+1);
+  const text=`${attacker.figure.name} challenged ${defender.figure.name}, dealing ${damage} Resolve damage and gaining 1 Influence.`;
+  record("CHALLENGE",{round:game.round,side,damage});
+  finishAction(side,text);
+}
+
+function performClaim(side){
+  const unit=game[side],key=`${unit.x},${unit.y}`;
+  const obj=OBJECTIVES[key];
+  game.owners[key]=side;
+  unit.influence=Math.min(10,unit.influence+2);
+  const text=`${unit.figure.name} claimed the ${obj.name} and gained 2 Influence.`;
+  record("CLAIM",{round:game.round,side,objective:obj.name});
+  finishAction(side,text);
+}
+
+function performSpecial(side,x,y){
+  const unit=game[side],other=game[side==="player"?"enemy":"player"];
+  let text="";
+  unit.specialUsed=true;
+  switch(unit.figure.special){
+    case "rubicon":{
+      const from=[unit.x,unit.y];unit.x=x;unit.y=y;unit.influence=Math.min(10,unit.influence+1);
+      text=`${unit.figure.name} crossed the Rubicon, moving from ${from.join(",")} to ${x},${y} and gaining 1 Influence.`;
+      break;
+    }
+    case "contradiction":
+      other.influence=Math.max(0,other.influence-2);other.resolve=Math.max(0,other.resolve-1);
+      text=`${unit.figure.name} exposed a contradiction. ${other.figure.name} lost 2 Influence and 1 Resolve.`;
+      break;
+    case "stage":
+      game.owners["2,4"]=side;unit.influence=Math.min(10,unit.influence+2);
+      text=`${unit.figure.name} commanded the Stage from afar and gained 2 Influence.`;
+      break;
+    case "rally":{
+      const gain=OBJECTIVES[`${unit.x},${unit.y}`]?.type==="stage"?4:3;
+      unit.influence=Math.min(10,unit.influence+gain);
+      text=`${unit.figure.name} rallied the audience and gained ${gain} Influence.`;
+      break;
+    }
+  }
+  record("SPECIAL",{round:game.round,side,name:unit.figure.specialName});
+  finishAction(side,text);
+}
+
+function ownedCount(side){return Object.values(game.owners).filter(v=>v===side).length}
+
+function checkEnd(){
+  if(game.player.resolve<=0||game.enemy.resolve<=0){
+    endGame(game.enemy.resolve<=0?"You win":"The computer wins","Resolve reached zero.");
+    return true;
+  }
+  if(game.player.hold>=2||game.enemy.hold>=2){
+    endGame(game.player.hold>=2?"You win":"The computer wins","Two objectives were controlled for two full rounds.");
+    return true;
+  }
+  if(game.round>16){
+    const ps=game.player.resolve+game.player.influence+ownedCount("player")*3;
+    const es=game.enemy.resolve+game.enemy.influence+ownedCount("enemy")*3;
+    endGame(ps>=es?"You win":"The computer wins","Round limit reached; position score decided the match.");
+    return true;
+  }
+  return false;
+}
+
+function finishAction(side,text){
+  clearMode();
+  $("#message").textContent=text;
+  render();
+  if(checkEnd())return;
+  if(side==="player"){
+    game.turn="enemy";
+    render();
+    setTimeout(enemyTurn,550);
+  } else {
+    if(ownedCount("player")>=2)game.player.hold++;else game.player.hold=0;
+    if(ownedCount("enemy")>=2)game.enemy.hold++;else game.enemy.hold=0;
+    game.round++;
+    game.turn="player";
+    $("#preview").textContent="Choose an action. Legal results will be shown before you commit.";
+    render();
+    checkEnd();
+  }
+}
+
+function enemyTurn(){
+  if(game.over)return;
+  const e=game.enemy,p=game.player;
+  const key=`${e.x},${e.y}`;
+
+  if(!e.specialUsed&&e.figure.special==="contradiction"&&distance(e,p)===1){
+    performSpecial("enemy",p.x,p.y);return;
+  }
+  if(distance(e,p)===1&&challengeDamage(e,p)>=2){
+    performChallenge("enemy");return;
+  }
+  if(OBJECTIVES[key]&&game.owners[key]!=="enemy"){
+    performClaim("enemy");return;
+  }
+  if(!e.specialUsed&&e.figure.special==="rally"&&e.influence<=5){
+    performSpecial("enemy",e.x,e.y);return;
+  }
+  if(!e.specialUsed&&e.figure.special==="stage"&&distance(e,{x:2,y:4})<=2&&game.owners["2,4"]!=="enemy"){
+    performSpecial("enemy",2,4);return;
+  }
+
+  const moves=movementCells(e,!e.specialUsed&&e.figure.special==="rubicon");
+  const targets=Object.keys(OBJECTIVES).sort((a,b)=>{
+    const [ax,ay]=a.split(",").map(Number),[bx,by]=b.split(",").map(Number);
+    const av=game.owners[a]==="enemy"?5:0,bv=game.owners[b]==="enemy"?5:0;
+    return (Math.abs(e.x-ax)+Math.abs(e.y-ay)+av)-(Math.abs(e.x-bx)+Math.abs(e.y-by)+bv);
+  });
+  const target=targets[0].split(",").map(Number);
+  moves.sort((a,b)=>{
+    const [ax,ay]=a.split(",").map(Number),[bx,by]=b.split(",").map(Number);
+    return (Math.abs(ax-target[0])+Math.abs(ay-target[1]))-(Math.abs(bx-target[0])+Math.abs(by-target[1])) || a.localeCompare(b);
+  });
+  if(moves.length){
+    const [x,y]=moves[0].split(",").map(Number);
+    if(!e.specialUsed&&e.figure.special==="rubicon"){
+      performSpecial("enemy",x,y);
+    }else performMove("enemy",x,y,false);
+  }else{
+    e.influence=Math.min(10,e.influence+1);
+    record("WAIT",{round:game.round,side:"enemy"});
+    finishAction("enemy",`${e.figure.name} held position and gained 1 Influence.`);
+  }
+}
+
+function endGame(title,reason){
+  game.over=true;game.turn="complete";
+  record("MATCH_CLOSE",{title,reason});
+  $("#result").classList.add("show");
+  $("#result").innerHTML=`<h2>${title}</h2><p>${reason}</p><p>Final receipt: <b>${game.receipts.at(-1).hash}</b></p><button class="primary" onclick="location.reload()">Play Again</button>`;
+  render();
+}
+
+function traits(id,f){
+  $(id).innerHTML=[
+    ["Power",f.power],["Insight",f.insight],["Persuasion",f.persuasion],["Range",Math.max(...f.movement.map(m=>Math.abs(m[0])+Math.abs(m[1])))]
+  ].map(([k,v])=>`<div class="trait"><b>${v}</b><span>${k}</span></div>`).join("");
+}
+
+function setBar(id,value,max){$(id).style.width=Math.max(0,Math.min(100,value/max*100))+"%"}
+
+function render(){
+  if(!game)return;
+  const p=game.player,e=game.enemy;
+  $("#playerName").textContent=p.figure.name;$("#playerRole").textContent=p.figure.role;$("#playerPortrait").textContent=initials(p.figure.name);
+  $("#enemyName").textContent=e.figure.name;$("#enemyRole").textContent=e.figure.role;$("#enemyPortrait").textContent=initials(e.figure.name);
+  traits("#playerTraits",p.figure);traits("#enemyTraits",e.figure);
+  $("#playerResolveText").textContent=`${p.resolve}/12`;$("#enemyResolveText").textContent=`${e.resolve}/12`;
+  $("#playerInfluenceText").textContent=`${p.influence}/10`;$("#enemyInfluenceText").textContent=`${e.influence}/10`;
+  setBar("#playerResolveBar",p.resolve,12);setBar("#enemyResolveBar",e.resolve,12);
+  setBar("#playerInfluenceBar",p.influence,10);setBar("#enemyInfluenceBar",e.influence,10);
+  $("#roundText").textContent=`ROUND ${Math.min(game.round,16)} · YOU HOLD ${ownedCount("player")} · COMPUTER HOLDS ${ownedCount("enemy")}`;
+  $("#turnText").textContent=game.over?"Match complete":game.turn==="player"?"Your turn":"Computer turn";
+  $("#specialName").textContent=p.figure.specialName;
+  $("#specialText").textContent=p.figure.specialText+(p.specialUsed?" (used)":"");
+  $("#specialButton").disabled=p.specialUsed||game.turn!=="player"||game.over;
+  $$(".action").forEach(b=>{
+    if(b.id!=="specialButton")b.disabled=game.turn!=="player"||game.over;
+    b.classList.toggle("ready",b.dataset.action===mode);
+  });
+
+  $$(".cell").forEach(c=>{
+    const key=c.dataset.key;
+    c.classList.remove("owner-player","owner-enemy");
+    if(game.owners[key])c.classList.add("owner-"+game.owners[key]);
+    c.querySelectorAll(".token").forEach(t=>t.remove());
+  });
+  [["player",p],["enemy",e]].forEach(([side,u])=>{
+    const token=document.createElement("div");
+    token.className="token "+side;token.textContent=initials(u.figure.name);
+    document.querySelector(`[data-key="${u.x},${u.y}"]`).appendChild(token);
+  });
+
+  $("#receipts").innerHTML=game.receipts.slice().reverse().map(r=>`#${r.number} ${r.type} → ${r.hash}<br>${JSON.stringify(r.details)}`).join("<hr>");
+  paintLegalCells();
+}
+
+renderCards();
+$("#startButton").onclick=startGame;
+$$(".action").forEach(b=>b.onclick=()=>chooseMode(b.dataset.action));
+$("#cancelButton").onclick=()=>{clearMode();$("#preview").textContent="Selection cancelled. Choose an action.";render()};
+$("#restartButton").onclick=()=>location.reload();
+</script>
+</body>
+</html>

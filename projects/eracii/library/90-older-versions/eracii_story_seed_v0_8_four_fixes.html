@@ -1,0 +1,1538 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Eracii: Begin Your Story v0.8</title>
+<style>
+:root{
+  --bg:#071018;--panel:rgba(8,17,27,.94);--panel2:#102231;--ink:#edf3f6;--muted:#8fa2af;
+  --line:rgba(222,235,241,.16);--gold:#e1bd63;--cyan:#70bdd0;--green:#76c69c;--red:#df7380;
+  --violet:#aa90dc;--amber:#dc9f55;--shadow:0 24px 80px rgba(0,0,0,.55)
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font:14px/1.4 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;user-select:none;-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #fff;outline-offset:2px}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block;background:#071018;touch-action:none}
+.hud{position:fixed;inset:0;z-index:10;pointer-events:none}
+.topbar{position:absolute;left:10px;right:10px;top:max(8px,env(safe-area-inset-top));display:grid;grid-template-columns:minmax(0,1fr) auto auto minmax(0,1fr);gap:8px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;backdrop-filter:blur(10px);box-shadow:0 8px 28px rgba(0,0,0,.28)}
+.brand{padding:8px 10px;max-width:310px}.brand b{display:block;font:700 14px Georgia,serif;color:var(--gold)}.brand span{display:block;color:var(--muted);font-size:9px;margin-top:1px}
+.stage{padding:7px 12px;text-align:center;min-width:180px}.stage small,.statusbox small{display:block;color:var(--muted);font-size:8px;letter-spacing:.12em;text-transform:uppercase}.stage b{display:block;font-size:12px;margin-top:2px}.stage span{display:block;color:var(--gold);font-size:9px;margin-top:2px}
+.statusbox{justify-self:end;padding:8px 10px;min-width:190px}.statusbox small{display:block;color:var(--muted);font-size:8px;letter-spacing:.1em;text-transform:uppercase}.status-row{display:flex;align-items:center;gap:7px;margin-top:4px;font-size:10px}.tension-track{height:8px;flex:1;min-width:72px;border-radius:99px;background:#24333d;overflow:hidden}.tension-fill{height:100%;width:25%;background:var(--green);transition:width .25s,background .25s}.statusbox b{font-size:10px}.carried{margin-top:5px;color:#d7e1e5;font-size:9px}.watching{margin-top:3px;color:var(--muted);font-size:9px}
+.objective{position:absolute;left:50%;top:78px;transform:translateX(-50%);width:min(620px,88vw);padding:8px 14px;text-align:center;font-size:11px;transition:.2s opacity,.2s transform}.objective strong{color:var(--gold)}
+.toast{position:absolute;left:50%;top:124px;transform:translateX(-50%) translateY(-8px);max-width:min(620px,90vw);padding:8px 15px;text-align:center;opacity:0;transition:.2s;pointer-events:none}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.toast b{color:var(--gold)}
+.help{position:absolute;left:12px;bottom:max(10px,env(safe-area-inset-bottom));padding:8px 14px;font-size:11px;color:#c8d6dc;transition:opacity .3s}.help b{color:var(--gold)}
+.story-note{position:absolute;right:12px;bottom:max(10px,env(safe-area-inset-bottom));padding:8px 11px;text-align:right;font-size:9px;color:var(--muted);max-width:330px}.story-note b{display:block;color:var(--ink);font-size:10px;letter-spacing:.01em;line-height:1.35}
+.controls{position:fixed;z-index:20;left:0;right:0;bottom:max(9px,env(safe-area-inset-bottom));display:none;justify-content:space-between;align-items:flex-end;padding:0 9px;pointer-events:none}
+.control-group{display:flex;gap:7px;padding:6px;border:1px solid var(--line);border-radius:16px;background:rgba(8,17,27,.9);pointer-events:auto}
+.control-btn{width:54px;height:54px;border:1px solid var(--line);border-radius:14px;background:#142635;color:var(--ink);font-weight:900;font-size:18px;touch-action:none}.control-btn.action{width:54px;height:54px;font-size:10px;letter-spacing:.04em}.control-btn:active,.control-btn.active{transform:scale(.94);background:#254156}
+.overlay{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(2,7,11,.82);backdrop-filter:blur(12px);opacity:0;pointer-events:none;transition:.25s opacity;overflow:auto}.overlay.show{opacity:1;pointer-events:auto}
+.card{width:min(760px,96vw);border:1px solid var(--line);border-radius:22px;background:linear-gradient(145deg,#0b1823,#102432);box-shadow:var(--shadow);padding:24px}
+.eyebrow{font-size:9px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.card h1,.card h2{font-family:Georgia,serif;margin:5px 0 8px;line-height:1.04}.card h1{font-size:clamp(28px,6vw,48px)}.card h2{font-size:clamp(23px,4vw,34px)}
+.card p{color:#b6c2c9;margin:8px 0;line-height:1.55}.card .note{font-size:11px;color:var(--muted)}
+.timeline-row{display:grid;grid-template-columns:1fr auto;gap:8px;margin:16px 0}.timeline-row input{min-width:0;width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#09141d}.btn{border:1px solid var(--line);border-radius:11px;background:#162a3a;padding:10px 13px;font-weight:850}.btn:hover{border-color:#718998;background:#1c3448}.btn.primary{background:linear-gradient(#ecd483,#c9a24c);border-color:#f0dc9b;color:#171208}.btn.ghost{background:transparent}.btn.danger{background:#381d25;border-color:#70414a}.full{width:100%}
+.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.how-panel{display:none;margin:10px 0;padding:10px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.025)}.how-panel.show{display:block}.start-actions{display:grid;grid-template-columns:1fr auto;gap:8px}.profile-rule{margin-top:8px;padding:8px 10px;border-left:3px solid var(--gold);background:#091721;border-radius:0 8px 8px 0;font-size:10px;color:#b9c6cc}.feature{padding:10px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.035)}.feature b{display:block;font-size:11px}.feature span{display:block;color:var(--muted);font-size:9px;margin-top:3px;line-height:1.35}
+.choice-copy{padding:12px 0 4px}.figure-line{display:flex;align-items:center;gap:10px}.portrait{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--gold);background:#1b2731;color:var(--gold);font:700 20px Georgia,serif}.figure-line div b{display:block;font:700 17px Georgia,serif}.figure-line div span{font-size:10px;color:var(--muted)}
+.choice-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:15px}.choice{min-height:154px;padding:13px;text-align:left;border:1px solid var(--line);border-radius:14px;background:#0d1b27;transition:.15s transform,.15s border-color,.15s background}.choice:hover{transform:translateY(-2px);border-color:#7890a0;background:#122637}.choice strong{display:block;font:700 18px Georgia,serif}.choice small{display:block;margin-bottom:3px;font-size:9px;letter-spacing:.05em;color:var(--gold)}.choice p{font-size:11px;margin:8px 0 0}.choice-cost{display:grid;gap:4px;margin-top:9px;font-size:9px}.choice-cost span{display:block;padding:4px 6px;border-radius:7px;background:rgba(255,255,255,.035);color:var(--muted)}.choice-cost b{color:var(--ink)}.choice.extend{border-top:3px solid var(--green)}.choice.hold{border-top:3px solid var(--gold)}.choice.restrict{border-top:3px solid var(--red)}
+.context-strip{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}.chip{padding:4px 8px;border:1px solid var(--line);border-radius:99px;background:#0a1721;font-size:9px;color:#aebbc3}.chip b{color:var(--ink)}
+.end-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.metric{padding:10px;border:1px solid var(--line);border-radius:12px;background:#0b1924}.metric small{display:block;color:var(--muted);font-size:8px;letter-spacing:.08em;text-transform:uppercase}.metric b{display:block;margin-top:2px;font:700 20px Georgia,serif}.metric span{display:block;color:var(--muted);font-size:9px;margin-top:2px}
+.story-list{display:grid;gap:6px;margin:12px 0;max-height:190px;overflow:auto;padding-right:4px}.story-row{padding:8px 10px;border-left:3px solid var(--gold);background:#0a1721;border-radius:0 9px 9px 0;font-size:10px}.story-row b{color:var(--gold)}.story-row span{display:block;color:var(--muted);margin-top:2px}
+.tech-gear{position:absolute;right:10px;bottom:8px;width:30px;height:30px;border:0;background:transparent;opacity:.38;font-size:16px;padding:0}.tech-gear:hover,.tech-gear:focus-visible{opacity:.9}
+.technical-code{width:100%;height:68px;resize:none;padding:9px;border:1px solid var(--line);border-radius:10px;background:#061019;color:#9fb2be;font:9px/1.35 ui-monospace,SFMono-Regular,Consolas,monospace;user-select:text}
+.button-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.button-row .btn{flex:1;min-width:145px}
+.choice-summary{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:min(520px,90vw);background:rgba(8,17,27,.96);border:1px solid var(--gold);border-radius:12px;padding:12px 16px;color:#dce6ea;font-size:12px;z-index:55;opacity:0;pointer-events:none;cursor:pointer}.choice-summary.show{pointer-events:auto}.choice-summary.show{animation:fadeUp .3s ease forwards}.choice-summary b{color:var(--gold)}.choice-summary span{display:block;color:var(--muted);font-size:10px;margin-top:5px}@keyframes fadeUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.progress-dots{display:flex;gap:6px;justify-content:center;margin-top:4px}.progress-dot{width:10px;height:10px;border-radius:50%;background:#3a4a55;border:1px solid #5a7a8a}.progress-label{display:block;color:var(--muted);font-size:8px;margin-top:3px}.debug{position:absolute;left:50%;bottom:76px;transform:translateX(-50%);padding:6px 9px;font:9px ui-monospace,SFMono-Regular,Consolas,monospace;color:#9db0bc;display:none}.debug.show{display:block}
+
+.tension-calm{background:var(--green)}.tension-rising{background:var(--gold)}.tension-high{background:var(--amber)}.tension-critical{background:var(--red)}
+.eye-mark{font-size:10px}.technical-panel{display:none;margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#061019}.technical-panel.show{display:block}.timeline-help{margin-top:10px;padding:10px;background:#0d1b27;border-radius:10px;border-left:3px solid var(--gold);font-size:11px;color:#b8c9d2}.choice-gain{border-left:2px solid var(--green)}.choice-risk{border-left:2px solid var(--red)}
+@media(max-width:760px){.topbar{grid-template-columns:1fr auto}.progress-panel{grid-column:1/-1;grid-row:3;justify-self:center}.stage{grid-column:1/-1;grid-row:2;justify-self:center;margin-top:-2px}.statusbox{max-width:205px}.objective{top:112px}.toast{top:151px}.help,.story-note{display:none}.controls{display:flex}.feature-grid,.choice-grid,.end-grid{grid-template-columns:1fr}.card{padding:18px}.choice{min-height:0}.overlay{align-items:flex-start;padding-top:max(18px,env(safe-area-inset-top))}}
+@media(pointer:coarse){.controls{display:flex}}
+
+.audio-controls{position:fixed;z-index:32;right:10px;top:max(72px,calc(env(safe-area-inset-top) + 70px));display:flex;gap:6px;pointer-events:auto}.audio-toggle{border:1px solid var(--line);border-radius:999px;background:rgba(8,17,27,.9);padding:7px 10px;font-size:10px;color:var(--ink);backdrop-filter:blur(8px)}.audio-toggle[aria-pressed="false"]{opacity:.55}.inventory-chip{border-color:rgba(225,189,99,.7)!important;color:#f4d77f!important;background:rgba(225,189,99,.11)!important}.inventory-chip b{color:#ffe7a5!important}.recap-list{display:grid;gap:8px;margin:16px 0}.recap-item{padding:10px 12px;border-left:3px solid var(--gold);border-radius:0 10px 10px 0;background:#0a1721;color:#dce6ea}.recap-item span{display:block;color:var(--muted);font-size:10px;margin-top:3px}.chapter-recap-card{opacity:0;transform:translateY(10px);transition:opacity .5s ease,transform .5s ease}.overlay.show .chapter-recap-card{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+<canvas id="game" aria-label="A side-scrolling district where your actions change routes and people"></canvas>
+
+<div class="hud">
+  <div class="topbar">
+    <div class="panel brand"><b>ERACII · THE LIVING BOARD</b><span>Click people. Choose at gates. The roads rewrite.</span></div>
+    <div class="panel stage"><small>📍 Where you are</small><b id="stageName">The sealed district</b><span id="stageHint">Walk toward the first gate</span></div>
+    <div class="panel progress-panel stage"><small>Progress</small><div class="progress-dots"><span class="progress-dot" id="gateDot0"></span><span class="progress-dot" id="gateDot1"></span><span class="progress-dot" id="gateDot2"></span><span class="progress-dot" id="gateDot3"></span></div><span class="progress-label" id="progressLabel">0 of 3 gates passed</span></div>
+    <div class="panel statusbox" aria-label="Current district conditions">
+      <small>District tension</small>
+      <div class="status-row"><div class="tension-track" aria-hidden="true"><div class="tension-fill" id="tensionFill"></div></div><b id="tensionLabel">Calm</b></div>
+      <div class="carried" id="carriedReadout">📜 Carrying: Council Record</div>
+      <div class="watching" id="watchingReadout">No one is watching nearby</div>
+    </div>
+  </div>
+  <div class="panel objective" id="objective"><strong>🏛️ Goal:</strong> Get the Council Record to the chamber. Who you talk to — and what you choose at each gate — changes the roads ahead.</div>
+  <div class="panel toast" id="toast" aria-live="polite"></div>
+  <div class="panel help" id="helpHint"><b>➡️</b> <span id="helpText">Walk right. Click people to talk. Click a glowing gate to choose.</span></div>
+  <div class="panel story-note">📖 What just happened<b id="storyReadout">Your story continues…</b></div>
+  <div class="panel debug" id="debug"></div>
+</div>
+
+<div class="audio-controls" aria-label="Audio controls">
+  <button class="audio-toggle" id="sfxToggle" type="button" aria-pressed="true" title="Turn sound effects off">🔊 Sounds</button>
+  <button class="audio-toggle" id="musicToggle" type="button" aria-pressed="true" title="Turn ambient sound off">♫ Ambience</button>
+</div>
+
+<div class="controls" aria-label="Touch controls">
+  <div class="control-group">
+    <button class="control-btn" data-control="left" aria-label="Move left">◀</button>
+    <button class="control-btn" data-control="right" aria-label="Move right">▶</button>
+  </div>
+  <div class="control-group">
+    <button class="control-btn" data-control="jump" aria-label="Jump">↑</button>
+    <button class="control-btn action" data-control="interact" aria-label="Interact">ACT</button>
+  </div>
+</div>
+
+<div class="overlay show" id="startOverlay">
+  <div class="card">
+    <div class="eyebrow">A district under pressure</div>
+    <h1>Begin your story.</h1>
+    <p>You carry a disputed record. Get it to the council. Talk to people. Choose at each gate. The roads and the people will change around you.</p>
+    <p style="font-size:13px;color:#d4dfe4;"><b>Simple rule:</b> Move, click people, choose at gates. The world remembers.</p>
+    <div class="timeline-help">This world starts from a <b>Story Seed</b> — a number that builds the same district for everyone. Share it so friends can enter the same world and see how their choices rewrite it.</div>
+    <div class="timeline-row">
+      <input id="seedInput" type="number" inputmode="numeric" value="7317" aria-label="Story Seed" title="Share this number with friends to begin in the same world">
+      <button class="btn" id="newSeedBtn" type="button">Give me a new seed</button>
+    </div>
+    <div class="start-actions">
+      <button class="btn primary" id="startBtn" type="button">Begin your story</button>
+      <button class="btn ghost" id="howBtn" type="button" aria-expanded="false">How to play</button>
+    </div>
+    <div class="how-panel" id="howPanel">
+      <p>Walk and jump with the controls (or arrow keys / WASD). <b>Click or tap any person</b> to hear them. Click a glowing gate to make a choice. Each choice rewrites the roads and who shows up later.</p>
+      <p class="note">Keyboard tip: <b>E</b> still works when you are close. On phones, just tap.</p>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="recapOverlay">
+  <div class="card chapter-recap-card">
+    <div class="eyebrow">Previously on your story</div>
+    <h2 id="recapTitle">Part Two</h2>
+    <p><i>The district carries these decisions forward.</i></p>
+    <div class="recap-list" id="recapList"></div>
+    <button class="btn primary full" id="enterInheritedBtn" type="button">Enter the Inherited World</button>
+  </div>
+</div>
+
+<div class="overlay" id="choiceOverlay">
+  <div class="card">
+    <div class="figure-line">
+      <div class="portrait" id="choicePortrait">S</div>
+      <div><span id="choiceEra">The Archive Gate</span><b id="choiceFigure">Socrates</b></div>
+    </div>
+    <div class="choice-copy">
+      <h2 id="choiceTitle">What should happen here?</h2>
+      <p id="choiceText"></p>
+    </div>
+    <div class="context-strip" id="contextStrip"></div>
+    <div class="choice-grid">
+      <button class="choice extend" data-choice="EXTEND" type="button"><small id="extendKicker">🌿 More access</small><strong id="extendTitle">Share knowledge</strong><p id="extendCopy"></p><div class="choice-cost"><span id="extendBenefit"></span><span id="extendRisk"></span></div></button>
+      <button class="choice hold" data-choice="HOLD" type="button"><small id="holdKicker">⏳ More time</small><strong id="holdTitle">Delay the decision</strong><p id="holdCopy"></p><div class="choice-cost"><span id="holdBenefit"></span><span id="holdRisk"></span></div></button>
+      <button class="choice restrict" data-choice="RESTRICT" type="button"><small id="restrictKicker">🔒 More control</small><strong id="restrictTitle">Lock it down</strong><p id="restrictCopy"></p><div class="choice-cost"><span id="restrictBenefit"></span><span id="restrictRisk"></span></div></button>
+    </div>
+    <p class="note">The roads change as soon as you choose. People watching will remember.</p>
+  </div>
+</div>
+
+<div class="overlay" id="endOverlay">
+  <div class="card">
+    <div class="eyebrow" id="endEyebrow">Council reached</div>
+    <h2 id="endingTitle">The Living Agreement</h2>
+    <p id="endingText"></p>
+    <div class="end-grid" id="metricGrid"></div>
+    <div class="eyebrow">Your story</div>
+    <div class="story-list" id="journalList"></div>
+    <div class="button-row">
+      <button class="btn primary" id="continueBtn" type="button">Continue the story</button>
+      <button class="btn" id="shareWorldBtn" type="button">Share this world</button>
+      <button class="btn" id="replayBtn" type="button">Replay this chapter</button>
+      
+      <button class="btn ghost" id="newStoryBtn" type="button">Start a new story</button>
+      
+    </div>
+    <div class="technical-panel" id="technicalPanel">
+      <label class="note" for="runCode">Developer data</label>
+      <textarea class="technical-code" id="runCode" readonly></textarea>
+      <div id="technicalList" class="story-list"></div>
+    </div>
+    <button class="tech-gear" id="technicalBtn" type="button" aria-label="Developer tools" aria-expanded="false" title="Developer tools">⚙️</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const VERSION = "living-board-campaign-v0.8";
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const startOverlay = document.getElementById("startOverlay");
+  const choiceOverlay = document.getElementById("choiceOverlay");
+  const endOverlay = document.getElementById("endOverlay");
+  const recapOverlay = document.getElementById("recapOverlay");
+  const toastEl = document.getElementById("toast");
+  const stageNameEl = document.getElementById("stageName");
+  const stageHintEl = document.getElementById("stageHint");
+  const storyReadout = document.getElementById("storyReadout");
+  const objectiveEl = document.getElementById("objective");
+
+  const SoundManager = (() => {
+    let audioCtx=null, master=null, sfxGain=null, musicGain=null, droneOsc=null, droneGain=null, vibratoOsc=null, vibratoGain=null;
+    let sfxEnabled=true, musicEnabled=true;
+    function ensure(){
+      if(audioCtx) { if(audioCtx.state==="suspended") audioCtx.resume(); return; }
+      const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+      audioCtx=new AC(); master=audioCtx.createGain(); sfxGain=audioCtx.createGain(); musicGain=audioCtx.createGain();
+      master.gain.value=.5; sfxGain.gain.value=1; musicGain.gain.value=1; sfxGain.connect(master); musicGain.connect(master); master.connect(audioCtx.destination);
+      droneOsc=audioCtx.createOscillator(); droneGain=audioCtx.createGain(); vibratoOsc=audioCtx.createOscillator(); vibratoGain=audioCtx.createGain();
+      droneOsc.type="sine"; droneOsc.frequency.value=52; droneGain.gain.value=0.0001;
+      vibratoOsc.type="sine"; vibratoOsc.frequency.value=.18; vibratoGain.gain.value=1.4;
+      vibratoOsc.connect(vibratoGain); vibratoGain.connect(droneOsc.frequency); droneOsc.connect(droneGain); droneGain.connect(musicGain);
+      droneOsc.start(); vibratoOsc.start();
+    }
+    function tone(freq,duration,volume=.08,type="sine",when=0,endFreq=null){ if(!sfxEnabled)return; ensure(); if(!audioCtx)return; const t=audioCtx.currentTime+when,o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.type=type;o.frequency.setValueAtTime(freq,t);if(endFreq)o.frequency.exponentialRampToValueAtTime(endFreq,t+duration);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(volume,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+duration);o.connect(g);g.connect(sfxGain);o.start(t);o.stop(t+duration+.02);}
+    function jump(){tone(250,.13,.055,"sine",0,430);}
+    function land(){tone(82,.09,.06,"sine",0,48);}
+    function choice(){tone(392,.22,.05,"sine",0);tone(494,.22,.05,"sine",.09);tone(659,.28,.055,"sine",.18);}
+    function setTension(v){ensure();if(!audioCtx||!droneGain)return;const n=Math.max(0,Math.min(8,v))/8,t=audioCtx.currentTime;droneOsc.frequency.setTargetAtTime(48+n*18,t,.35);droneGain.gain.setTargetAtTime(musicEnabled?(0.002+n*.018):0.0001,t,.45);}
+    function setSfx(on){sfxEnabled=on;ensure();if(sfxGain)sfxGain.gain.setTargetAtTime(on?1:0,audioCtx.currentTime,.05);}
+    function setMusic(on){musicEnabled=on;ensure();if(musicGain)musicGain.gain.setTargetAtTime(on?1:0,audioCtx.currentTime,.12);}
+    return {ensure,jump,land,choice,setTension,setSfx,setMusic,get sfxEnabled(){return sfxEnabled},get musicEnabled(){return musicEnabled}};
+  })();
+  const debugEl = document.getElementById("debug");
+
+  const WORLD_W = 2760;
+  const FLOOR_Y = 520;
+  const FIXED_DT = 1000 / 60;
+  const MAX_STEPS_PER_FRAME = 6;
+
+  let CW = 1280, CH = 720, DPR = 1;
+  let accumulator = 0, lastFrame = 0;
+  let game = null;
+
+  const CHAPTER1_EVENTS = [
+    {
+      id:0, x:640, gateX:760, figure:"The Archivist", initial:"A", era:"The Archive Gate",
+      title:"What do you do with the disputed record?",
+      text:"Officials want it locked away. The people waiting outside want to read it themselves. You are the one who decides.",
+      extend:"Nail copies to every post. Let anyone take one home.",
+      hold:"Keep it closed for now. Ask more people what they saw first.",
+      restrict:"Choose one records keeper. Destroy every other copy."
+    },
+    {
+      id:1, x:1320, gateX:1385, figure:"The Foreman", initial:"F", era:"The Broken Crossing",
+      title:"The only bridge is cracking. How do people cross?",
+      text:"Two crowds are already on the approach. You can spread them out, wait and test, or pick who gets the safe path.",
+      extend:"Build three quick crossings. Get everyone across.",
+      hold:"Keep the main bridge open while the crew tests the supports.",
+      restrict:"Build one strong, guarded crossing. You decide who uses it."
+    },
+    {
+      id:2, x:2015, gateX:2090, figure:"The Speaker", initial:"S", era:"The Public Square",
+      title:"The square is packed. Who gets to speak?",
+      text:"Some say open every gate so the full story is heard. Others say clear the crowd or the council will never finish.",
+      extend:"Open every entrance. Hear whoever shows up.",
+      hold:"Hold the line. Check who is here and what they actually know.",
+      restrict:"Clear the square. Only approved representatives enter."
+    }
+  ];
+
+  let EVENTS = CHAPTER1_EVENTS;
+
+  const PROFILE_RULES = {
+    OVEREXTENDED:{label:"Too many roads",copy:"Extra paths appear — and some can vanish under your feet."},
+    CONTROLLED:{label:"Locked gates",copy:"Some crossings stay shut until people vouch for you or you carry proof."},
+    DEFERRED:{label:"Time is moving",copy:"Standing still still costs you. Tension rises while you wait."},
+    FRACTURED:{label:"Mixed signals",copy:"Not every person you meet is telling the truth."},
+    BALANCED:{label:"Uneasy paths",copy:"Two routes work. One is faster. One keeps more evidence."}
+  };
+
+  const NEXT_DISTRICTS = {
+    OVEREXTENDED:{name:"The District of Too Many Roads",subtitle:"you opened more paths than anyone could hold",color:"open",figures:["Well Keeper","Bridge Hand","Assembly Clerk"],
+      stakes:[
+        ["The Shared Well","Pipes reach every street, but they are breaking faster than crews can fix them.","Open neighborhood taps. Let local crews patch what they can.","Stop expanding. Map which pipes still hold.","Shut the weakest branches. Protect one reliable line."],
+        ["The Crowded Bridge","Too many new routes dump onto one crossing.","Build more approaches. Spread the crowd.","Halt traffic and reinforce the center.","Schedule who may cross and when."],
+        ["The Open Assembly","Everyone can enter, but no one can hear everyone at once.","Split into smaller meetings and send summaries up.","Delay the vote until missing groups pick speakers.","Admit only the delegates already on the list."]]},
+    CONTROLLED:{name:"The District Behind One Gate",subtitle:"order held — and everything now depends on the gate",color:"closed",figures:["Copy Runner","Gate Captain","Quiet Resident"],
+      stakes:[
+        ["The Missing Copy","The official archive matches itself. A private copy outside the gate does not.","Open a second reading room. Compare both in public.","Guard the copy while you find witnesses.","Confiscate it until the council checks the source."],
+        ["The Checkpoint","One guarded crossing keeps order. Food and medicine wait outside.","Open side lanes under local watch.","Keep the gate shut a little longer while needs are counted.","Strengthen the checkpoint. Only approved carriers pass."],
+        ["The Silent Quarter","A whole quarter stopped sending people. No one knows if they are safe or afraid.","Send open invitations by several roads.","Wait for a trusted resident to come back with news.","Move on without them and keep the schedule."]]},
+    DEFERRED:{name:"The District That Waited",subtitle:"you bought time — the danger kept moving",color:"hold",figures:["Support Lead","Waiting Witness","Bell Keeper"],
+      stakes:[
+        ["The Failing Supports","Temporary repairs held. No one chose which should become permanent.","Send crews to every promising support.","Test them one more time before building.","Tear down the weakest. Keep the strongest."],
+        ["The Departing Witnesses","People who agreed to wait are starting to leave.","Open testimony now, even if stories clash.","Ask them to stay while missing evidence arrives.","Write down only verified statements before anyone goes."],
+        ["The Last Bell","The council must act before night. The record is still incomplete.","Act now. Allow fixes after the decision.","Miss the deadline. Keep gathering.","Close the record. Decide from what is already certified."]]},
+    FRACTURED:{name:"The District of Conflicting Records",subtitle:"word spread faster than trust",color:"fracture",figures:["Map Seller","Rumor Carrier","Council Aide"],
+      stakes:[
+        ["The Contradicting Maps","Three public maps show different safe routes through the same streets.","Post all three. Let travelers compare them.","Close the crossings while surveyors retrace each route.","Authorize one map. Pull the others down."],
+        ["The Rumor Crossing","A warning may be true, but it is moving faster than anyone can check.","Keep every channel open. Mark the uncertainty on the board.","Slow the message until independent witnesses arrive.","Stop the message until an authority confirms it."],
+        ["The Divided Council","Every group brings evidence. None accepts the others’ standards.","Hold one shared hearing with competing records side by side.","Postpone judgment. Agree first on how evidence is tested.","Pick one standard. Exclude records that fail it."]]},
+    BALANCED:{name:"The District of Uneasy Balance",subtitle:"nothing collapsed — nothing was settled",color:"balance",figures:["Ledger Clerk","Crossing Guard","Charter Writer"],
+      stakes:[
+        ["The Shared Ledger","Compromise kept the district alive, but no one remembers why each exception was made.","Open the ledger for public notes.","Leave it unchanged until original witnesses are found.","Seal the old exceptions. Issue one clean rule."],
+        ["The Twin Crossings","Two routes work. Each group thinks the other gets unfair protection.","Add a third route run jointly.","Measure use and damage before changing either.","Pick one official crossing. Close the other."],
+        ["The Next Charter","The council can keep the balance or turn it into lasting law.","Write a flexible charter that allows local variation.","Keep the temporary deal while consequences are studied.","Write a strict charter so everyone knows the line."]]}
+  };
+
+  function deriveNextProfile(s){
+    if(s.control > 68 && s.trust < 52) return "CONTROLLED";
+    if(s.holdCount >= 2 || (s.resilience < 48 && s.tick > 5200)) return "DEFERRED";
+    if(s.plurality > 66 && s.resilience < 58) return "OVEREXTENDED";
+    if(s.knowledge > 64 && s.trust < 56) return "FRACTURED";
+    return "BALANCED";
+  }
+
+  function buildChapter2Events(snapshot){
+    const key=deriveNextProfile(snapshot), pack=NEXT_DISTRICTS[key];
+    const variant=stableNoise(snapshot.seed,snapshot.chain,snapshot.tick,snapshot.routeScars)%3;
+    return pack.stakes.map((row,i)=>({
+      id:i,x:[640,1320,2015][i],gateX:[760,1385,2090][i],figure:pack.figures[(i+variant)%3],initial:pack.figures[(i+variant)%3][0],
+      era:row[0],title:row[1],
+      text:`This place grew from your earlier choices — ${pack.subtitle}. The roads, the missing people, and the scars are still here.`,
+      extend:row[2],hold:row[3],restrict:row[4],
+      outcomes:{
+        EXTEND:{visible:"New paths open. The load spreads into places that used to be quiet.",latent:"The opening carries the exact trust, evidence, timing, and scars from the first district."},
+        HOLD:{visible:"Options stay open, but the danger keeps moving through people and structures.",latent:"What the hold protects depends on who arrived, what survived, and how long the first district took."},
+        RESTRICT:{visible:"A clearer boundary forms. Passage becomes reliable for some and closed to others.",latent:"The restriction is read through the authority and trust already set in the first district."}
+      }
+    }));
+  }
+
+  const NPC_BLUEPRINTS = [
+    {id:"archivist",name:"Archivist",x:510,range:42,speed:1,role:"records",baseIntent:"protecting incomplete records"},
+    {id:"guard",name:"Gate Guard",x:860,range:66,speed:1,role:"order",baseIntent:"watching for disorder"},
+    {id:"courier",name:"Courier",x:1080,range:115,speed:2,role:"evidence",baseIntent:"looking for a safe route"},
+    {id:"worker",name:"Bridge Worker",x:1260,range:55,speed:1,role:"repair",baseIntent:"testing the broken supports"},
+    {id:"child",name:"Lost Child",x:1780,range:90,speed:1,role:"care",baseIntent:"trying to find the square"},
+    {id:"orator",name:"Street Orator",x:1910,range:100,speed:2,role:"voice",baseIntent:"waiting for an audience"},
+    {id:"elder",name:"Council Elder",x:2325,range:50,speed:1,role:"council",baseIntent:"counting who arrives"}
+  ];
+
+  function clamp(v,a,b){ return v < a ? a : v > b ? b : v; }
+  function abs(v){ return v < 0 ? -v : v; }
+  function sign(v){ return v < 0 ? -1 : v > 0 ? 1 : 0; }
+  function hash32(x){
+    x |= 0;
+    x ^= x >>> 16; x = Math.imul(x, 0x7feb352d);
+    x ^= x >>> 15; x = Math.imul(x, 0x846ca68b);
+    x ^= x >>> 16;
+    return x >>> 0;
+  }
+  function fnv1a(text, start=0x811c9dc5){
+    let h = start >>> 0;
+    for(let i=0;i<text.length;i++){
+      h ^= text.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    return h >>> 0;
+  }
+  function hex(v){ return (v >>> 0).toString(16).padStart(8,"0"); }
+  function stableNoise(seed,a,b=0,c=0){ return hash32((seed|0) ^ Math.imul(a|0,73856093) ^ Math.imul(b|0,19349663) ^ Math.imul(c|0,83492791)); }
+  function pressureAt(zone,tick,state){
+    const phase = ((tick / 48) | 0) + zone * 3;
+    const wave = (phase % 9) - 4;
+    const seeded = (stableNoise(state.seed,zone,(tick/90)|0,17) % 5) - 2;
+    const inherited = ((state.control - state.trust) / 18) | 0;
+    return clamp(wave + seeded + inherited, -6, 8);
+  }
+  function localVariant(context, choice){
+    return stableNoise(context.seed, context.tick, context.playerX + context.witnessCount*31, fnv1a(choice)) % 7;
+  }
+  function quantWord(value, low, high, words){ return value < low ? words[0] : value > high ? words[2] : words[1]; }
+
+  function resize(){
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    CW = Math.max(320, window.innerWidth);
+    CH = Math.max(420, window.innerHeight);
+    canvas.width = Math.round(CW * DPR);
+    canvas.height = Math.round(CH * DPR);
+    canvas.style.width = CW + "px";
+    canvas.style.height = CH + "px";
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  function newGame(journey, replayEvents=null, options={}){
+    const s = (Number(journey) || 7317) >>> 0;
+    const chapter=options.chapter||1;
+    const inherited=options.inherited||null;
+    EVENTS = chapter===2 ? buildChapter2Events(inherited) : CHAPTER1_EVENTS;
+    const npcs = NPC_BLUEPRINTS.map((n,i) => ({...n, x:n.x, baseX:n.x, dir:(stableNoise(s,i,3)%2)?1:-1, talked:false, remembers:[], intent:n.baseIntent, tone:"neutral", visible:true}));
+    game = {
+      journey:s,seed:s,chapter,inherited,profile:chapter===2?deriveNextProfile(inherited):null,tick:0,playing:true,paused:false,replay:!!replayEvents,replayEvents:replayEvents?replayEvents.map(e=>({...e})):[],replayIndex:0,
+      input:{left:false,right:false},jumpQueued:false,events:[],
+      player:{x:90,y:FLOOR_Y-42,vx:0,vy:0,w:24,h:42,onGround:true,checkpointX:90,falls:0},
+      pet:{x:48,y:FLOOR_Y-58,trust:inherited?inherited.petTrust:30,mood:"watching",scar:inherited?inherited.petScar:0},
+      cameraX:0,
+      eventState:["LOCKED","LOCKED","LOCKED"],activeEvent:null,
+      npcs,
+      pickups:[],collected:[],contacts:[],
+      terrainMode:[null,null,null],
+      trust:inherited?inherited.trust:50,control:inherited?inherited.control:50,knowledge:inherited?inherited.knowledge:45,resilience:inherited?inherited.resilience:50,harm:inherited?inherited.harm:12,plurality:inherited?inherited.plurality:45,
+      witnessLedger:inherited?{...inherited.witnessLedger}:{},journal:inherited?inherited.journal.map(r=>({...r,chapter:r.chapter||1})):[],chain:inherited?inherited.chain:0x811c9dc5,
+      final:false,lastToastTick:-999,
+      visiblePressure:0,
+      runStartSeed:s,
+      routeScars:inherited?inherited.routeScars:0,
+      priorChoices:inherited?inherited.terrainMode.slice():[],
+      currentStage:0,
+      councilReached:false,profileNoticeShown:false,profilePulse:0,firstJumpTipShown:false,visualParticles:[]
+    };
+    storyReadout.textContent = "Your story continues…";
+    objectiveEl.innerHTML = "<strong>🏛️ Goal:</strong> Get the record to the council. Talk to people. Choose at each gate. The district remembers.";
+    endOverlay.classList.remove("show");
+    recapOverlay.classList.remove("show");
+    choiceOverlay.classList.remove("show");
+    startOverlay.classList.remove("show");
+    updateStageText();
+    updateProgressDots();
+    updateHelpText();
+    updatePlayerHUD();
+    showToast(replayEvents ? "This chapter is replaying. Controls are locked." : chapter===1 ? "Walk right. Click people to talk. Click the glowing gate when you are ready." : `<b>${NEXT_DISTRICTS[game.profile].name}</b> · ${PROFILE_RULES[game.profile].label}.`, true);
+  }
+
+  function showToast(text, important=false){
+    if(!game) return;
+    toastEl.innerHTML = text;
+    toastEl.classList.add("show");
+    game.lastToastTick = game.tick;
+    if(important) game.lastToastTick = game.tick + 90;
+  }
+
+  function hideToastIfNeeded(){
+    if(game && game.tick - game.lastToastTick > 150) toastEl.classList.remove("show");
+  }
+
+  function recordEvent(evt){
+    if(!game || game.replay) return;
+    game.events.push({tick:game.tick,...evt});
+  }
+
+  function setControl(name, down, fromReplay=false){
+    if(!game || !game.playing || game.paused || (game.replay && !fromReplay)) return;
+    if(name === "left" || name === "right"){
+      if(game.input[name] === down) return;
+      game.input[name] = down;
+      if(!fromReplay) recordEvent({type:"key",key:name,down});
+    } else if(name === "jump" && down){
+      game.jumpQueued = true;
+      if(!fromReplay && !game.firstJumpTipShown){ game.firstJumpTipShown=true; showToast("Click any person with a speech bubble to hear them. Or press <b>E</b> when close.",true); }
+      if(!fromReplay) recordEvent({type:"key",key:"jump",down:true});
+    } else if(name === "interact" && down){
+      if(!fromReplay) recordEvent({type:"key",key:"interact",down:true});
+      interact(fromReplay);
+    }
+  }
+
+  const keyMap = {ArrowLeft:"left",KeyA:"left",ArrowRight:"right",KeyD:"right",Space:"jump",ArrowUp:"jump",KeyW:"jump",KeyE:"interact",Enter:"interact"};
+  window.addEventListener("keydown", e => {
+    const k = keyMap[e.code];
+    if(!k) return;
+    e.preventDefault();
+    if(e.repeat && (k === "jump" || k === "interact")) return;
+    setControl(k,true,false);
+  });
+  window.addEventListener("keyup", e => {
+    const k = keyMap[e.code];
+    if(!k) return;
+    e.preventDefault();
+    if(k === "left" || k === "right") setControl(k,false,false);
+  });
+
+  document.querySelectorAll("[data-control]").forEach(btn => {
+    const control = btn.dataset.control;
+    const down = e => { e.preventDefault(); btn.classList.add("active"); setControl(control,true,false); };
+    const up = e => { e.preventDefault(); btn.classList.remove("active"); if(control === "left" || control === "right") setControl(control,false,false); };
+    btn.addEventListener("pointerdown", down);
+    btn.addEventListener("pointerup", up);
+    btn.addEventListener("pointercancel", up);
+    btn.addEventListener("pointerleave", up);
+  });
+
+  function platformRects(){
+    const p = [
+      {x:0,y:FLOOR_Y,w:1420,h:100,type:"ground"},
+      {x:1700,y:FLOOR_Y,w:1060,h:100,type:"ground"},
+      {x:420,y:450,w:150,h:16,type:"roof"},
+      {x:570,y:405,w:160,h:16,type:"roof"},
+      {x:1040,y:460,w:150,h:14,type:"ledge"},
+      {x:1830,y:455,w:130,h:14,type:"ledge"},
+      {x:2230,y:445,w:160,h:14,type:"council-step"}
+    ];
+    if(!game) return p;
+    if(game.chapter===2){
+      const v=stableNoise(game.seed,game.inherited.chain,game.inherited.tick,game.inherited.routeScars)%3;
+      if(game.profile==="CONTROLLED") p.push({x:250,y:470,w:230,h:50,type:"fortified"},{x:1110,y:400,w:180,h:18,type:"fortified"});
+      else if(game.profile==="OVEREXTENDED"){
+        const phase=((game.tick/90|0)+v)%4;
+        if(phase!==0) p.push({x:220,y:465,w:80,h:12,type:"branch"});
+        if(phase!==1) p.push({x:315,y:430,w:78,h:12,type:"branch"});
+        if(phase!==2) p.push({x:405,y:395,w:74,h:12,type:"branch"});
+        p.push({x:500,y:450,w:65,h:10,type:"branch"});
+      }
+      else if(game.profile==="DEFERRED"){
+        const phase=((game.tick/85|0)+v)%3;
+        if(phase!==0) p.push({x:280,y:455,w:160,h:14,type:"hold"});
+        if(phase===2) p.push({x:470,y:420,w:115,h:12,type:"hold"});
+      }
+      else if(game.profile==="FRACTURED") p.push({x:250,y:475,w:70,h:12,type:"branch"},{x:365,y:438,w:70,h:12,type:"branch"},{x:470,y:475,w:68,h:12,type:"fracture"});
+      else p.push({x:250,y:480,w:150,h:12,type:"branch"},{x:260,y:410,w:190,h:14,type:"hold"},{x:475,y:380,w:80,h:12,type:"hold"});
+    }
+    const a = game.terrainMode[0];
+    if(a === "EXTEND"){
+      p.push({x:760,y:455,w:120,h:14,type:"branch"},{x:880,y:420,w:120,h:14,type:"branch"},{x:1000,y:385,w:110,h:14,type:"branch"});
+    } else if(a === "HOLD"){
+      p.push({x:790,y:472,w:75,h:12,type:"hold"},{x:890,y:445,w:75,h:12,type:"hold"});
+    } else if(a === "RESTRICT"){
+      p.push({x:780,y:485,w:260,h:35,type:"fortified"});
+    }
+    const b = game.terrainMode[1];
+    if(b === "EXTEND"){
+      p.push({x:1430,y:492,w:72,h:12,type:"branch"},{x:1518,y:455,w:70,h:12,type:"branch"},{x:1605,y:485,w:70,h:12,type:"branch"});
+      p.push({x:1465,y:420,w:68,h:10,type:"branch"},{x:1560,y:392,w:68,h:10,type:"branch"},{x:1650,y:430,w:55,h:10,type:"branch"});
+    } else if(b === "HOLD"){
+      const unstable = ((game.tick / 120)|0) % 2 === 0;
+      p.push({x:1420,y:480,w:125,h:14,type:"hold"});
+      if(unstable) p.push({x:1545,y:480,w:155,h:14,type:"hold"});
+      else p.push({x:1580,y:450,w:120,h:14,type:"hold"});
+    } else if(b === "RESTRICT"){
+      p.push({x:1410,y:445,w:75,h:14,type:"fortified"},{x:1485,y:400,w:215,h:16,type:"fortified"});
+      p.push({x:1370,y:480,w:55,h:12,type:"stair"},{x:1420,y:455,w:55,h:12,type:"stair"});
+    }
+    const c = game.terrainMode[2];
+    if(c === "EXTEND"){
+      p.push({x:2090,y:485,w:95,h:12,type:"branch"},{x:2195,y:455,w:80,h:12,type:"branch"},{x:2285,y:485,w:100,h:12,type:"branch"});
+    } else if(c === "HOLD"){
+      p.push({x:2100,y:475,w:135,h:14,type:"hold"},{x:2250,y:440,w:115,h:14,type:"hold"});
+    } else if(c === "RESTRICT"){
+      p.push({x:2090,y:490,w:300,h:30,type:"fortified"});
+    }
+    return p;
+  }
+
+  function gateRects(){
+    if(!game) return [];
+    const gates=[];
+    if(game.chapter===2 && game.profile==="CONTROLLED" && game.contacts.length<2 && game.collected.length<1){
+      gates.push({x:1030,y:FLOOR_Y-150,w:28,h:150,id:99,profileGate:true});
+    }
+    EVENTS.forEach(ev => {
+      if(game.eventState[ev.id] !== "RESOLVED") gates.push({x:ev.gateX,y:FLOOR_Y-138,w:24,h:138,id:ev.id});
+    });
+    return gates;
+  }
+
+  function collisionRects(){ return platformRects().concat(gateRects()); }
+
+  function updateReplayEvents(){
+    if(!game.replay) return;
+    while(game.replayIndex < game.replayEvents.length && game.replayEvents[game.replayIndex].tick === game.tick){
+      const e = game.replayEvents[game.replayIndex++];
+      if(e.type === "key") setControl(e.key,e.down,true);
+      else if(e.type === "decision") applyDecision(e.eventId,e.choice,true,e.contextOverride || null);
+    }
+  }
+
+  function update(){
+    if(!game || !game.playing || game.paused) return;
+    updateReplayEvents();
+    game.tick++;
+    hideToastIfNeeded();
+    updatePlayer();
+    updateNPCs();
+    updatePet();
+    updatePickups();
+    updateProfileMechanic();
+    updateWorldState();
+    updatePlayerHUD();
+    updateVisualParticles();
+    SoundManager.setTension(game.visiblePressure);
+    if(game.replay && game.replayIndex >= game.replayEvents.length && game.tick > 60*180 && !game.final){
+      showToast("Replay input stream ended before the council. This indicates an incomplete recorded run.",true);
+    }
+  }
+
+
+  function updateProfileMechanic(){
+    if(game.chapter!==2 || !game.profile) return;
+    if(!game.profileNoticeShown && game.tick>25){
+      game.profileNoticeShown=true;
+      showToast(`<b>${PROFILE_RULES[game.profile].label}:</b> ${PROFILE_RULES[game.profile].copy}`,true);
+    }
+    if(game.profile==="DEFERRED" && game.tick%360===0){
+      game.harm=clamp(game.harm+2,0,100);
+      game.visiblePressure=clamp(game.visiblePressure+1,-6,8);
+      showToast("People are getting stressed while everyone waits.");
+    }
+    if(game.profile==="CONTROLLED" && game.contacts.length>=2 && game.tick%120===0){
+      showToast("Two people vouch for you. The checkpoint opens.");
+    }
+  }
+
+  function updatePlayer(){
+    const p=game.player;
+    const wasGround=p.onGround, wasFalling=p.vy>2;
+    const accel=2,max=7,friction=1;
+    if(game.input.left && !game.input.right) p.vx = Math.max(-max,p.vx-accel);
+    else if(game.input.right && !game.input.left) p.vx = Math.min(max,p.vx+accel);
+    else if(p.vx!==0) p.vx -= sign(p.vx)*Math.min(abs(p.vx),friction);
+    if(game.jumpQueued){
+      if(p.onGround){ p.vy=-15; p.onGround=false; SoundManager.jump(); }
+      game.jumpQueued=false;
+    }
+    p.vy=Math.min(17,p.vy+1);
+    moveEntity(p,p.vx,0);
+    p.onGround=false;
+    moveEntity(p,0,p.vy);
+    if(!wasGround && p.onGround && wasFalling) SoundManager.land();
+    p.x=clamp(p.x,15,WORLD_W-p.w-15);
+    if(p.y>CH+200 || p.y>720){
+      p.falls++;
+      game.harm=clamp(game.harm+3,0,100);
+      game.routeScars++;
+      spawnScarParticles(game.pet.x,game.pet.y);
+      p.x=p.checkpointX;p.y=FLOOR_Y-p.h;p.vx=0;p.vy=0;p.onGround=true;
+      showToast("The route failed beneath you. The Witness remembers where it happened.",true);
+    }
+    const targetCam=clamp(p.x-CW*.42,0,WORLD_W-CW);
+    game.cameraX += ((targetCam-game.cameraX)/8)|0;
+  }
+
+  function moveEntity(ent,dx,dy){
+    if(dx!==0){
+      ent.x+=dx;
+      for(const r of collisionRects()){
+        if(overlap(ent,r)){
+          if(dx>0) ent.x=r.x-ent.w;
+          else ent.x=r.x+r.w;
+          ent.vx=0;
+        }
+      }
+    }
+    if(dy!==0){
+      ent.y+=dy;
+      for(const r of collisionRects()){
+        if(overlap(ent,r)){
+          if(dy>0){ ent.y=r.y-ent.h; ent.vy=0; ent.onGround=true; }
+          else { ent.y=r.y+r.h; ent.vy=0; }
+        }
+      }
+    }
+  }
+
+  function overlap(a,b){ return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y; }
+
+  function hasGroundForNPC(x){
+    return platformRects().some(r=>{
+      const supportsFeet=r.y>=FLOOR_Y-45 && r.y<=FLOOR_Y+4;
+      return supportsFeet && x>=r.x-4 && x<=r.x+r.w+4;
+    });
+  }
+
+  function updateNPCs(){
+    game.npcs.forEach((n,i)=>{
+      if(!n.visible) return;
+      const phase=((game.tick/(38+n.speed*9))|0);
+      const dirBit=stableNoise(game.seed,i,phase,9)%2;
+      if(phase%3===0) n.dir=dirBit?1:-1;
+      const left=n.baseX-n.range,right=n.baseX+n.range;
+      const influence=intentMovement(n);
+      let movement=n.speed*n.dir+influence;
+      let nextX=n.x+movement;
+      if(nextX<left || nextX>right || !hasGroundForNPC(nextX)){
+        n.dir*=-1;
+        movement=n.speed*n.dir;
+        nextX=n.x+movement;
+      }
+      if(nextX>=left && nextX<=right && hasGroundForNPC(nextX)) n.x=nextX;
+      updateNPCIntent(n);
+    });
+  }
+
+  function intentMovement(n){
+    if(n.role==="evidence" && game.terrainMode[0]==="EXTEND") return game.tick%4===0?1:0;
+    if(n.role==="care" && game.player.x>1650 && !n.talked) return game.tick%5===0?-1:0;
+    if(n.role==="voice" && game.terrainMode[2]==="RESTRICT") return game.tick%3===0?-1:0;
+    return 0;
+  }
+
+  function updateNPCIntent(n){
+    const p=game.player;
+    const near=abs(n.x-p.x)<180;
+    let intent=n.baseIntent,tone="neutral";
+    if(n.role==="records"){
+      if(game.terrainMode[0]==="EXTEND"){intent="tracking who carries each record";tone="open";}
+      if(game.terrainMode[0]==="HOLD"){intent="waiting for testimony before release";tone="hold";}
+      if(game.terrainMode[0]==="RESTRICT"){intent="hiding a copy before the seal closes";tone="warning";}
+    }
+    if(n.role==="order"){
+      if(game.control>62){intent="preparing to enforce the narrow route";tone="warning";}
+      else if(game.trust>58){intent="deciding whether to stand aside";tone="open";}
+    }
+    if(n.role==="evidence"){
+      if(game.knowledge>58){intent="carrying testimony toward the council";tone="open";}
+      if(game.control>64){intent="searching for an unguarded passage";tone="warning";}
+    }
+    if(n.role==="repair"){
+      if(game.terrainMode[1]==="EXTEND"){intent="checking several weak branches";tone="warning";}
+      if(game.terrainMode[1]==="HOLD"){intent="listening for the temporary bridge to crack";tone="hold";}
+      if(game.terrainMode[1]==="RESTRICT"){intent="watching the guards control passage";tone="neutral";}
+    }
+    if(n.role==="care"){
+      if(game.terrainMode[1]==="EXTEND"){intent="choosing which branch feels safest";tone="hold";}
+      if(game.player.falls>0){intent="watching the place where you fell";tone="warning";}
+    }
+    if(n.role==="voice"){
+      if(game.terrainMode[2]==="EXTEND"){intent="calling more witnesses into the square";tone="open";}
+      if(game.terrainMode[2]==="HOLD"){intent="deciding whether to wait or leave";tone="hold";}
+      if(game.terrainMode[2]==="RESTRICT"){intent="moving testimony outside the cleared zone";tone="warning";}
+    }
+    if(n.role==="council"){
+      const arrived=game.contacts.length+game.collected.length;
+      intent=arrived>4?"making room for unexpected testimony":"preparing a narrow official record";
+      tone=arrived>4?"open":"neutral";
+    }
+    if(n.talked && near){ intent="remembering what you asked before acting"; tone="open"; }
+    if(game.chapter===2 && game.profile==="FRACTURED" && !n.talked && stableNoise(game.seed,game.tick/180|0,n.x,41)%4===0){
+      const falseIntents=["pointing toward a safe crossing","claiming the record is settled","waiting beside the official route"];
+      intent=falseIntents[stableNoise(game.seed,n.x,game.tick/180|0,43)%falseIntents.length];tone="warning";
+    }
+    n.intent=intent;n.tone=tone;
+  }
+
+  function updatePet(){
+    const pet=game.pet,p=game.player;
+    let targetX=p.x-38-(p.vx<0?-18:0), targetY=p.y+8;
+    if(pet.recording){
+      targetX=pet.recording.x; targetY=pet.recording.y;
+      if(pet.recording.phase==="approach" && Math.abs(pet.x-targetX)<10 && Math.abs(pet.y-targetY)<10){pet.recording.phase="hold";pet.recording.holdUntil=game.tick+48;}
+      else if(pet.recording.phase==="hold" && game.tick>=pet.recording.holdUntil){pet.recording=null;targetX=p.x-38-(p.vx<0?-18:0);targetY=p.y+8;}
+    }
+    pet.x += clamp(((targetX-pet.x)/7)|0,-8,8);
+    pet.y += clamp(((targetY-pet.y)/7)|0,-7,7);
+    const contradiction=abs(game.control-game.trust)+abs(game.knowledge-game.resilience);
+    if(game.harm>45) pet.mood="keeping distance";
+    else if(contradiction>50) pet.mood="watching the mismatch";
+    else if(game.trust>64) pet.mood="moving close";
+    else if(game.visiblePressure>4) pet.mood="sensing danger ahead";
+    else pet.mood="watching";
+  }
+
+  function spawnScarParticles(x,y){
+    if(!game)return; const count=6+(stableNoise(game.seed,game.tick,x|0,77)%3);
+    for(let i=0;i<count;i++){const a=(Math.PI*2*i/count)+((stableNoise(game.seed,game.tick,i,79)%100)/500);const speed=1.2+(stableNoise(game.seed,i,game.tick,83)%12)/10;game.visualParticles.push({x,y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed-0.4,life:90,max:90,r:1.5+(i%3)*.6});}
+  }
+  function updateVisualParticles(){
+    if(!game)return; game.visualParticles.forEach(q=>{q.x+=q.vx;q.y+=q.vy;q.vy+=.015;q.life--;});game.visualParticles=game.visualParticles.filter(q=>q.life>0);
+  }
+
+  function updatePickups(){
+    const p=game.player;
+    game.pickups.forEach(item=>{
+      if(item.collected) return;
+      const dx=(p.x+p.w/2)-item.x,dy=(p.y+p.h/2)-item.y;
+      if(dx*dx+dy*dy < 34*34){
+        item.collected=true;
+        game.collected.push(item.id);
+        if(item.kind==="evidence") game.knowledge=clamp(game.knowledge+5,0,100);
+        if(item.kind==="support") game.resilience=clamp(game.resilience+4,0,100);
+        if(item.kind==="testimony") game.trust=clamp(game.trust+4,0,100);
+        game.chain=fnv1a("pickup|"+item.id+"|"+game.tick,game.chain);
+        
+        showToast("📜 <b>You picked up "+item.label+".</b> The Witness tilts its head. This may change what people remember.",true);
+      }
+    });
+  }
+
+  function updateProgressDots(){
+    if(!game) return;
+    for(let i=0;i<4;i++){
+      const el=document.getElementById("gateDot"+i);
+      if(!el) continue;
+      const resolved=i<3 && game.eventState[i]==="RESOLVED";
+      const current=i<3 && game.currentStage===i && !resolved;
+      const council=i===3 && game.eventState.every(s=>s==="RESOLVED");
+      el.style.background=resolved?"#76c69c":(current||council)?"#e1bd63":"#3a4a55";
+      el.style.borderColor=resolved?"#a6e0c4":(current||council)?"#f0dc9b":"#5a7a8a";
+    }
+    const passed=game.eventState.filter(s=>s==="RESOLVED").length;
+    const label=document.getElementById("progressLabel");
+    if(label) label.textContent=passed<3?`${passed} of 3 gates passed`:"Council awaits";
+  }
+
+  function updateHelpText(){
+    if(!game || game.paused) return;
+    const el=document.getElementById("helpText");
+    if(!el) return;
+    const near=nearestInteractive();
+    if(near){
+      if(near.type==="event") el.innerHTML=`Click the gate — or press <b>E</b> — to decide with <b>${near.obj.figure}</b>.`;
+      else if(near.type==="npc") el.innerHTML=`Click <b>${near.obj.name}</b> to talk — or press <b>E</b>.`;
+      else el.innerHTML=`🏛️ Click the council — or press <b>E</b> — to enter.`;
+    }else{
+      const next=EVENTS.find(e=>game.eventState[e.id]!=="RESOLVED");
+      el.innerHTML=next?`Walk right toward the glowing gate <b>➡️</b>`:`🏛️ All gates passed. Walk to the council.`;
+    }
+  }
+
+  function showChoiceSummary(figure,visible,storyLine){
+    let el=document.getElementById("choiceSummary");
+    if(!el){el=document.createElement("div");el.id="choiceSummary";el.className="choice-summary";el.setAttribute("role","button");el.setAttribute("aria-label","Dismiss choice summary");el.addEventListener("click",()=>el.classList.remove("show"));document.body.appendChild(el);}
+    el.classList.remove("show");void el.offsetWidth;
+    el.innerHTML=`<b>The district changed.</b><br>${visible}<span>${storyLine}</span>`;
+    el.classList.add("show");clearTimeout(showChoiceSummary._t);
+    showChoiceSummary._t=setTimeout(()=>el.classList.remove("show"),5200);
+  }
+
+  function updateWorldState(){
+    const p=game.player;
+    let zone=p.x<900?0:p.x<1750?1:2;
+    game.visiblePressure=pressureAt(zone,game.tick,game);
+    if(p.x>EVENTS[0].x-180 && game.eventState[0]!=="RESOLVED") game.currentStage=0;
+    else if(p.x>EVENTS[1].x-180 && game.eventState[1]!=="RESOLVED") game.currentStage=1;
+    else if(p.x>EVENTS[2].x-180 && game.eventState[2]!=="RESOLVED") game.currentStage=2;
+    else if(game.eventState.every(s=>s==="RESOLVED")) game.currentStage=3;
+    updateStageText();
+    updateProgressDots();
+    updateHelpText();
+    if(game.eventState[0]==="RESOLVED" && p.x>900) p.checkpointX=Math.max(p.checkpointX,850);
+    if(game.eventState[1]==="RESOLVED" && p.x>1720) p.checkpointX=Math.max(p.checkpointX,1730);
+    if(game.eventState[2]==="RESOLVED" && p.x>2140) p.checkpointX=Math.max(p.checkpointX,2140);
+  }
+
+  function updateStageText(){
+    if(!game){return;}
+    if(game.currentStage<3){
+      const e=EVENTS[game.currentStage];
+      stageNameEl.textContent=e.era;
+      stageHintEl.textContent=game.eventState[e.id]==="RESOLVED"?"Your choice is written into the road":"Click the gate — or press E — to choose";
+    }else{
+      stageNameEl.textContent="The Final Council";
+      stageHintEl.textContent="Walk in and deliver what the district became";
+    }
+  }
+
+  function nearestInteractive(){
+    const p=game.player;
+    let best=null,bestD=9999;
+    EVENTS.forEach(ev=>{
+      if(game.eventState[ev.id]==="RESOLVED") return;
+      const d=abs((p.x+p.w/2)-ev.x);
+      if(d<115 && d<bestD){best={type:"event",obj:ev};bestD=d;}
+    });
+    game.npcs.forEach(n=>{
+      if(!n.visible || n.talked) return;
+      const d=abs((p.x+p.w/2)-n.x);
+      if(d<70 && d<bestD){best={type:"npc",obj:n};bestD=d;}
+    });
+    if(game.eventState.every(s=>s==="RESOLVED")){
+      const d=abs((p.x+p.w/2)-2520);
+      if(d<100 && d<bestD) best={type:"council",obj:null};
+    }
+    return best;
+  }
+
+  function interact(fromReplay=false){
+    if(!game || game.paused || game.final) return;
+    const near=nearestInteractive();
+    if(!near){
+      if(!fromReplay) showToast("Nothing nearby is ready to respond.");
+      return;
+    }
+    if(near.type==="event"){
+      if(fromReplay) return;
+      openChoice(near.obj);
+    } else if(near.type==="npc"){
+      talkToNPC(near.obj);
+    } else if(near.type==="council"){
+      finishRun();
+    }
+  }
+
+  function talkToNPC(n){
+    n.talked=true;
+    game.contacts.push(n.id);
+    game.pet.recording={x:n.x,y:FLOOR_Y-55,phase:"approach",holdUntil:null};
+    const effects={records:[3,0,4],order:[0,3,-1],evidence:[2,-1,5],repair:[1,0,0],care:[4,-1,0],voice:[3,-2,2],council:[2,0,1]};
+    const e=effects[n.role]||[1,0,1];
+    game.trust=clamp(game.trust+e[0],0,100);
+    game.control=clamp(game.control+e[1],0,100);
+    game.knowledge=clamp(game.knowledge+e[2],0,100);
+    const lines={
+      records:"Three versions sit in there. Don’t let one erase the rest.",
+      order:"I can keep one road clear. I can’t erase the cost.",
+      evidence:"I’ll carry what I saw — if you leave me a way through.",
+      repair:"Put everyone on one bridge and it breaks in one place.",
+      care:"That path works for you. A smaller person might not make it.",
+      voice:"A quiet square isn’t always peaceful. Sometimes everyone was pushed out.",
+      council:"We count who arrives. We’re worse at counting who never could."
+    };
+    game.chain=fnv1a("contact|"+n.id+"|"+game.tick,game.chain);
+    
+    showToast("<b>"+n.name+":</b> “"+lines[n.role]+"”",true);
+  }
+
+  function contextFor(ev){
+    const p=game.player;
+    const witnesses=game.npcs.filter(n=>n.visible && abs(n.x-(p.x+p.w/2))<230).map(n=>n.id);
+    return {
+      seed:game.seed,chapter:game.chapter,inheritedProfile:game.profile,tick:game.tick,playerX:(p.x+p.w/2)|0,playerY:(p.y+p.h)|0,
+      witnessCount:witnesses.length,witnesses,
+      pressure:pressureAt(ev.id,game.tick,game),
+      evidence:game.collected.length,contacts:game.contacts.length,falls:p.falls,
+      priorHash:hex(game.chain),petTrust:game.pet.trust,routeScars:game.routeScars
+    };
+  }
+
+
+  function shortChoice(text){
+    const first=text.split(/(?<=[.!?])\s+/)[0];
+    return first.length>105 ? first.slice(0,102)+"…" : first;
+  }
+
+  function actionCopy(ev,choice){
+    const first=[
+      {EXTEND:["🌿 Post copies publicly","Share the record"],HOLD:["⏳ Check more accounts","Verify what happened"],RESTRICT:["🔒 Remove extra copies","Lock the archive"]},
+      {EXTEND:["🌿 Throw up more spans","Build more crossings"],HOLD:["⏳ Test while open","Test the bridge"],RESTRICT:["🔒 Guard one path","Guard one crossing"]},
+      {EXTEND:["🌿 Open every gate","Open the square"],HOLD:["⏳ Check who is here","Pause the meeting"],RESTRICT:["🔒 Clear the crowd","Admit delegates only"]}
+    ];
+    if(game.chapter===1) return first[ev.id][choice];
+    const generic={EXTEND:["🌿 Open more paths","Open more routes"],HOLD:["⏳ Look before you act","Wait and inspect"],RESTRICT:["🔒 Hold one line","Close the weak paths"]};
+    return generic[choice];
+  }
+
+  function tensionLevel(value){
+    if(value<=1) return {name:"Calm",pct:24,cls:"tension-calm"};
+    if(value<=3) return {name:"Rising",pct:50,cls:"tension-rising"};
+    if(value<=5) return {name:"High",pct:75,cls:"tension-high"};
+    return {name:"Critical",pct:100,cls:"tension-critical"};
+  }
+
+  function updatePlayerHUD(){
+    if(!game) return;
+    const tension=tensionLevel(game.visiblePressure);
+    const fill=document.getElementById("tensionFill");
+    const label=document.getElementById("tensionLabel");
+    fill.style.width=tension.pct+"%";
+    fill.className="tension-fill "+tension.cls;
+    label.textContent=tension.name;
+    const nearWatchers=game.npcs.filter(n=>n.visible && abs(n.x-game.player.x)<340);
+    document.getElementById("watchingReadout").textContent=nearWatchers.length?`👁 ${nearWatchers.length} ${nearWatchers.length===1?"person is":"people are"} watching nearby`:"No one is watching nearby";
+    const extras=game.collected.length;
+    document.getElementById("carriedReadout").textContent=extras?`📜 Carrying: Council Record + ${extras} ${extras===1?"item":"items"}`:"📜 Carrying: Council Record";
+  }
+
+  function deltaLine(before,after,key,label){
+    const d=after[key]-before[key];
+    if(!d) return null;
+    return `${label} ${d>0?"rose":"fell"} by ${Math.abs(d)}`;
+  }
+
+  function choiceCost(ev,choice,c){
+    const archive={
+      EXTEND:{benefit:"Everyone can read the record for themselves.",risk:c.pressure>2?"A tense crowd may spread claims faster than facts.":"Copies may lose context as they spread."},
+      HOLD:{benefit:"More firsthand accounts can be checked first.",risk:"The record stays unavailable while officials keep control."},
+      RESTRICT:{benefit:"One official copy is easier to protect.",risk:"Independent copies and conflicting evidence disappear."}
+    };
+    const crossing={
+      EXTEND:{benefit:"More people can cross right away.",risk:c.pressure>2?"Rushed crossings may fail under a heavy crowd.":"Several weaker routes are harder to maintain."},
+      HOLD:{benefit:"Workers can test the bridge before committing.",risk:"People remain exposed while the damage continues."},
+      RESTRICT:{benefit:"One guarded crossing is easier to keep stable.",risk:"Access depends on who controls the gate."}
+    };
+    const square={
+      EXTEND:{benefit:"More people can speak and bring new information.",risk:c.pressure>2?"The meeting may become too crowded to hear clearly.":"More voices make agreement slower."},
+      HOLD:{benefit:"Claims can be checked before the council acts.",risk:"People may leave before they are heard."},
+      RESTRICT:{benefit:"The meeting stays smaller and easier to manage.",risk:"Excluded people lose their chance to be heard."}
+    };
+    return [archive,crossing,square][ev.id][choice];
+  }
+
+  function openChoice(ev){
+    game.paused=true;game.activeEvent=ev.id;game.eventState[ev.id]="CHOOSING";
+    const c=contextFor(ev);
+    document.getElementById("choicePortrait").textContent=ev.initial;
+    document.getElementById("choiceEra").textContent=ev.era;
+    document.getElementById("choiceFigure").textContent=ev.figure;
+    document.getElementById("choiceTitle").textContent=ev.title;
+    document.getElementById("choiceText").textContent=ev.text;
+    document.getElementById("extendCopy").textContent=shortChoice(ev.extend);
+    document.getElementById("holdCopy").textContent=shortChoice(ev.hold);
+    document.getElementById("restrictCopy").textContent=shortChoice(ev.restrict);
+    const ex=actionCopy(ev,"EXTEND"),ho=actionCopy(ev,"HOLD"),re=actionCopy(ev,"RESTRICT");
+    document.getElementById("extendKicker").textContent=ex[0];document.getElementById("extendTitle").textContent=ex[1];
+    document.getElementById("holdKicker").textContent=ho[0];document.getElementById("holdTitle").textContent=ho[1];
+    document.getElementById("restrictKicker").textContent=re[0];document.getElementById("restrictTitle").textContent=re[1];
+    const ec=choiceCost(ev,"EXTEND",c),hc=choiceCost(ev,"HOLD",c),rc=choiceCost(ev,"RESTRICT",c);
+    document.getElementById("extendBenefit").innerHTML="<b>What it gives:</b> "+ec.benefit;
+    document.getElementById("extendRisk").innerHTML="<b>What it may cost:</b> "+ec.risk;
+    document.getElementById("holdBenefit").innerHTML="<b>What it gives:</b> "+hc.benefit;
+    document.getElementById("holdRisk").innerHTML="<b>What it may cost:</b> "+hc.risk;
+    document.getElementById("restrictBenefit").innerHTML="<b>What it gives:</b> "+rc.benefit;
+    document.getElementById("restrictRisk").innerHTML="<b>What it may cost:</b> "+rc.risk;
+    const airWord=quantWord(c.pressure,-1,3,["calm","tense","close to breaking"]);
+    document.getElementById("contextStrip").innerHTML=
+      `<span class="chip">The air feels <b>${airWord}</b></span>`+
+      `<span class="chip">People who saw you: <b>${c.witnessCount}</b></span>`+
+      `<span class="chip inventory-chip">You carry <b>${c.evidence} extra ${c.evidence===1?"record":"records"}</b></span>`+
+      `<span class="chip">You’ve already spoken to <b>${c.contacts} ${c.contacts===1?"person":"people"}</b></span>`;
+    choiceOverlay.classList.add("show");
+  }
+
+  document.querySelectorAll("[data-choice]").forEach(btn=>btn.addEventListener("click",()=>{
+    if(!game || game.activeEvent===null) return;
+    const evId=game.activeEvent,choice=btn.dataset.choice;
+    const c=contextFor(EVENTS[evId]);
+    recordEvent({type:"decision",eventId:evId,choice,contextOverride:c});
+    applyDecision(evId,choice,false,c);
+  }));
+
+  function applyDecision(eventId,choice,fromReplay=false,contextOverride=null){
+    const ev=EVENTS[eventId];
+    if(!game || game.eventState[eventId]==="RESOLVED") return;
+    const c=contextOverride || contextFor(ev);
+    if(!fromReplay) SoundManager.choice();
+    const v=localVariant(c,choice);
+    const pressure=c.pressure;
+    const witnessed=c.witnessCount;
+    const before={trust:game.trust,control:game.control,knowledge:game.knowledge,resilience:game.resilience,harm:game.harm,plurality:game.plurality};
+    let visible="",latent="";
+
+    if(ev.outcomes){
+      visible=ev.outcomes[choice].visible;
+      latent=ev.outcomes[choice].latent;
+    }
+
+    if(choice==="EXTEND"){
+      game.knowledge+=10 + c.evidence;
+      game.plurality+=10 + Math.min(5,witnessed);
+      game.trust+=3 + Math.min(4,witnessed);
+      game.control-=6;
+      game.resilience+=eventId===1?4:1;
+      game.harm+=Math.max(0,pressure+v-3);
+      if(!ev.outcomes) visible=eventId===0?"Copies go up on every post. The record is out of anyone’s sole control.":eventId===1?"Three quick spans cross the gap. More people get across — the load is uneven.":"The square opens wide. Witnesses arrive from routes the council never planned.";
+      if(!ev.outcomes) latent=pressure>3?"You opened it while tension was already high; disorder came in with the crowd.":witnessed<2?"Few people saw why you opened it; later stories may disagree.":"Several people saw the opening and can carry the reason forward.";
+    } else if(choice==="HOLD"){
+      game.resilience+=7 + (game.contacts.includes(eventId===0?"archivist":eventId===1?"worker":"elder")?4:0);
+      game.knowledge+=3 + c.contacts;
+      game.control+=1;
+      game.trust+=pressure<=2?3:-2;
+      game.plurality+=1;
+      game.harm+=Math.max(0,pressure-1) + (v===6?3:0);
+      if(!ev.outcomes) visible=eventId===0?"The record stays sealed. Runners go out for more witnesses.":eventId===1?"The main bridge stays open while crews test. It may not be where you left it.":"The square waits. Some people stay; others start to leave.";
+      if(!ev.outcomes) latent=pressure>4?"Waiting kept options open, but the threat moved before the next decision.":c.contacts>2?"Earlier talks gave the hold something solid to protect.":"The hold protected options, but little new evidence came in first.";
+    } else {
+      game.control+=11 + Math.max(0,pressure);
+      game.resilience+=4;
+      game.harm-=Math.min(5,Math.max(0,pressure));
+      game.trust-=6 + Math.max(0,witnessed-2);
+      game.knowledge-=6;
+      game.plurality-=9;
+      if(!ev.outcomes) visible=eventId===0?"The archive seals. One official copy remains; the rest are gone.":eventId===1?"One strong, guarded bridge rises. Passage is safe — and conditional.":"The square clears. Only approved delegates walk the controlled lane.";
+      if(!ev.outcomes) latent=witnessed>3?"Many people watched the restriction; stability was bought in public.":c.evidence>1?"Evidence you carry may still contradict the official version later.":"Few independent records remain inside the controlled route.";
+    }
+
+    game.trust=clamp(game.trust,0,100);game.control=clamp(game.control,0,100);game.knowledge=clamp(game.knowledge,0,100);
+    game.resilience=clamp(game.resilience,0,100);game.harm=clamp(game.harm,0,100);game.plurality=clamp(game.plurality,0,100);
+    game.terrainMode[eventId]=choice;
+    game.eventState[eventId]="RESOLVED";
+    game.activeEvent=null;
+    game.currentStage=Math.min(3,eventId+1);
+
+    spawnConsequences(eventId,choice,c,v);
+    rememberDecision(eventId,choice,c);
+    const after={trust:game.trust,control:game.control,knowledge:game.knowledge,resilience:game.resilience,harm:game.harm,plurality:game.plurality};
+    const storyEntryPayload=JSON.stringify({version:VERSION,eventId,choice,context:c,before,after,visible,latent,variant:v});
+    game.chain=fnv1a(storyEntryPayload,game.chain);
+    const journalEntry={chapter:game.chapter,eventId,figure:ev.figure,choice,visible,watchers:c.witnessCount,time:c.tick,witnesses:c.witnesses.slice(),latent,technical:{x:c.playerX,pressure:c.pressure,evidence:c.evidence,hash:hex(game.chain),variant:v}};
+    game.journal.push(journalEntry);
+    const action=actionCopy(ev,choice)[1];
+    const changes=[deltaLine(before,after,"knowledge","Knowledge"),deltaLine(before,after,"trust","Trust"),deltaLine(before,after,"control","Security"),deltaLine(before,after,"harm","Harm")].filter(Boolean).slice(0,3);
+    const watcherText=c.witnessCount?`${c.witnessCount} ${c.witnessCount===1?"person":"people"} watched.`:"No one nearby saw the choice.";
+    const tensionNow=tensionLevel(pressureAt(eventId,game.tick,game)).name;
+    const storyLine=`${watcherText} ${changes.join(" · ")}. District tension is now ${tensionNow}.`;
+    storyReadout.textContent=`You chose to ${action.toLowerCase()}. ${watcherText}`;
+    game.pet.trust=clamp(game.pet.trust + (choice==="EXTEND"?3:choice==="HOLD"?1:-2) + Math.min(2,c.contacts),0,100);
+    game.pet.scar+=Math.max(0,pressure-3);
+    updateStageText();
+    updateProgressDots();
+    choiceOverlay.classList.remove("show");
+    game.paused=false;
+    showChoiceSummary(ev.figure,visible,storyLine);
+    showToast("The roads just changed. People nearby noticed.",true);
+    if(fromReplay && eventId===2) objectiveEl.innerHTML="<strong>Objective:</strong> exact replay approaching the final council.";
+  }
+
+  function spawnConsequences(id,choice,c,v){
+    if(game.chapter===2){
+      const base=[850,1570,2260][id];
+      if(choice==="EXTEND") game.pickups.push({id:`ch2-${id}-voice`,kind:"testimony",label:"an inherited voice",x:base,y:405-id*18,collected:false});
+      else if(choice==="HOLD") game.pickups.push({id:`ch2-${id}-measure`,kind:"support",label:"a measured consequence",x:base+45,y:430-id*12,collected:false});
+      else game.npcs[Math.min(id+1,game.npcs.length-1)].intent="remembering who the boundary excluded";
+      return;
+    }
+    if(id===0){
+      if(choice==="EXTEND"){
+        game.pickups.push({id:"record-a",kind:"evidence",label:"a disputed record",x:825,y:425,collected:false});
+        game.pickups.push({id:"record-b",kind:"evidence",label:"an independent copy",x:1035,y:350,collected:false});
+      } else if(choice==="HOLD"){
+        game.pickups.push({id:"testimony-a",kind:"testimony",label:"a waiting testimony",x:930,y:415,collected:false});
+      } else {
+        game.npcs.find(n=>n.id==="courier").intent="searching for a copy outside the seal";
+      }
+    }
+    if(id===1){
+      if(choice==="EXTEND") game.pickups.push({id:"support-a",kind:"support",label:"a repaired branch support",x:1585,y:350,collected:false});
+      if(choice==="HOLD" && game.contacts.includes("worker")) game.pickups.push({id:"support-b",kind:"support",label:"the worker’s tested support",x:1630,y:420,collected:false});
+      if(choice==="RESTRICT" && c.evidence===0) game.npcs.find(n=>n.id==="child").x=1725;
+    }
+    if(id===2){
+      const orator=game.npcs.find(n=>n.id==="orator");
+      if(choice==="RESTRICT" && !orator.talked) orator.visible=false;
+      if(choice==="EXTEND") game.pickups.push({id:"testimony-b",kind:"testimony",label:"public testimony",x:2260,y:410,collected:false});
+    }
+  }
+
+  function rememberDecision(id,choice,c){
+    game.npcs.forEach(n=>{
+      if(c.witnesses.includes(n.id)){
+        n.remembers.push({id,choice});
+        game.witnessLedger[n.id]=(game.witnessLedger[n.id]||0)+1;
+      }
+    });
+  }
+
+  function finishRun(){
+    if(game.final) return;
+    game.final=true;game.playing=false;
+    game.chain=fnv1a("final|"+game.tick+"|"+game.player.x+"|"+game.contacts.join(",")+"|"+game.collected.join(","),game.chain);
+    const ending=deriveEnding();
+    const holdCount=game.terrainMode.filter(x=>x==="HOLD").length;
+    game.nextSnapshot={seed:game.seed,chain:game.chain,tick:game.tick,trust:game.trust,control:game.control,knowledge:game.knowledge,resilience:game.resilience,harm:game.harm,plurality:game.plurality,routeScars:game.routeScars,petTrust:game.pet.trust,petScar:game.pet.scar,witnessLedger:{...game.witnessLedger},journal:game.journal.map(r=>({...r})),terrainMode:game.terrainMode.slice(),holdCount,contacts:game.contacts.slice(),collected:game.collected.slice()};
+    const nextKey=deriveNextProfile(game.nextSnapshot);
+    document.getElementById("endEyebrow").textContent=game.chapter===1?"Part one complete · the district remembers":"Two parts complete · the world remembers";
+    document.getElementById("endingTitle").textContent=ending.title;
+    document.getElementById("endingText").textContent=game.chapter===1?`${ending.text} Next, you will enter ${NEXT_DISTRICTS[nextKey].name.toLowerCase()} because ${NEXT_DISTRICTS[nextKey].subtitle}.`:ending.text;
+    const metrics=[
+      ["How the district trusts you", trustWord(game.trust)],
+      ["How much order you kept", orderWord(game.control)],
+      ["What you uncovered", knowledgeWord(game.knowledge)],
+      ["How well the community can recover", resilienceWord(game.resilience)],
+      ["Scars left behind", scarWord(game.harm)],
+      ["Whose voices reached the council", voiceWord(game.plurality)]
+    ];
+    document.getElementById("metricGrid").innerHTML=metrics.map(m=>`<div class="metric"><small>${m[0]}</small><b>${m[1]}</b></div>`).join("");
+    document.getElementById("journalList").innerHTML=game.journal.map(r=>{
+      const ev=EVENTS[r.eventId];const action=actionCopy(ev,r.choice)[1];
+      const seen=r.watchers?`${r.watchers} ${r.watchers===1?"person":"people"} watched.`:"No one nearby saw it.";
+      return `<div class="story-row"><b>${ev.era}: ${action}</b>${r.visible}<span>${seen}</span></div>`;
+    }).join("")+`<div class="story-row"><b>You reached the council</b>You arrived with ${game.collected.length} extra ${game.collected.length===1?"record":"records"} after speaking with ${game.contacts.length} ${game.contacts.length===1?"person":"people"}.<span>The district carries every road, absence, and memory forward.</span></div>`;
+    document.getElementById("technicalList").innerHTML=game.journal.map(r=>{const t=r.technical||{};return `<div class="story-row"><b>Part ${r.chapter||1} · ${r.figure} · ${r.choice} · ${t.hash||"n/a"}</b>${r.visible}<span>Deferred consequence: ${r.latent} Tick ${r.time}; x ${t.x}; pressure ${t.pressure}; witnesses ${r.watchers}; evidence ${t.evidence}; local variant ${t.variant}.</span></div>`;}).join("")+`<div class="story-row"><b>Final engine record · ${hex(game.chain)}</b>Falls ${game.player.falls}; route scars ${game.routeScars}; arrival tick ${game.tick}; final x ${game.player.x}.</div>`;
+    const eventStream=game.replay?game.replayEvents:game.events;
+    const code={version:VERSION,journey:game.seed,chapter:game.chapter,profile:game.profile,inherited:game.inherited,events:eventStream,expectedFinalHash:hex(game.chain),ending:ending.title};
+    document.getElementById("runCode").value=encodeRun(code);
+    
+    storyReadout.textContent="You reached the council. The district will carry this story forward.";
+    const continueBtn=document.getElementById("continueBtn");
+    continueBtn.style.display=game.chapter===1?"block":"none";
+    
+    endOverlay.classList.add("show");
+  }
+
+  function trustWord(v){ return v<35?"distrusted":v<65?"uncertain":"respected"; }
+  function orderWord(v){ return v<35?"fragile":v<65?"contested":"iron-firm"; }
+  function knowledgeWord(v){ return v<35?"only fragments":v<65?"part of the record":"nearly the full record"; }
+  function resilienceWord(v){ return v<35?"easily shaken":v<65?"holding for now":"built to recover"; }
+  function scarWord(v){ return v<30?"few visible scars":v<58?"costs people can feel":"deep scars remain"; }
+  function voiceWord(v){ return v<35?"only a few":v<65?"some, but not all":"many different voices"; }
+
+  function deriveEnding(){
+    const s=game;
+    const balance=100-(abs(s.trust-s.control)+abs(s.knowledge-s.resilience))/2;
+    const rare=stableNoise(s.seed,s.tick,s.player.x,s.chain)%13;
+    if(s.control>72 && s.knowledge<42) return {title:"The Hollow Order",text:"The council convenes on time and the district appears calm. Its record is coherent because too few independent routes remain to challenge it."};
+    if(s.plurality>70 && s.resilience<48) return {title:"The Fractured Commons",text:"Many voices reach the council, but the routes that carried them cannot yet support the weight of continued disagreement. The district is open and unstable."};
+    if(s.resilience>68 && s.knowledge>62 && s.trust>58 && s.harm<48) return {title:"The Living Accord",text:"No single route contains the whole truth. Enough independent records, repaired crossings, and remembered witnesses survive for the district to keep revising itself."};
+    if(s.control>68 && s.harm<35 && s.trust<45) return {title:"The Quiet Fortress",text:"The district reaches the council with little visible disorder. The protected route works, but many people now treat safety and participation as opposing permissions."};
+    if(game.terrainMode.filter(x=>x==="HOLD").length>=2 && s.harm>42) return {title:"The Deferred Collapse",text:"The district preserved options at each gate, but the threat continued acting while decisions remained suspended. The council inherits possibilities and accumulated damage together."};
+    if(s.knowledge>68 && s.control<42 && s.harm>48) return {title:"The Uncontained Record",text:"Evidence reaches the council faster than institutions can absorb it. The official story cannot close, but neither can the immediate conflict."};
+    if(s.trust>65 && s.control<55 && s.plurality>58) return {title:"The Open Assembly",text:"People arrive through imperfect routes and accept that no authority can guarantee a painless account. The council becomes a continuing process rather than a final verdict."};
+    if(rare===0 && s.collected.length>=2) return {title:"The Unrecorded Route",text:"A minor sequence of timing, witnesses, and carried evidence creates a route no official plan anticipated. The council discovers that the district changed before anyone named the change."};
+    if(balance>72 && s.harm<55) return {title:"The Contested Balance",text:"No value dominates the district. The council receives a workable but unresolved arrangement whose future depends on remembering why each compromise was made."};
+    return {title:"The Inherited District",text:"The council does not receive three isolated answers. It receives the terrain, absences, witnesses, records, delays, and scars produced by the entire route."};
+  }
+
+  function encodeRun(obj){
+    const json=JSON.stringify(obj);
+    try{return btoa(unescape(encodeURIComponent(json)));}catch(e){return json;}
+  }
+
+  function draw(){
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    ctx.clearRect(0,0,CW,CH);
+    drawBackground();
+    if(!game){ drawIdleWorld(); return; }
+    const scale=Math.min(1,CH/650);
+    const baseY=Math.max(0,(CH-600*scale)/2);
+    ctx.save();
+    ctx.translate(0,baseY);
+    ctx.scale(scale,scale);
+    ctx.translate(-game.cameraX,0);
+    drawDistrict();
+    drawPickups();
+    drawNPCs();
+    drawPet();
+    drawVisualParticles();
+    drawPlayer();
+    drawForeground();
+    ctx.restore();
+    drawInteractionPrompt(scale,baseY);
+    drawTensionOverlay();
+    if(debugEl.classList.contains("show")) debugEl.textContent=`tick ${game.tick} · x ${game.player.x} · pressure ${game.visiblePressure} · events ${game.events.length} · replay ${game.replay}`;
+  }
+
+  function drawBackground(){
+    const g=ctx.createLinearGradient(0,0,0,CH);
+    const palette=game&&game.chapter===2?{
+      OVEREXTENDED:["#102034","#263746","#081018"],CONTROLLED:["#151820","#2b272a","#090d12"],DEFERRED:["#1b1b29","#353044","#0b0d17"],FRACTURED:["#12202a","#31313c","#081018"],BALANCED:["#0d2024","#203b3d","#081417"]
+    }[game.profile]:["#081522","#102532","#071018"];
+    g.addColorStop(0,palette[0]);g.addColorStop(.58,palette[1]);g.addColorStop(1,palette[2]);
+    ctx.fillStyle=g;ctx.fillRect(0,0,CW,CH);
+    const t=game?game.tick:0;
+    for(let i=0;i<36;i++){
+      const x=(stableNoise(7317,i,5)%Math.max(1,CW+120))-60;
+      const y=40+(stableNoise(991,i,9)%Math.max(1,CH-160));
+      const drift=((t/(90+(i%7)*13))|0)%40;
+      ctx.fillStyle="rgba(164,205,220,.055)";ctx.fillRect((x+drift)%CW,y,1+(i%3),1+(i%2));
+    }
+  }
+
+  function drawIdleWorld(){
+    ctx.fillStyle="rgba(255,255,255,.05)";ctx.fillRect(0,CH*.72,CW,CH*.28);
+  }
+
+  function drawDistrict(){
+    drawSkyline();
+    drawPressureField();
+    for(const p of platformRects()) drawPlatform(p);
+    for(const g of gateRects()) drawGate(g);
+    EVENTS.forEach(drawMindGate);
+    drawCouncil();
+  }
+
+  function drawSkyline(){
+    for(let i=0;i<34;i++){
+      const x=i*95;
+      const h=100+(stableNoise(game.seed,i,5)%220);
+      const shade=18+(i%5)*3;
+      ctx.fillStyle=`rgb(${shade},${shade+12},${shade+19})`;
+      ctx.fillRect(x,FLOOR_Y-h,82,h);
+      ctx.fillStyle="rgba(223,193,111,.09)";
+      for(let wy=FLOOR_Y-h+22;wy<FLOOR_Y-24;wy+=36){
+        const lit=stableNoise(game.seed,i,wy,game.currentStage)%4===0;
+        if(lit) ctx.fillRect(x+14,wy,8,12);
+      }
+    }
+    if(game.chapter===2){
+      const prop=game.profile;
+      for(let i=0;i<9;i++){
+        const x=180+i*310;
+        ctx.strokeStyle=prop==="CONTROLLED"?"rgba(210,130,140,.32)":prop==="OVEREXTENDED"?"rgba(118,198,156,.30)":prop==="DEFERRED"?"rgba(225,189,99,.28)":prop==="FRACTURED"?"rgba(170,144,220,.30)":"rgba(112,189,208,.28)";
+        ctx.lineWidth=2;
+        if(prop==="CONTROLLED"){ctx.strokeRect(x,FLOOR_Y-110,55,110);ctx.fillRect(x+24,FLOOR_Y-145,7,35);}
+        else if(prop==="OVEREXTENDED"){ctx.beginPath();ctx.moveTo(x,FLOOR_Y);ctx.lineTo(x+35,FLOOR_Y-80);ctx.lineTo(x+70,FLOOR_Y-25);ctx.stroke();}
+        else if(prop==="DEFERRED"){ctx.beginPath();ctx.arc(x+30,FLOOR_Y-70,28,0,Math.PI*2);ctx.stroke();ctx.fillRect(x+28,FLOOR_Y-70,4,25);}
+        else if(prop==="FRACTURED"){ctx.beginPath();ctx.moveTo(x,FLOOR_Y-100);ctx.lineTo(x+65,FLOOR_Y-20);ctx.moveTo(x+65,FLOOR_Y-100);ctx.lineTo(x,FLOOR_Y-20);ctx.stroke();}
+        else {ctx.beginPath();ctx.moveTo(x,FLOOR_Y-55);ctx.lineTo(x+65,FLOOR_Y-55);ctx.moveTo(x+32,FLOOR_Y-90);ctx.lineTo(x+32,FLOOR_Y-20);ctx.stroke();}
+      }
+    }
+    ctx.fillStyle="#0b1720";ctx.fillRect(0,FLOOR_Y+60,WORLD_W,100);
+  }
+
+  function drawPressureField(){
+    const zoneCenters=[650,1450,2100];
+    zoneCenters.forEach((cx,i)=>{
+      const p=pressureAt(i,game.tick,game);
+      const radius=130+abs(p)*18;
+      const grad=ctx.createRadialGradient(cx,FLOOR_Y-170,10,cx,FLOOR_Y-170,radius);
+      const col=p>3?"223,115,128":p<-1?"112,189,208":"225,189,99";
+      grad.addColorStop(0,`rgba(${col},.16)`);grad.addColorStop(1,`rgba(${col},0)`);
+      ctx.fillStyle=grad;ctx.beginPath();ctx.arc(cx,FLOOR_Y-170,radius,0,Math.PI*2);ctx.fill();
+      for(let k=0;k<6;k++){
+        const phase=((game.tick*(1+i)+(k*43))%220);
+        const x=cx-110+phase;
+        const y=FLOOR_Y-220+k*18;
+        ctx.strokeStyle=`rgba(${col},${.04+(k%2)*.03})`;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+45+p*3,y-p*2);ctx.stroke();
+      }
+    });
+  }
+
+  function drawPlatform(p){
+    let fill="#20313a",top="#6f8790";
+    if(p.type==="branch"){fill="#28463e";top="#78b697";}
+    if(p.type==="hold"){fill="#4b4027";top="#d4b466";}
+    if(p.type==="fortified"){fill="#3a3037";top="#b97a87";}
+    if(p.type==="stair"){fill="#293743";top="#7994a3";}
+    if(p.type==="fracture"){fill="#352f46";top="#aa90dc";}
+    ctx.fillStyle=fill;ctx.fillRect(p.x,p.y,p.w,p.h);
+    ctx.fillStyle=top;ctx.fillRect(p.x,p.y,p.w,3);
+    if(p.type==="hold"){
+      ctx.strokeStyle="rgba(255,255,255,.18)";ctx.beginPath();ctx.moveTo(p.x+p.w*.45,p.y);ctx.lineTo(p.x+p.w*.55,p.y+p.h);ctx.stroke();
+    }
+  }
+
+  function drawGate(g){
+    ctx.fillStyle="#263844";ctx.fillRect(g.x,g.y,g.w,g.h);
+    ctx.fillStyle="#9cb0ba";
+    for(let y=g.y+8;y<g.y+g.h;y+=18) ctx.fillRect(g.x+5,y,g.w-10,3);
+    ctx.fillStyle="#d8b85f";ctx.fillRect(g.x-4,g.y+50,g.w+8,5);
+  }
+
+  function drawMindGate(ev){
+    const resolved=game.eventState[ev.id]==="RESOLVED";
+    const active=abs(game.player.x-ev.x)<140 && !resolved;
+    const tension=Math.max(0,Math.min(8,game.visiblePressure));
+    const speed=24-Math.min(14,tension*1.6),pulse=(Math.sin(game.tick/speed)+1)/2,glowRadius=34+pulse*(8+tension*2.2);
+    ctx.save();
+    ctx.translate(ev.x,FLOOR_Y-55);
+    if(!resolved){const glow=ctx.createRadialGradient(0,0,10,0,0,glowRadius);glow.addColorStop(0,`rgba(225,189,99,${.12+pulse*.12})`);glow.addColorStop(1,"rgba(225,189,99,0)");ctx.fillStyle=glow;ctx.beginPath();ctx.arc(0,0,glowRadius,0,Math.PI*2);ctx.fill();}
+    ctx.fillStyle=resolved?"#1d3c35":"#172733";ctx.strokeStyle=resolved?"#76c69c":active?"#e1bd63":"#60737d";ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.fillStyle=resolved?"#a6e0c4":"#e1bd63";ctx.font="700 20px Georgia";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(ev.initial,0,0);
+    ctx.font="10px system-ui";ctx.fillStyle="#c4d0d6";ctx.fillText(resolved?(game.terrainMode[ev.id]||""):ev.figure,0,43);
+    ctx.restore();
+  }
+
+  function drawCouncil(){
+    const x=2520;
+    ctx.fillStyle="#172732";ctx.fillRect(x-70,FLOOR_Y-170,150,170);
+    ctx.strokeStyle="#d3b768";ctx.lineWidth=3;ctx.strokeRect(x-70,FLOOR_Y-170,150,170);
+    ctx.fillStyle="#d3b768";ctx.font="700 15px Georgia";ctx.textAlign="center";ctx.fillText("FINAL COUNCIL",x+5,FLOOR_Y-132);
+    ctx.fillStyle="#9eb0ba";ctx.font="10px system-ui";ctx.fillText(game.eventState.every(s=>s==="RESOLVED")?"Press E to enter":"Three gates remain unresolved",x+5,FLOOR_Y-108);
+    ctx.fillStyle="#0b151d";ctx.fillRect(x-24,FLOOR_Y-90,58,90);
+  }
+
+  function drawPickups(){
+    game.pickups.forEach((item,i)=>{
+      if(item.collected)return;
+      const pulse=3+((game.tick+i*17)%50)/25;
+      ctx.strokeStyle=item.kind==="evidence"?"#72bfd0":item.kind==="support"?"#76c69c":"#e1bd63";
+      ctx.lineWidth=2;ctx.beginPath();ctx.arc(item.x,item.y,8+pulse,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle=ctx.strokeStyle;ctx.fillRect(item.x-4,item.y-5,8,10);
+    });
+  }
+
+  function drawNPCs(){
+    game.npcs.forEach((n,i)=>{
+      if(!n.visible)return;
+      const y=FLOOR_Y-38+Math.sin((game.tick+i*7)/30)*1.6;
+      const tone=n.tone==="open"?"#76c69c":n.tone==="warning"?"#df7380":n.tone==="hold"?"#e1bd63":"#7fa2b3";
+      ctx.fillStyle="#162630";ctx.fillRect(n.x-9,y,18,32);
+      ctx.fillStyle=tone;ctx.beginPath();ctx.arc(n.x,y-7,9,0,Math.PI*2);ctx.fill();
+      if(n.talked){ctx.strokeStyle="#e1bd63";ctx.beginPath();ctx.arc(n.x,y-7,13,0,Math.PI*2);ctx.stroke();}
+      const visible=abs(n.x-game.player.x)<340;
+      if(visible){ctx.fillStyle="#edf3f6";ctx.font="13px system-ui";ctx.textAlign="center";ctx.fillText("👁",n.x,y-23);}
+
+      if(visible){
+        const text=n.intent;
+        ctx.font="9px system-ui";
+        const w=Math.min(190,Math.max(84,ctx.measureText(text).width+16));
+        const bx=n.x-w/2,by=y-66-(i%2)*9;
+        ctx.fillStyle="rgba(7,17,24,.9)";ctx.strokeStyle=tone;ctx.lineWidth=1;roundRect(bx,by,w,25,8,true,true);
+        ctx.fillStyle="#dce6ea";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(text,n.x,by+12.5);
+        ctx.fillStyle=tone;ctx.font="8px system-ui";ctx.fillText(n.name,n.x,by-6);
+      }
+    });
+  }
+
+  function drawPet(){
+    const p=game.pet;
+    const color=(p.mood==="sensing danger ahead")?"#dc9f55":(p.mood==="keeping distance"||p.mood==="watching the mismatch")?"#df7380":"#70bdd0";
+    const recordingPulse=p.recording?1+((Math.sin(game.tick/5)+1)*.12):1;
+    const glow=ctx.createRadialGradient(p.x,p.y,2,p.x,p.y,28*recordingPulse);
+    glow.addColorStop(0,color+"aa");glow.addColorStop(1,color+"00");ctx.fillStyle=glow;ctx.beginPath();ctx.arc(p.x,p.y,28*recordingPulse,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=color;ctx.beginPath();ctx.arc(p.x,p.y,9*recordingPulse,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#071018";ctx.beginPath();ctx.arc(p.x-3,p.y-1,1.5,0,Math.PI*2);ctx.arc(p.x+3,p.y-1,1.5,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#b8cbd2";ctx.font="8px system-ui";ctx.textAlign="center";ctx.fillText("Witness: "+p.mood,p.x,p.y-20);
+  }
+
+  function drawPlayer(){
+    const p=game.player,breathe=Math.sin(game.tick/30)*1.5,py=p.y+breathe;
+    ctx.fillStyle="#d9c078";ctx.fillRect(p.x,py,p.w,p.h);
+    ctx.fillStyle="#13222c";ctx.fillRect(p.x+5,py+7,p.w-10,10);
+    ctx.fillStyle="#e9eef0";ctx.fillRect(p.x+7,py+9,3,3);ctx.fillRect(p.x+p.w-10,py+9,3,3);
+    ctx.strokeStyle="#70bdd0";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(p.x+p.w/2,py+25);ctx.lineTo(p.x+p.w/2,py+36);ctx.stroke();
+  }
+
+  function drawVisualParticles(){
+    if(!game)return;game.visualParticles.forEach(q=>{const a=Math.max(0,q.life/q.max);ctx.fillStyle=`rgba(190,240,255,${a})`;ctx.beginPath();ctx.arc(q.x,q.y,q.r,0,Math.PI*2);ctx.fill();});
+  }
+  function drawTensionOverlay(){
+    if(!game)return;const n=Math.max(0,Math.min(8,game.visiblePressure))/8,pulse=.65+.35*Math.sin(game.tick/(22-n*10));
+    const calm=[35,105,125],critical=[165,62,40],mix=calm.map((v,i)=>Math.round(v+(critical[i]-v)*n));
+    const grad=ctx.createRadialGradient(CW/2,CH/2,Math.min(CW,CH)*.18,CW/2,CH/2,Math.max(CW,CH)*.72);
+    grad.addColorStop(0,"rgba(0,0,0,0)");grad.addColorStop(1,`rgba(${mix.join(",")},${.08+n*.16*pulse})`);ctx.fillStyle=grad;ctx.fillRect(0,0,CW,CH);
+  }
+
+  function drawForeground(){
+    ctx.fillStyle="rgba(2,8,12,.24)";
+    for(let i=0;i<18;i++){
+      const x=i*170+40;const h=30+(stableNoise(game.seed,i,31)%65);ctx.fillRect(x,FLOOR_Y-h,8,h);
+    }
+  }
+
+  function drawInteractionPrompt(scale,baseY){
+    if(!game || game.paused || game.final)return;
+    const near=nearestInteractive();
+    if(!near)return;
+    const label=near.type==="event"?"Click / E · decide with "+near.obj.figure:near.type==="npc"?"Click / E · talk to "+near.obj.name:"Click / E · enter the council";
+    ctx.save();ctx.font="700 11px system-ui";const w=ctx.measureText(label).width+24;const x=CW/2-w/2,y=CH-118;
+    ctx.fillStyle="rgba(6,15,22,.92)";ctx.strokeStyle="#e1bd63";roundRect(x,y,w,31,15,true,true);ctx.fillStyle="#eef3f5";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(label,CW/2,y+15.5);ctx.restore();
+  }
+
+  function roundRect(x,y,w,h,r,fill,stroke){
+    if(w<2*r)r=w/2;if(h<2*r)r=h/2;
+    ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+    if(fill)ctx.fill();if(stroke)ctx.stroke();
+  }
+
+  function frame(ts){
+    if(!lastFrame)lastFrame=ts;
+    let delta=Math.min(100,ts-lastFrame);lastFrame=ts;
+    accumulator+=delta;
+    let steps=0;
+    while(accumulator>=FIXED_DT && steps<MAX_STEPS_PER_FRAME){update();accumulator-=FIXED_DT;steps++;}
+    draw();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  const sfxToggle=document.getElementById("sfxToggle"),musicToggle=document.getElementById("musicToggle");
+  function syncAudioButtons(){sfxToggle.setAttribute("aria-pressed",SoundManager.sfxEnabled?"true":"false");musicToggle.setAttribute("aria-pressed",SoundManager.musicEnabled?"true":"false");sfxToggle.textContent=SoundManager.sfxEnabled?"🔊 Sounds":"🔇 Sounds";musicToggle.textContent=SoundManager.musicEnabled?"♫ Ambience":"⊘ Ambience";}
+  sfxToggle.addEventListener("click",()=>{SoundManager.ensure();SoundManager.setSfx(!SoundManager.sfxEnabled);syncAudioButtons();});
+  musicToggle.addEventListener("click",()=>{SoundManager.ensure();SoundManager.setMusic(!SoundManager.musicEnabled);syncAudioButtons();});
+  [document.getElementById("startBtn"),canvas].forEach(el=>el.addEventListener("pointerdown",()=>SoundManager.ensure(),{once:true}));
+
+  // Point-and-click: tap/click NPCs, gates, and the council directly.
+  function worldFromScreen(clientX, clientY){
+    if(!game) return null;
+    const rect = canvas.getBoundingClientRect();
+    const sx = (clientX - rect.left) * (CW / rect.width);
+    const sy = (clientY - rect.top) * (CH / rect.height);
+    const scale = Math.min(1, CH / 650);
+    const baseY = Math.max(0, (CH - 600 * scale) / 2);
+    if(sy < baseY || sy > baseY + 600 * scale) return null;
+    const wx = (sx / scale) + game.cameraX;
+    const wy = (sy - baseY) / scale;
+    return {x: wx, y: wy};
+  }
+  function hitTestInteractive(wx, wy){
+    if(!game || game.paused || game.final || game.replay) return null;
+    // NPCs first (generous hit area for touch)
+    for(const n of game.npcs){
+      if(!n.visible || n.talked) continue;
+      const nx = n.x, ny = FLOOR_Y - 38;
+      if(abs(wx - nx) < 36 && abs(wy - ny) < 52) return {type:"npc", obj:n};
+    }
+    // Event gates / mind gates
+    for(const ev of EVENTS){
+      if(game.eventState[ev.id] === "RESOLVED") continue;
+      if(abs(wx - ev.x) < 48 && abs(wy - (FLOOR_Y - 55)) < 56) return {type:"event", obj:ev};
+    }
+    // Final council
+    if(game.eventState.every(s => s === "RESOLVED")){
+      if(abs(wx - 2520) < 90 && abs(wy - (FLOOR_Y - 85)) < 100) return {type:"council", obj:null};
+    }
+    return null;
+  }
+  canvas.addEventListener("pointerdown", e => {
+    if(!game || !game.playing || game.paused || game.final || game.replay) return;
+    // Ignore if UI overlay is up
+    if(choiceOverlay.classList.contains("show") || endOverlay.classList.contains("show") ||
+       startOverlay.classList.contains("show") || recapOverlay.classList.contains("show")) return;
+    const w = worldFromScreen(e.clientX, e.clientY);
+    if(!w) return;
+    const hit = hitTestInteractive(w.x, w.y);
+    if(!hit) return;
+    e.preventDefault();
+    if(hit.type === "event") openChoice(hit.obj);
+    else if(hit.type === "npc") talkToNPC(hit.obj);
+    else if(hit.type === "council") finishRun();
+  });
+  canvas.addEventListener("pointermove", e => {
+    if(!game || !game.playing || game.paused || game.final){ canvas.style.cursor = "default"; return; }
+    const w = worldFromScreen(e.clientX, e.clientY);
+    const hit = w ? hitTestInteractive(w.x, w.y) : null;
+    canvas.style.cursor = hit ? "pointer" : "default";
+  });
+
+  document.getElementById("howBtn").addEventListener("click",()=>{
+    const panel=document.getElementById("howPanel"),btn=document.getElementById("howBtn");
+    panel.classList.toggle("show");btn.setAttribute("aria-expanded",panel.classList.contains("show")?"true":"false");
+  });
+  document.getElementById("newSeedBtn").addEventListener("click",()=>{
+    const next=(Date.now() ^ (performance.now()*1000|0))>>>0;
+    document.getElementById("seedInput").value=next;
+  });
+  document.getElementById("startBtn").addEventListener("click",()=>{SoundManager.ensure();newGame(document.getElementById("seedInput").value);});
+  function pastChoiceLine(entry){
+    const ev=CHAPTER1_EVENTS[entry.eventId];
+    if(!ev)return "You made a choice the district remembers.";
+    const verbs={EXTEND:["opened","opened","opened"],HOLD:["held","held","paused"],RESTRICT:["sealed","restricted","cleared"]};
+    const places=["the Archive Gate","the Broken Crossing","the Public Square"];
+    return `You ${verbs[entry.choice][entry.eventId]} ${places[entry.eventId]}.`;
+  }
+  function showChapterRecap(){
+    const snapshot=game.nextSnapshot,key=deriveNextProfile(snapshot);
+    document.getElementById("recapTitle").textContent=`Part Two: ${NEXT_DISTRICTS[key].name}`;
+    const chapterOne=game.journal.filter(r=>(r.chapter||1)===1).slice(-3);
+    document.getElementById("recapList").innerHTML=chapterOne.map(r=>`<div class="recap-item">${pastChoiceLine(r)}<span>${r.visible}</span></div>`).join("");
+    endOverlay.classList.remove("show");recapOverlay.classList.add("show");
+  }
+  document.getElementById("continueBtn").addEventListener("click",showChapterRecap);
+  document.getElementById("enterInheritedBtn").addEventListener("click",()=>{
+    const snapshot=game.nextSnapshot;
+    recapOverlay.classList.remove("show");
+    newGame(game.seed,null,{chapter:2,inherited:snapshot});
+  });
+  document.getElementById("replayBtn").addEventListener("click",()=>{
+    const source=game.replay?game.replayEvents:game.events;
+    const last={seed:game.seed,events:source.map(e=>({...e})),chapter:game.chapter,inherited:game.inherited};
+    newGame(last.seed,last.events,{chapter:last.chapter,inherited:last.inherited});
+  });
+  document.getElementById("newStoryBtn").addEventListener("click",()=>{
+    endOverlay.classList.remove("show");
+    startOverlay.classList.add("show");
+    const next=(Date.now() ^ (performance.now()*1000|0))>>>0;
+    document.getElementById("seedInput").value=next;
+  });
+
+
+  document.getElementById("technicalBtn").addEventListener("click",()=>{
+    const panel=document.getElementById("technicalPanel"),btn=document.getElementById("technicalBtn");
+    panel.classList.toggle("show");const open=panel.classList.contains("show");
+    btn.textContent="⚙️";btn.setAttribute("aria-expanded",open?"true":"false");
+  });
+  document.getElementById("shareWorldBtn").addEventListener("click",async()=>{
+    const code=String(game.seed);
+    try{await navigator.clipboard.writeText(code);showToast("Story Seed copied. A friend can now begin in the same world.",true);}
+    catch(e){showToast(`Share this Story Seed: <b>${game.seed}</b>`,true);}
+  });
+
+  window.addEventListener("keydown",e=>{ if(e.code==="Backquote"){ const panel=document.getElementById("technicalPanel"); panel.classList.toggle("show"); document.getElementById("technicalBtn").setAttribute("aria-expanded",panel.classList.contains("show")?"true":"false"); } });
+})();
+</script>
+</body>
+</html>

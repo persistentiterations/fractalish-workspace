@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Soft Architecture</title>
+<style>
+  :root {
+    --bg: #0f1218;
+    --ink: #e8e4dc;
+    --muted: #8a867c;
+    --accent: #c4a574;
+    --panel: #161b24ee;
+    --line: #2a3140;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ——— Mood Screen ——— */
+  #moodScreen {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 24px;
+    background: radial-gradient(ellipse at 30% 20%, #1a2230 0%, #0f1218 60%);
+    z-index: 20;
+    transition: opacity 0.6s ease, visibility 0.6s;
+  }
+  #moodScreen.hidden {
+    opacity: 0; visibility: hidden; pointer-events: none;
+  }
+
+  .mood-title {
+    font-weight: 300;
+    font-size: clamp(28px, 6vw, 42px);
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .mood-sub {
+    color: var(--muted);
+    font-size: 15px;
+    margin-bottom: 48px;
+    text-align: center;
+    max-width: 320px;
+    line-height: 1.5;
+  }
+
+  .sliders {
+    width: min(360px, 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .slider-group label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .slider-group label span:last-child {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--line);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 0 4px #c4a57422;
+  }
+
+  .enter-btn {
+    margin-top: 48px;
+    padding: 14px 36px;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background 0.25s, color 0.25s;
+  }
+  .enter-btn:hover {
+    background: var(--accent);
+    color: #0f1218;
+  }
+
+  /* ——— Territory ——— */
+  #territory {
+    position: fixed; inset: 0;
+    display: none;
+  }
+  #territory.active { display: block; }
+
+  canvas {
+    display: block;
+    width: 100%; height: 100%;
+    cursor: grab;
+  }
+  canvas:active { cursor: grabbing; }
+
+  /* Top bar */
+  .topbar {
+    position: absolute; top: 0; left: 0; right: 0;
+    padding: 16px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .place-name {
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    opacity: 0.9;
+  }
+  .top-actions {
+    display: flex; gap: 10px;
+    pointer-events: auto;
+  }
+  .icon-btn {
+    width: 36px; height: 36px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    display: grid; place-items: center;
+    transition: border-color 0.2s;
+  }
+  .icon-btn:hover { border-color: var(--accent); }
+
+  /* Bottom tools */
+  .tools {
+    position: absolute; bottom: 24px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 8px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 8px;
+    z-index: 5;
+  }
+  .tool {
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tool.active, .tool:hover {
+    background: #ffffff10;
+    color: var(--ink);
+  }
+
+  /* Detail panel */
+  #detail {
+    position: absolute;
+    right: 16px; top: 70px;
+    width: min(280px, calc(100vw - 32px));
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px;
+    z-index: 6;
+    display: none;
+    backdrop-filter: blur(12px);
+  }
+  #detail.open { display: block; }
+  #detail h3 {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  #detail .kind {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  #detail input, #detail textarea {
+    width: 100%;
+    background: #0c0f14;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 14px;
+    margin-bottom: 10px;
+    resize: none;
+  }
+  #detail textarea { height: 80px; }
+  #detail .row {
+    display: flex; gap: 8px;
+  }
+  #detail button {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  #detail button.primary {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  #detail button:hover { background: #ffffff08; }
+
+  /* Quiet status */
+  .status {
+    position: absolute;
+    bottom: 90px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: var(--muted);
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+    z-index: 4;
+  }
+  .status.show { opacity: 1; }
+
+  /* Mobile adjustments */
+  @media (max-width: 600px) {
+    .tools { bottom: 16px; }
+    #detail { right: 12px; left: 12px; width: auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Mood entry -->
+<section id="moodScreen">
+  <h1 class="mood-title">Soft Architecture</h1>
+  <p class="mood-sub">A quiet place grown from how you feel right now. It will remember you.</p>
+
+  <div class="sliders">
+    <div class="slider-group">
+      <label>
+        <span>Energy</span>
+        <span id="energyLabel">steady</span>
+      </label>
+      <input type="range" id="energy" min="0" max="100" value="45">
+    </div>
+    <div class="slider-group">
+      <label>
+        <span>Warmth</span>
+        <span id="warmthLabel">cool</span>
+      </label>
+      <input type="range" id="warmth" min="0" max="100" value="35">
+    </div>
+    <div class="slider-group">
+      <label>
+        <span>Openness</span>
+        <span id="openLabel">held</span>
+      </label>
+      <input type="range" id="openness" min="0" max="100" value="40">
+    </div>
+    <div class="slider-group">
+      <label>
+        <span>Stillness</span>
+        <span id="stillLabel">quiet</span>
+      </label>
+      <input type="range" id="stillness" min="0" max="100" value="65">
+    </div>
+  </div>
+
+  <button class="enter-btn" id="enterBtn">Enter the territory</button>
+</section>
+
+<!-- Territory -->
+<section id="territory">
+  <canvas id="c"></canvas>
+
+  <div class="topbar">
+    <div class="place-name" id="placeName">Untitled territory</div>
+    <div class="top-actions">
+      <button class="icon-btn" id="renamePlace" title="Rename place">✎</button>
+      <button class="icon-btn" id="newTerritory" title="New territory">↻</button>
+    </div>
+  </div>
+
+  <div class="tools">
+    <button class="tool active" data-mode="explore">Explore</button>
+    <button class="tool" data-mode="name">Name</button>
+    <button class="tool" data-mode="note">Leave note</button>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <div id="detail">
+    <h3 id="detailTitle">Structure</h3>
+    <div class="kind" id="detailKind">building</div>
+    <input type="text" id="detailName" placeholder="Give it a name…">
+    <textarea id="detailNote" placeholder="A quiet note for later…"></textarea>
+    <div class="row">
+      <button id="detailCancel">Close</button>
+      <button class="primary" id="detailSave">Keep</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(() => {
+  // ——— State ———
+  const state = {
+    energy: 45,
+    warmth: 35,
+    openness: 40,
+    stillness: 65,
+    structures: [],
+    placeName: "Untitled territory",
+    mode: "explore",
+    selected: null,
+    camera: { x: 0, y: 0, zoom: 1 },
+    dragging: false,
+    lastMouse: { x: 0, y: 0 },
+    seed: Date.now()
+  };
+
+  // ——— DOM ———
+  const moodScreen = document.getElementById("moodScreen");
+  const territory  = document.getElementById("territory");
+  const canvas     = document.getElementById("c");
+  const ctx        = canvas.getContext("2d");
+  const statusEl   = document.getElementById("status");
+  const detail     = document.getElementById("detail");
+
+  // ——— Helpers ———
+  function showStatus(msg) {
+    statusEl.textContent = msg;
+    statusEl.classList.add("show");
+    clearTimeout(showStatus._t);
+    showStatus._t = setTimeout(() => statusEl.classList.remove("show"), 2200);
+  }
+
+  function label(val, low, mid, high) {
+    if (val < 33) return low;
+    if (val < 66) return mid;
+    return high;
+  }
+
+  // Update mood labels live
+  const labels = {
+    energy:   ["low", "steady", "bright"],
+    warmth:   ["cool", "temperate", "warm"],
+    openness: ["held", "balanced", "open"],
+    stillness:["restless", "quiet", "still"]
+  };
+  ["energy","warmth","openness","stillness"].forEach(id => {
+    const el = document.getElementById(id);
+    const lab = document.getElementById(id + "Label");
+    el.addEventListener("input", () => {
+      state[id] = +el.value;
+      lab.textContent = label(state[id], ...labels[id]);
+    });
+  });
+
+  // ——— Generation ———
+  function mulberry32(a) {
+    return function() {
+      let t = a += 0x6D2B79F5;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function generate() {
+    const rand = mulberry32(state.seed);
+    const structures = [];
+    const count = 14 + Math.floor(state.energy / 8);
+
+    // Base palette from warmth
+    const hue = 20 + (state.warmth / 100) * 40; // 20–60
+    const sat = 18 + (state.warmth / 100) * 22;
+
+    for (let i = 0; i < count; i++) {
+      const x = (rand() - 0.5) * (900 + state.openness * 6);
+      const y = (rand() - 0.5) * (700 + state.openness * 5);
+
+      // Height driven by energy + a little noise
+      const baseH = 40 + state.energy * 1.1;
+      const h = baseH * (0.5 + rand() * 1.1);
+
+      // Footprint
+      const w = 28 + rand() * 70;
+      const d = 28 + rand() * 60;
+
+      // Slight rotation for imperfection
+      const rot = (rand() - 0.5) * 0.18;
+
+      // Material feel
+      const isOpen = rand() > 0.7 - state.openness / 300;
+      const kind = isOpen ? (rand() > 0.5 ? "plaza" : "courtyard") : "building";
+
+      structures.push({
+        id: i,
+        x, y, w, d, h, rot,
+        kind,
+        name: "",
+        note: "",
+        hue: hue + (rand() - 0.5) * 12,
+        sat: sat + (rand() - 0.5) * 8,
+        light: 0.35 + rand() * 0.35
+      });
+    }
+
+    // Sort for painter’s algorithm (simple depth)
+    structures.sort((a, b) => (a.y + a.d/2) - (b.y + b.d/2));
+    state.structures = structures;
+  }
+
+  // ——— Rendering ———
+  let W, H, dpr;
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = canvas.clientWidth;
+    H = canvas.clientHeight;
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function draw() {
+    // Soft background gradient
+    const g = ctx.createRadialGradient(W*0.5, H*0.35, 0, W*0.5, H*0.5, Math.max(W,H)*0.8);
+    const warmthT = state.warmth / 100;
+    g.addColorStop(0, `hsl(${25 + warmthT*30}, 18%, ${11 + warmthT*3}%)`);
+    g.addColorStop(1, `hsl(${220}, 15%, 7%)`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    // Ground plane suggestion
+    ctx.save();
+    ctx.translate(W/2 + state.camera.x, H*0.62 + state.camera.y);
+    ctx.scale(state.camera.zoom, state.camera.zoom * 0.72); // slight isometric feel
+
+    // Soft fog / atmosphere
+    ctx.fillStyle = `hsla(210, 20%, 70%, ${0.03 + (100-state.stillness)/800})`;
+    ctx.beginPath();
+    ctx.ellipse(0, 40, 700, 280, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // Draw structures
+    for (const s of state.structures) {
+      drawStructure(s);
+    }
+
+    ctx.restore();
+
+    // Vignette
+    const vig = ctx.createRadialGradient(W/2, H/2, H*0.3, W/2, H/2, H*0.85);
+    vig.addColorStop(0, "transparent");
+    vig.addColorStop(1, "rgba(8,10,14,0.55)");
+    ctx.fillStyle = vig;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function drawStructure(s) {
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.rotate(s.rot);
+
+    const isSelected = state.selected === s.id;
+    const elev = s.kind === "building" ? s.h : s.h * 0.25;
+
+    // Shadow
+    ctx.fillStyle = "rgba(0,0,0,0.25)";
+    ctx.beginPath();
+    ctx.ellipse(4, s.d*0.35 + 6, s.w*0.55, s.d*0.28, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    if (s.kind === "building") {
+      // Main volume
+      const grad = ctx.createLinearGradient(-s.w/2, -elev, s.w/2, s.d/2);
+      grad.addColorStop(0, `hsla(${s.hue}, ${s.sat}%, ${28 + s.light*20}%, 0.92)`);
+      grad.addColorStop(1, `hsla(${s.hue}, ${s.sat-5}%, ${14 + s.light*10}%, 0.95)`);
+      ctx.fillStyle = grad;
+
+      // Simple extruded look
+      ctx.beginPath();
+      ctx.moveTo(-s.w/2, 0);
+      ctx.lineTo(-s.w/2, -elev);
+      ctx.lineTo(s.w/2, -elev);
+      ctx.lineTo(s.w/2, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      // Top face
+      ctx.fillStyle = `hsla(${s.hue}, ${s.sat}%, ${38 + s.light*25}%, 0.9)`;
+      ctx.beginPath();
+      ctx.moveTo(-s.w/2, -elev);
+      ctx.lineTo(-s.w/2 + s.d*0.25, -elev - s.d*0.2);
+      ctx.lineTo(s.w/2 + s.d*0.25, -elev - s.d*0.2);
+      ctx.lineTo(s.w/2, -elev);
+      ctx.closePath();
+      ctx.fill();
+
+      // Side face
+      ctx.fillStyle = `hsla(${s.hue}, ${s.sat}%, ${18 + s.light*12}%, 0.9)`;
+      ctx.beginPath();
+      ctx.moveTo(s.w/2, 0);
+      ctx.lineTo(s.w/2, -elev);
+      ctx.lineTo(s.w/2 + s.d*0.25, -elev - s.d*0.2);
+      ctx.lineTo(s.w/2 + s.d*0.25, -s.d*0.2);
+      ctx.closePath();
+      ctx.fill();
+
+      // Subtle window suggestions
+      if (elev > 50) {
+        ctx.fillStyle = `hsla(${s.hue+10}, 30%, 70%, 0.08)`;
+        const rows = Math.floor(elev / 28);
+        for (let r = 1; r < rows; r++) {
+          ctx.fillRect(-s.w/2 + 8, -r*26 - 8, s.w - 16, 3);
+        }
+      }
+    } else {
+      // Plaza / courtyard — low, open
+      ctx.fillStyle = `hsla(${s.hue}, ${s.sat-10}%, ${22 + s.light*15}%, 0.55)`;
+      ctx.beginPath();
+      ctx.roundRect(-s.w/2, -s.d/2, s.w, s.d, 6);
+      ctx.fill();
+
+      // Soft edge
+      ctx.strokeStyle = `hsla(${s.hue}, ${s.sat}%, 50%, 0.15)`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+
+    // Selection glow
+    if (isSelected) {
+      ctx.strokeStyle = "rgba(196,165,116,0.7)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(-s.w/2 - 6, -elev - 10, s.w + 12, elev + s.d*0.4 + 16, 4);
+      ctx.stroke();
+    }
+
+    // Name label
+    if (s.name) {
+      ctx.fillStyle = "rgba(232,228,220,0.85)";
+      ctx.font = "11px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText(s.name, 0, -elev - 18);
+    }
+
+    ctx.restore();
+  }
+
+  // ——— Interaction ———
+  function screenToWorld(sx, sy) {
+    const x = (sx - W/2 - state.camera.x) / state.camera.zoom;
+    const y = (sy - H*0.62 - state.camera.y) / (state.camera.zoom * 0.72);
+    return { x, y };
+  }
+
+  function hitTest(sx, sy) {
+    const pt = screenToWorld(sx, sy);
+    // Reverse order for top-most
+    for (let i = state.structures.length - 1; i >= 0; i--) {
+      const s = state.structures[i];
+      const dx = pt.x - s.x;
+      const dy = pt.y - s.y;
+      if (Math.abs(dx) < s.w/2 + 8 && Math.abs(dy) < s.d/2 + 12) {
+        return s;
+      }
+    }
+    return null;
+  }
+
+  canvas.addEventListener("pointerdown", e => {
+    state.dragging = true;
+    state.lastMouse = { x: e.clientX, y: e.clientY };
+    canvas.setPointerCapture(e.pointerId);
+
+    if (state.mode !== "explore") {
+      const hit = hitTest(e.clientX, e.clientY);
+      if (hit) {
+        state.selected = hit.id;
+        openDetail(hit);
+      }
+    }
+  });
+
+  canvas.addEventListener("pointermove", e => {
+    if (!state.dragging) return;
+    const dx = e.clientX - state.lastMouse.x;
+    const dy = e.clientY - state.lastMouse.y;
+    state.camera.x += dx;
+    state.camera.y += dy;
+    state.lastMouse = { x: e.clientX, y: e.clientY };
+  });
+
+  canvas.addEventListener("pointerup", () => {
+    state.dragging = false;
+  });
+
+  canvas.addEventListener("wheel", e => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.92 : 1.08;
+    state.camera.zoom = Math.min(2.2, Math.max(0.45, state.camera.zoom * delta));
+  }, { passive: false });
+
+  // Tools
+  document.querySelectorAll(".tool").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tool").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      state.mode = btn.dataset.mode;
+      if (state.mode === "explore") {
+        state.selected = null;
+        detail.classList.remove("open");
+      }
+    });
+  });
+
+  function openDetail(s) {
+    document.getElementById("detailTitle").textContent = s.name || "Unnamed structure";
+    document.getElementById("detailKind").textContent = s.kind;
+    document.getElementById("detailName").value = s.name;
+    document.getElementById("detailNote").value = s.note;
+    detail.classList.add("open");
+  }
+
+  document.getElementById("detailSave").addEventListener("click", () => {
+    const s = state.structures.find(x => x.id === state.selected);
+    if (!s) return;
+    s.name = document.getElementById("detailName").value.trim();
+    s.note = document.getElementById("detailNote").value.trim();
+    detail.classList.remove("open");
+    save();
+    showStatus(s.name ? `Named “${s.name}”` : "Note kept");
+  });
+
+  document.getElementById("detailCancel").addEventListener("click", () => {
+    detail.classList.remove("open");
+    state.selected = null;
+  });
+
+  // Place name
+  document.getElementById("renamePlace").addEventListener("click", () => {
+    const name = prompt("Name this territory", state.placeName);
+    if (name !== null) {
+      state.placeName = name.trim() || "Untitled territory";
+      document.getElementById("placeName").textContent = state.placeName;
+      save();
+    }
+  });
+
+  document.getElementById("newTerritory").addEventListener("click", () => {
+    if (confirm("Leave this territory and grow a new one?")) {
+      state.seed = Date.now();
+      state.camera = { x: 0, y: 0, zoom: 1 };
+      state.selected = null;
+      detail.classList.remove("open");
+      generate();
+      document.getElementById("placeName").textContent = "Untitled territory";
+      state.placeName = "Untitled territory";
+      save();
+      showStatus("A new territory has grown");
+    }
+  });
+
+  // ——— Persistence ———
+  function save() {
+    const data = {
+      seed: state.seed,
+      energy: state.energy,
+      warmth: state.warmth,
+      openness: state.openness,
+      stillness: state.stillness,
+      placeName: state.placeName,
+      structures: state.structures.map(s => ({
+        id: s.id, name: s.name, note: s.note
+      }))
+    };
+    localStorage.setItem("soft-architecture", JSON.stringify(data));
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem("soft-architecture");
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+      state.seed = data.seed;
+      state.energy = data.energy;
+      state.warmth = data.warmth;
+      state.openness = data.openness;
+      state.stillness = data.stillness;
+      state.placeName = data.placeName || "Untitled territory";
+      generate();
+      // Restore names & notes
+      data.structures.forEach(saved => {
+        const s = state.structures.find(x => x.id === saved.id);
+        if (s) {
+          s.name = saved.name || "";
+          s.note = saved.note || "";
+        }
+      });
+      document.getElementById("placeName").textContent = state.placeName;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // ——— Enter ———
+  document.getElementById("enterBtn").addEventListener("click", () => {
+    state.seed = Date.now();
+    generate();
+    moodScreen.classList.add("hidden");
+    territory.classList.add("active");
+    resize();
+    save();
+    showStatus("The territory is yours");
+    requestAnimationFrame(loop);
+  });
+
+  // If we have a saved place, skip mood screen
+  if (load()) {
+    moodScreen.classList.add("hidden");
+    territory.classList.add("active");
+    resize();
+    showStatus("Welcome back");
+    requestAnimationFrame(loop);
+  }
+
+  // ——— Loop ———
+  function loop() {
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener("resize", () => {
+    if (territory.classList.contains("active")) resize();
+  });
+})();
+</script>
+</body>
+</html>

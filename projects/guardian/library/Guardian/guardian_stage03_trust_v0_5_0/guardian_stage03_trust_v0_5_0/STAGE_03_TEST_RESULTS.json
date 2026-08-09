@@ -1,0 +1,85 @@
+{
+  "stage": "Guardian Stage 03 \u2014 Trust Infrastructure",
+  "engine_version": "0.5.0",
+  "slip_schema": {
+    "name": "guardian-result-slip",
+    "version": "1.0"
+  },
+  "policy_schema_version": "1.0",
+  "analyzer_changed": false,
+  "stage02c_frozen_block_sha256": "f47b9a570b75fea839207182b989f02e99212c5d99c09575537bf491f248d4ab",
+  "stage03_frozen_block_sha256": "f47b9a570b75fea839207182b989f02e99212c5d99c09575537bf491f248d4ab",
+  "compile_passed": true,
+  "compile_error": "",
+  "policy_validation_passed": true,
+  "policy_validation_output": "{\n  \"checklist_items\": 8,\n  \"name\": \"CodeIntake_Security_Default\",\n  \"policy_fingerprint\": \"724702496003e22e6874c5027ac3fe712809d7f64f4b5d99f3292638e0514c49\",\n  \"policy_schema_version\": \"1.0\",\n  \"valid\": true,\n  \"version\": \"0.5.0\"\n}",
+  "tests_run": 81,
+  "all_tests_passed": true,
+  "sample_results": [
+    {
+      "file": "clean.py",
+      "expected_outcome": "Let In",
+      "actual_outcome": "Let In",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "passed": true,
+      "policy_fingerprint_present": true,
+      "signature_present": true
+    },
+    {
+      "file": "hold_file_write.py",
+      "expected_outcome": "Hold",
+      "actual_outcome": "Hold",
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "passed": true,
+      "policy_fingerprint_present": true,
+      "signature_present": true
+    },
+    {
+      "file": "reject_unsafe.py",
+      "expected_outcome": "Reject",
+      "actual_outcome": "Reject",
+      "expected_exit": 3,
+      "actual_exit": 3,
+      "passed": true,
+      "policy_fingerprint_present": true,
+      "signature_present": true
+    },
+    {
+      "file": "missing_manifest.py",
+      "expected_outcome": "Hold",
+      "actual_outcome": "Hold",
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "passed": true,
+      "policy_fingerprint_present": true,
+      "signature_present": true
+    }
+  ],
+  "all_sample_results_passed": true,
+  "signed_ledger_replay_passed": true,
+  "signed_ledger_replay_output": "Ledger replay passed. Chain integrity confirmed.",
+  "ledger_summary": {
+    "chain_issues": [],
+    "chain_valid": true,
+    "hmac_verification_enabled": true,
+    "ledger_file": "/mnt/data/guardian_stage03_trust_v0_5_0/stage03_validation_ledger.jsonl",
+    "outcomes": {
+      "Hold": 2,
+      "Let In": 1,
+      "Reject": 1
+    },
+    "risk_distribution": {
+      "Caution": 0,
+      "Failed": 1,
+      "Limited": 0,
+      "On Target": 1,
+      "Serious": 2
+    },
+    "terminal_hash": "cc54977c2409fe013033c79cd34822df85fdb0bbbeb5d186b04a55e3d1f8ad62",
+    "total_entries": 4
+  },
+  "stage03_freeze_passed": true,
+  "known_boundary": "Stage 03 hardens policy, receipts, and the local tamper-evident ledger. It does not correct the 19 Stage 02C analyzer mismatches or add runtime enforcement."
+}

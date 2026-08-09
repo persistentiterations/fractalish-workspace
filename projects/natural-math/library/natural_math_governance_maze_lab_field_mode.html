@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Natural Math Governance Maze Lab — Field Mode</title>
+<style>
+  :root{
+    --bg:#071017; --panel:#0d1822; --panel2:#101f2c; --ink:#e8f1f7; --muted:#8ea3b2;
+    --line:#22394a; --blue:#54b8ff; --cyan:#37f0d1; --green:#83f17f; --amber:#ffca5f;
+    --red:#ff6d79; --purple:#c391ff; --wall:#192735; --floor:#0e1a24; --seen:#3d6a83;
+    --dead:#765057; --corridor:#42e6bf; --shadow:0 12px 40px rgba(0,0,0,.34);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:radial-gradient(circle at 20% 0%,#102335 0,#071017 38%,#05090d 100%);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+  body{overflow-x:hidden}
+  .app{width:min(1440px,100%);margin:0 auto;padding:clamp(12px,1.5vw,22px);display:grid;gap:14px}
+  header{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;padding:4px 2px 0}
+  h1{font-size:clamp(22px,2.4vw,36px);line-height:1.04;margin:0;font-weight:760;letter-spacing:-.03em}
+  .subtitle{margin:7px 0 0;color:var(--muted);font-size:14px;max-width:900px}
+  .badgeRow{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+  .badge{border:1px solid var(--line);background:rgba(13,24,34,.8);border-radius:999px;padding:7px 10px;color:#cfe0eb;font-size:12px;white-space:nowrap}
+  .layout{display:grid;grid-template-columns:minmax(520px,1.35fr) minmax(330px,.78fr);gap:14px;align-items:start}
+  .panel{background:linear-gradient(180deg,rgba(16,31,44,.96),rgba(10,20,30,.96));border:1px solid rgba(92,133,160,.23);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .panelHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(92,133,160,.2)}
+  .panelHead h2{font-size:14px;text-transform:uppercase;letter-spacing:.12em;margin:0;color:#b9ccda;font-weight:740}
+  .small{font-size:12px;color:var(--muted)}
+  .mazePanel{min-width:0}
+  .canvasWrap{position:relative;padding:10px;background:linear-gradient(180deg,rgba(6,13,20,.65),rgba(4,8,12,.4))}
+  canvas{display:block;width:100%;height:min(62svh,620px);min-height:360px;max-height:640px;border-radius:14px;background:#071019;border:1px solid rgba(105,154,184,.22)}
+  .overlayStatus{position:absolute;left:20px;top:20px;right:20px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
+  .statusPill{background:rgba(4,10,15,.72);backdrop-filter:blur(8px);border:1px solid rgba(125,190,220,.22);border-radius:999px;padding:7px 10px;font-size:12px;color:#d7e8f2;white-space:nowrap}
+  .controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:12px;border-top:1px solid rgba(92,133,160,.2)}
+  button{appearance:none;border:1px solid rgba(115,163,190,.28);background:linear-gradient(180deg,#163044,#0e2231);color:#e9f6fb;border-radius:12px;padding:10px 10px;font-weight:720;font-size:13px;cursor:pointer;min-height:42px;transition:.15s transform,.15s border-color,.15s background}
+  button:hover{transform:translateY(-1px);border-color:rgba(84,184,255,.65)}
+  button:active{transform:translateY(0)}
+  button.clean{background:linear-gradient(180deg,#0f463c,#102e2c);border-color:rgba(55,240,209,.42)}
+  button.risky,button.tamper{background:linear-gradient(180deg,#4b2329,#2a1720);border-color:rgba(255,109,121,.4)}
+  button.run{background:linear-gradient(180deg,#184c72,#102c45);border-color:rgba(84,184,255,.48)}
+  .rightCol{display:grid;gap:14px;min-width:0}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px}
+  .metric{background:rgba(5,13,20,.5);border:1px solid rgba(92,133,160,.18);border-radius:14px;padding:10px;min-width:0}
+  .metric .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .metric .value{font-size:18px;font-weight:780;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .value.extend,.ok{color:var(--green)} .value.hold,.warn{color:var(--amber)} .value.retract,.bad{color:var(--red)} .value.support{color:var(--cyan)}
+  .manifestBox{padding:12px;display:grid;gap:10px}
+  .manifestLine{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed rgba(105,154,184,.18);padding-bottom:8px;font-size:13px}
+  .manifestLine span:first-child{color:var(--muted)}
+  .receipt{padding:10px 12px 12px;display:grid;gap:7px;max-height:45svh;overflow:auto}
+  .check{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:center;font-size:13px;background:rgba(5,13,20,.38);border:1px solid rgba(92,133,160,.15);border-radius:10px;padding:7px 8px}
+  .dot{width:14px;height:14px;border-radius:50%;background:#314657;border:1px solid #4f6676}
+  .dot.pass{background:radial-gradient(circle,#d7ffe7 0 18%,#83f17f 22% 60%,#266c43 65%);border-color:#93f69b;box-shadow:0 0 12px rgba(131,241,127,.35)}
+  .dot.fail{background:radial-gradient(circle,#ffe3e6 0 18%,#ff6d79 22% 60%,#7b2630 65%);border-color:#ff98a0;box-shadow:0 0 12px rgba(255,109,121,.25)}
+  .dot.wait{background:radial-gradient(circle,#fff2cd 0 18%,#ffca5f 22% 60%,#77551b 65%);border-color:#ffda86}
+  .scoreTag{font-size:11px;color:#9fb1bf}
+  .explain{padding:12px 14px;font-size:13px;color:#cadae5;line-height:1.45;display:grid;gap:9px}
+  .explain strong{color:#fff}
+  .legend{display:flex;flex-wrap:wrap;gap:7px;padding:0 12px 12px}
+  .leg{font-size:11px;color:#c5d6df;display:flex;align-items:center;gap:6px;border:1px solid rgba(92,133,160,.18);border-radius:999px;padding:5px 8px;background:rgba(5,13,20,.35)}
+  .sw{width:12px;height:12px;border-radius:3px;display:inline-block}.sw.wall{background:var(--wall)}.sw.seen{background:var(--seen)}.sw.dead{background:var(--dead)}.sw.cor{background:var(--corridor)}.sw.base{background:var(--blue)}.sw.res{background:var(--amber)}
+  .log{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;color:#a9bfcd;background:rgba(4,10,15,.45);border-top:1px solid rgba(92,133,160,.16);padding:10px 12px;min-height:58px;max-height:96px;overflow:auto}
+  @media (max-width:1080px){.layout{grid-template-columns:1fr}.rightCol{grid-template-columns:1fr 1fr}.receipt{max-height:360px}.explainPanel{grid-column:1/-1}canvas{height:min(58svh,560px)}}
+  @media (max-width:760px){.app{padding:10px}.rightCol{grid-template-columns:1fr}header{grid-template-columns:1fr}.badgeRow{justify-content:flex-start}.controls{grid-template-columns:repeat(2,1fr)}.cards{grid-template-columns:1fr 1fr}canvas{height:auto;aspect-ratio:1.22/1;min-height:280px}.overlayStatus{position:static;padding:10px 10px 0}.canvasWrap{padding-top:0}.statusPill{white-space:normal}.receipt{max-height:none}}
+  @media (max-width:430px){.controls,.cards{grid-template-columns:1fr}button{font-size:14px}.badge{font-size:11px}h1{font-size:22px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1>Natural Math Governance Maze Lab — Field Mode</h1>
+      <p class="subtitle">Layer 0 manifest gate → local scout discovery → confirmed corridor → follower replay → Specificity receipt. Setup may validate reachability; agents do not use BFS, A*, learned AI, or a hidden global route.</p>
+    </div>
+    <div class="badgeRow">
+      <div class="badge">Integer grid</div><div class="badge">One-cell movement</div><div class="badge">Edge memory</div><div class="badge">No seen-edge fallback</div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel mazePanel">
+      <div class="panelHead"><h2>Maze Field</h2><div class="small" id="caseId">case: fresh</div></div>
+      <div class="canvasWrap">
+        <div class="overlayStatus"><div class="statusPill" id="runStatus">Create a manifest to unlock the field.</div><div class="statusPill" id="stepStatus">step 0 · idle</div></div>
+        <canvas id="maze" aria-label="Natural Math governance maze canvas"></canvas>
+      </div>
+      <div class="legend">
+        <span class="leg"><span class="sw wall"></span>wall</span><span class="leg"><span class="sw seen"></span>messy seen</span><span class="leg"><span class="sw dead"></span>dead-end mark</span><span class="leg"><span class="sw cor"></span>confirmed corridor</span><span class="leg"><span class="sw base"></span>base</span><span class="leg"><span class="sw res"></span>resource</span>
+      </div>
+      <div class="controls">
+        <button class="clean" id="cleanBtn">Create clean manifest</button>
+        <button class="risky" id="riskyBtn">Create risky manifest</button>
+        <button class="tamper" id="tamperBtn">Tamper artifact</button>
+        <button class="run" id="runBtn">Run</button>
+        <button id="stepBtn">Step</button>
+        <button id="resetBtn">Reset run</button>
+        <button id="newMazeBtn">New maze</button>
+        <button id="newResBtn">New resource</button>
+        <button id="repeatBtn">Repeat same test</button>
+      </div>
+      <div class="log" id="log">Layer 0 is waiting. No manifest means HOLD.</div>
+    </section>
+
+    <aside class="rightCol">
+      <section class="panel">
+        <div class="panelHead"><h2>Governance State</h2><div class="small">separate namespaces</div></div>
+        <div class="cards">
+          <div class="metric"><div class="label">Action State</div><div class="value hold" id="actionState">HOLD</div></div>
+          <div class="metric"><div class="label">Epistemic</div><div class="value" id="epState">UNRESOLVED</div></div>
+          <div class="metric"><div class="label">Structural Debt</div><div class="value hold" id="debtState">CONSTRAINED</div></div>
+          <div class="metric"><div class="label">GSR</div><div class="value support" id="gsrVal">0.00</div></div>
+          <div class="metric"><div class="label">NGR</div><div class="value hold" id="ngrVal">1.00</div></div>
+          <div class="metric"><div class="label">Route Mode</div><div class="value" id="routeMode">none</div></div>
+        </div>
+        <div class="manifestBox">
+          <div class="manifestLine"><span>Manifest</span><b id="manifestState">absent</b></div>
+          <div class="manifestLine"><span>Hash</span><b id="hashState">none</b></div>
+          <div class="manifestLine"><span>Risk flag</span><b id="riskState">unknown</b></div>
+          <div class="manifestLine"><span>Gateway</span><b id="gatewayState">HOLD</b></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panelHead"><h2>Specificity Receipt</h2><div class="small">weighted target checks</div></div>
+        <div class="receipt" id="receipt"></div>
+      </section>
+
+      <section class="panel explainPanel">
+        <div class="panelHead"><h2>What to Watch</h2><div class="small">short guide</div></div>
+        <div class="explain">
+          <div><strong>Gate first.</strong> No manifest produces HOLD. Risk or tamper produces RETRACT. Only a clean matching manifest unlocks the actual field run.</div>
+          <div><strong>Scout earns memory.</strong> The scout moves one cell at a time, makes wrong turns, leaves messy seen marks, and only confirms the final out-and-home corridor after it returns to base.</div>
+          <div><strong>Follower is stricter.</strong> It ignores raw seen marks and moves only on the confirmed corridor. Repeating the same maze/resource reuses the corridor; changing either forces fresh discovery.</div>
+        </div>
+      </section>
+    </aside>
+  </main>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const canvas = document.getElementById('maze');
+  const ctx = canvas.getContext('2d', { alpha:false });
+  const $ = id => document.getElementById(id);
+  const DIRS = [[1,0],[-1,0],[0,1],[0,-1]];
+  const W = 27, H = 19;
+  const weights = {
+    manifest_present: 2, hash_matches: 2, risk_flag_safe: 2, gateway_action_extend: 2,
+    scout_discovered_resource: 1, scout_returned_home: 1, corridor_built: 2,
+    follower_reached_resource: 1, follower_returned_home: 1, no_seen_edge_fallback: 2,
+    known_route_reused_when_available: 1, receipt_recorded: 1
+  };
+  const labels = {
+    manifest_present:'manifest present', hash_matches:'hash matches', risk_flag_safe:'risk flag safe', gateway_action_extend:'gateway action EXTEND',
+    scout_discovered_resource:'scout discovered resource', scout_returned_home:'scout returned home', corridor_built:'corridor built',
+    follower_reached_resource:'follower reached resource', follower_returned_home:'follower returned home', no_seen_edge_fallback:'no seen-edge fallback',
+    known_route_reused_when_available:'known route reused when available', receipt_recorded:'receipt recorded'
+  };
+  let state, raf = 0, lastTick = 0;
+
+  function mulberry32(a){ return function(){ let t = a += 0x6D2B79F5; t = Math.imul(t ^ t>>>15, t | 1); t ^= t + Math.imul(t ^ t>>>7, t | 61); return ((t ^ t>>>14) >>> 0) / 4294967296; }; }
+  function key(p){ return p.x + ',' + p.y; }
+  function edgeKey(a,b){ return key(a) < key(b) ? key(a)+'|'+key(b) : key(b)+'|'+key(a); }
+  function same(a,b){ return a.x===b.x && a.y===b.y; }
+  function hashText(s){ let h=2166136261>>>0; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return (h>>>0).toString(16).padStart(8,'0'); }
+  function dist2(a,b){ const dx=a.x-b.x, dy=a.y-b.y; return dx*dx + dy*dy; }
+  function shuffle(arr,rng){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(rng()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+  function passable(p){ return p.x>=0 && p.y>=0 && p.x<W && p.y<H && state.grid[p.y][p.x]===0; }
+  function neigh(p){ return DIRS.map(d=>({x:p.x+d[0],y:p.y+d[1],d})).filter(passable); }
+
+  function setupState(mazeSeed, resourceSeed){
+    state = {
+      mazeSeed, resourceSeed, grid:null, base:{x:1,y:1}, resource:null,
+      manifest:null, artifact:{body:'field-demo-artifact-v1', hash:''}, tampered:false,
+      phase:'idle', running:false, step:0, pulse:0, scout:null, follower:null,
+      seenEdges:new Map(), seenCells:new Map(), deadCells:new Set(), confirmedEdges:new Set(), confirmedRoute:[],
+      routeCache: setupState.cache || new Map(), reusedRoute:false, receiptRecorded:false,
+      feature:{}, log:[]
+    };
+    setupState.cache = state.routeCache;
+    state.artifact.hash = hashText(state.artifact.body + ':' + mazeSeed + ':' + resourceSeed);
+    generateMaze(); resetRunData(false); addLog('Fresh field created. Setup validation confirmed base/resource reachability; agent navigation remains local.');
+  }
+
+  function generateMaze(){
+    const rng = mulberry32(state.mazeSeed);
+    const g = Array.from({length:H},()=>Array(W).fill(1));
+    function carve(x,y){
+      g[y][x]=0;
+      for(const [dx,dy] of shuffle([[2,0],[-2,0],[0,2],[0,-2]],rng)){
+        const nx=x+dx, ny=y+dy;
+        if(nx>0 && ny>0 && nx<W-1 && ny<H-1 && g[ny][nx]===1){
+          g[y+dy/2][x+dx/2]=0; carve(nx,ny);
+        }
+      }
+    }
+    carve(1,1);
+    for(let i=0;i<Math.floor(W*H*.035);i++){
+      const x=1+Math.floor(rng()*(W-2)), y=1+Math.floor(rng()*(H-2));
+      if(x%2===0 || y%2===0) g[y][x]=0;
+    }
+    state.grid=g;
+    const cells=[];
+    for(let y=1;y<H-1;y++) for(let x=1;x<W-1;x++) if(g[y][x]===0 && dist2({x,y},state.base)>80) cells.push({x,y});
+    const rr = mulberry32(state.resourceSeed);
+    state.resource = cells[Math.floor(rr()*cells.length)] || {x:W-2,y:H-2};
+  }
+
+  function resetRunData(keepManifest=true){
+    const m = keepManifest ? state.manifest : null;
+    const tam = keepManifest ? state.tampered : false;
+    const art = state.artifact;
+    const cache = state.routeCache;
+    const mazeSeed = state.mazeSeed, resourceSeed = state.resourceSeed, grid = state.grid, base = state.base, resource = state.resource;
+    Object.assign(state,{manifest:m,tampered:tam,artifact:art,routeCache:cache,mazeSeed,resourceSeed,grid,base,resource,
+      phase:'idle',running:false,step:0,pulse:0,scout:null,follower:null,seenEdges:new Map(),seenCells:new Map(),deadCells:new Set(),confirmedEdges:new Set(),confirmedRoute:[],reusedRoute:false,receiptRecorded:false,feature:{},log:state.log.slice(-4)});
+    evaluateGateway(); updateReceipt(); draw();
+  }
+
+  function routeCacheKey(){ return state.mazeSeed + '::' + state.resourceSeed; }
+  function createManifest(kind){
+    state.tampered=false;
+    state.artifact.body='field-demo-artifact-v1';
+    state.artifact.hash=hashText(state.artifact.body + ':' + state.mazeSeed + ':' + state.resourceSeed);
+    state.manifest={kind, declaredHash: state.artifact.hash, risk: kind==='clean'?'safe':'risky', version:'Layer0-FieldMode'};
+    addLog(kind==='clean'?'Clean manifest created. Gateway can EXTEND.':'Risky manifest created. Gateway will RETRACT.');
+    evaluateGateway(); updateReceipt(); draw();
+  }
+  function tamperArtifact(){
+    state.artifact.body += ':tamper' + (state.step+1); state.tampered=true;
+    addLog('Artifact body changed after manifest creation. Hash mismatch will block action.');
+    evaluateGateway(); updateReceipt(); draw();
+  }
+  function evaluateGateway(){
+    const present=!!state.manifest;
+    const hashNow=hashText(state.artifact.body + ':' + state.mazeSeed + ':' + state.resourceSeed);
+    const hashMatches=present && state.manifest.declaredHash===hashNow;
+    const safe=present && state.manifest.risk==='safe';
+    state.feature.manifest_present=present;
+    state.feature.hash_matches=hashMatches;
+    state.feature.risk_flag_safe=safe;
+    state.feature.gateway_action_extend=present && hashMatches && safe;
+    if(!present) state.gateway='HOLD'; else if(hashMatches && safe) state.gateway='EXTEND'; else state.gateway='RETRACT';
+  }
+
+  function beginRun(){
+    evaluateGateway();
+    if(state.gateway!=='EXTEND'){
+      state.phase=state.gateway==='RETRACT'?'blocked_retract':'blocked_hold'; state.running=false;
+      addLog(state.gateway==='HOLD'?'HOLD: no valid manifest. Maze remains locked.':'RETRACT: risk or tamper detected. Maze remains locked.');
+      updateReceipt(); draw(); return;
+    }
+    const cached = state.routeCache.get(routeCacheKey());
+    state.running=true; state.step=0; state.seenEdges.clear(); state.seenCells.clear(); state.deadCells.clear(); state.confirmedEdges.clear(); state.confirmedRoute=[]; state.feature.scout_discovered_resource=false; state.feature.scout_returned_home=false; state.feature.corridor_built=false; state.feature.follower_reached_resource=false; state.feature.follower_returned_home=false; state.feature.no_seen_edge_fallback=true; state.feature.known_route_reused_when_available=false; state.feature.receipt_recorded=false; state.receiptRecorded=false;
+    if(cached){
+      state.reusedRoute=true; state.confirmedRoute = cached.map(p=>({...p})); buildConfirmedEdges(); state.feature.corridor_built=true; state.feature.known_route_reused_when_available=true;
+      state.follower={pos:{...state.base}, index:0, leg:'out'}; state.phase='follower_out'; addLog('Known route found for this exact maze/resource. Follower reuses confirmed corridor only.');
+    } else {
+      state.reusedRoute=false; state.scout={pos:{...state.base}, dir:[1,0], stack:[{...state.base}], recent:[], found:false, homeIndex:null}; state.phase='scout_out'; markCell(state.base); addLog('Scout launched. It can see only adjacent cells, recent memory, seen counts, and momentum.');
+    }
+    updateReceipt(); draw(); loop();
+  }
+
+  function stepOnce(){
+    evaluateGateway();
+    if(state.gateway!=='EXTEND'){ beginRun(); return; }
+    if(state.phase==='idle' || state.phase.startsWith('blocked')) beginRun();
+    if(!state.running && state.phase==='done') return;
+    for(let i=0;i<1;i++) simStep(); updateReceipt(); draw();
+  }
+
+  function simStep(){
+    state.step++; state.pulse += .16;
+    if(state.phase==='scout_out') scoutOut();
+    else if(state.phase==='scout_home') scoutHome();
+    else if(state.phase==='follower_out') followerOut();
+    else if(state.phase==='follower_home') followerHome();
+    if(state.step>3200 && state.running){ state.running=false; state.phase='done'; addLog('Run stopped by step budget. Receipt records unresolved discovery.'); recordReceipt(); }
+  }
+
+  function markCell(p){ state.seenCells.set(key(p),(state.seenCells.get(key(p))||0)+1); }
+  function markMove(a,b){ const e=edgeKey(a,b); state.seenEdges.set(e,(state.seenEdges.get(e)||0)+1); markCell(b); }
+  function scoutOut(){
+    const s=state.scout, p=s.pos; markCell(p);
+    if(same(p,state.resource)){
+      s.found=true; state.feature.scout_discovered_resource=true; state.phase='scout_home'; s.homeIndex=s.stack.length-1; addLog('Scout found the resource. Return-to-base must use its lived path memory.'); return;
+    }
+    const ns = neigh(p).map(n=>{
+      const e=edgeKey(p,n), c=state.seenEdges.get(e)||0, cellC=state.seenCells.get(key(n))||0;
+      const forward=(n.d[0]===s.dir[0] && n.d[1]===s.dir[1])?3:0;
+      const recent=s.recent.includes(key(n))?9:0;
+      const localResourceSeen = same(n, state.resource) ? -20 : 0; // adjacent cell inspection only
+      return {n, score:c*7 + cellC*3 - forward + recent + localResourceSeen + Math.floor(Math.random()*2)};
+    }).sort((a,b)=>a.score-b.score);
+    let choice = ns[0]?.n;
+    const currentBack = s.stack.length>1 ? s.stack[s.stack.length-2] : null;
+    const untried = ns.filter(o=>(state.seenEdges.get(edgeKey(p,o.n))||0)===0 && (!currentBack || !same(o.n,currentBack)));
+    if(untried.length) choice=untried[0].n;
+    else if(currentBack && Math.random()<.82){ state.deadCells.add(key(p)); choice=currentBack; s.stack.pop(); }
+    if(!choice){ state.deadCells.add(key(p)); return; }
+    const old={...p}; s.pos={x:choice.x,y:choice.y}; s.dir=choice.d; markMove(old,s.pos);
+    if(!currentBack || !same(s.pos,currentBack)) s.stack.push({...s.pos});
+    s.recent.push(key(old)); if(s.recent.length>8) s.recent.shift();
+  }
+  function scoutHome(){
+    const s=state.scout;
+    if(s.homeIndex<=0 || same(s.pos,state.base)){
+      s.pos={...state.base}; state.feature.scout_returned_home=true;
+      state.confirmedRoute=s.stack.map(p=>({...p})); buildConfirmedEdges(); state.feature.corridor_built=true;
+      state.routeCache.set(routeCacheKey(), state.confirmedRoute.map(p=>({...p})));
+      state.follower={pos:{...state.base}, index:0, leg:'out'}; state.phase='follower_out';
+      addLog('Confirmed corridor built from the successful out-and-home route. Raw seen marks remain untrusted.'); return;
+    }
+    const old={...s.pos}; s.homeIndex--; s.pos={...s.stack[s.homeIndex]}; markMove(old,s.pos);
+  }
+  function buildConfirmedEdges(){ state.confirmedEdges.clear(); for(let i=1;i<state.confirmedRoute.length;i++) state.confirmedEdges.add(edgeKey(state.confirmedRoute[i-1],state.confirmedRoute[i])); }
+  function followerOut(){
+    const f=state.follower, route=state.confirmedRoute;
+    if(!route.length){ state.feature.no_seen_edge_fallback=false; state.running=false; state.phase='done'; recordReceipt(); return; }
+    if(f.index>=route.length-1){ f.pos={...state.resource}; state.feature.follower_reached_resource=true; f.leg='home'; state.phase='follower_home'; addLog('Follower reached resource using only the confirmed corridor.'); return; }
+    const next=route[f.index+1], e=edgeKey(f.pos,next);
+    if(!state.confirmedEdges.has(e)){ state.feature.no_seen_edge_fallback=false; state.running=false; state.phase='done'; recordReceipt(); return; }
+    f.index++; f.pos={...next};
+  }
+  function followerHome(){
+    const f=state.follower, route=state.confirmedRoute;
+    if(f.index<=0){ f.pos={...state.base}; state.feature.follower_returned_home=true; state.running=false; state.phase='done'; recordReceipt(); addLog('Follower returned home. Receipt recorded.'); return; }
+    const next=route[f.index-1], e=edgeKey(f.pos,next);
+    if(!state.confirmedEdges.has(e)){ state.feature.no_seen_edge_fallback=false; state.running=false; state.phase='done'; recordReceipt(); return; }
+    f.index--; f.pos={...next};
+  }
+  function recordReceipt(){ state.feature.receipt_recorded=true; state.receiptRecorded=true; updateReceipt(); }
+  function loop(t=0){ if(!state.running) return; if(t-lastTick>135){ for(let i=0;i<2;i++) simStep(); lastTick=t; updateReceipt(); draw(); } raf=requestAnimationFrame(loop); }
+
+  function score(){
+    const total=Object.values(weights).reduce((a,b)=>a+b,0); let got=0;
+    for(const k of Object.keys(weights)) if(state.feature[k]) got += weights[k];
+    const g=got/total, n=1-g; return {g,n};
+  }
+  function debtFrom(g){ if(g>=.98) return 'OPERATIONAL'; if(g>=.82) return 'CAUTION'; if(g>=.62) return 'CONSTRAINED'; if(g>=.35) return 'CRITICAL'; return 'EXCEEDED'; }
+  function epFrom(){ if(state.gateway==='RETRACT') return 'CONTRADICTED'; if(state.gateway==='EXTEND' && (state.feature.receipt_recorded || state.feature.gateway_action_extend)) return 'SUPPORTED'; return 'UNRESOLVED'; }
+  function updateReceipt(){
+    evaluateGateway();
+    if(state.feature.no_seen_edge_fallback!==false) state.feature.no_seen_edge_fallback = true;
+    if(state.routeCache.has(routeCacheKey()) && state.reusedRoute) state.feature.known_route_reused_when_available=true;
+    else if(!state.routeCache.has(routeCacheKey())) state.feature.known_route_reused_when_available=true; // no available route to reuse
+    const {g,n}=score(); const debt=debtFrom(g), ep=epFrom();
+    $('actionState').textContent=state.gateway; $('actionState').className='value '+(state.gateway==='EXTEND'?'extend':state.gateway==='RETRACT'?'retract':'hold');
+    $('epState').textContent=ep; $('epState').className='value '+(ep==='SUPPORTED'?'support':ep==='CONTRADICTED'?'retract':'hold');
+    $('debtState').textContent=debt; $('debtState').className='value '+(debt==='OPERATIONAL'?'extend':(debt==='CRITICAL'||debt==='EXCEEDED')?'retract':'hold');
+    $('gsrVal').textContent=g.toFixed(2); $('ngrVal').textContent=n.toFixed(2); $('routeMode').textContent=state.reusedRoute?'reused':state.confirmedRoute.length?'confirmed':'fresh';
+    $('manifestState').textContent=state.manifest?state.manifest.version:'absent'; $('hashState').textContent=state.feature.hash_matches?'match':(state.manifest?'mismatch':'none'); $('riskState').textContent=state.manifest?state.manifest.risk:'unknown'; $('gatewayState').textContent=state.gateway;
+    $('caseId').textContent='maze '+state.mazeSeed+' · resource '+state.resourceSeed; $('stepStatus').textContent='step '+state.step+' · '+state.phase.replaceAll('_',' ');
+    $('runStatus').textContent = state.gateway==='EXTEND' ? (state.phase==='done'?'Proof cycle complete.':'Field unlocked: local movement active or ready.') : (state.gateway==='RETRACT'?'RETRACT: unsafe or tampered manifest.':'HOLD: valid manifest required.');
+    const rows = Object.keys(weights).map(k=>{
+      const v=!!state.feature[k]; const pending = !v && state.gateway==='EXTEND' && !['manifest_present','hash_matches','risk_flag_safe','gateway_action_extend'].includes(k) && state.phase!=='done';
+      return `<div class="check"><span class="dot ${v?'pass':pending?'wait':'fail'}"></span><span>${labels[k]}</span><span class="scoreTag">w=${weights[k]}</span></div>`;
+    }).join('');
+    $('receipt').innerHTML = rows;
+  }
+
+  function addLog(s){ state.log.push(s); if(state.log.length>10) state.log.shift(); $('log').textContent=state.log.join('\n'); }
+  function draw(){
+    const dpr = Math.max(1, Math.min(2.5, window.devicePixelRatio || 1));
+    const rect = canvas.getBoundingClientRect();
+    const bw = Math.max(320, Math.floor(rect.width*dpr)), bh=Math.max(260,Math.floor(rect.height*dpr));
+    if(canvas.width!==bw || canvas.height!==bh){ canvas.width=bw; canvas.height=bh; }
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    const cw=rect.width, ch=rect.height; ctx.fillStyle='#071019'; ctx.fillRect(0,0,cw,ch);
+    const cell = Math.floor(Math.min(cw/(W+1.2), ch/(H+1.2))); const ox=(cw-cell*W)/2, oy=(ch-cell*H)/2;
+    ctx.save(); ctx.translate(ox,oy);
+    for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+      ctx.fillStyle = state.grid[y][x] ? '#192735' : '#0d1822';
+      ctx.fillRect(x*cell,y*cell,cell,cell);
+      if(!state.grid[y][x]){ ctx.strokeStyle='rgba(105,154,184,.055)'; ctx.strokeRect(x*cell+.5,y*cell+.5,cell-1,cell-1); }
+    }
+    for(const [ek,c] of state.seenEdges){ const [a,b]=ek.split('|').map(s=>{const [x,y]=s.split(',').map(Number); return {x,y};}); line(a,b,'rgba(61,106,131,'+Math.min(.22+c*.09,.58)+')',Math.max(2,cell*.13)); }
+    for(const ck of state.deadCells){ const [x,y]=ck.split(',').map(Number); ctx.fillStyle='rgba(118,80,87,.72)'; roundRect(x*cell+cell*.26,y*cell+cell*.26,cell*.48,cell*.48,4,true); }
+    const glow = .45 + Math.sin(state.pulse)*.25;
+    for(const ek of state.confirmedEdges){ const [a,b]=ek.split('|').map(s=>{const [x,y]=s.split(',').map(Number); return {x,y};}); line(a,b,'rgba(66,230,191,'+(0.55+glow*.35)+')',Math.max(4,cell*.25)); line(a,b,'rgba(66,230,191,.18)',Math.max(8,cell*.45)); }
+    token(state.base,'#54b8ff','B',cell); token(state.resource,'#ffca5f','R',cell);
+    if(state.scout && (state.phase==='scout_out'||state.phase==='scout_home')) token(state.scout.pos,'#c391ff','S',cell,true);
+    if(state.follower && (state.phase==='follower_out'||state.phase==='follower_home'||state.phase==='done')) token(state.follower.pos,'#83f17f','F',cell,true);
+    if(state.gateway!=='EXTEND'){
+      ctx.fillStyle='rgba(3,8,13,.67)'; ctx.fillRect(0,0,W*cell,H*cell); ctx.strokeStyle=state.gateway==='RETRACT'?'rgba(255,109,121,.7)':'rgba(255,202,95,.65)'; ctx.lineWidth=2; ctx.strokeRect(cell*.7,cell*.7,W*cell-cell*1.4,H*cell-cell*1.4);
+      ctx.fillStyle=state.gateway==='RETRACT'?'#ff9aa2':'#ffd889'; ctx.font=`700 ${Math.max(16,cell*.72)}px ui-sans-serif`; ctx.textAlign='center'; ctx.fillText(state.gateway, W*cell/2, H*cell/2);
+      ctx.font=`500 ${Math.max(11,cell*.34)}px ui-sans-serif`; ctx.fillStyle='#d8e5ee'; ctx.fillText(state.gateway==='RETRACT'?'Risk or tamper blocked before action':'Manifest required before local action', W*cell/2, H*cell/2 + cell*.9);
+    }
+    ctx.restore();
+  }
+  function line(a,b,color,width){ const cell=currentCell(); ctx.strokeStyle=color; ctx.lineWidth=width; ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo((a.x+.5)*cell,(a.y+.5)*cell); ctx.lineTo((b.x+.5)*cell,(b.y+.5)*cell); ctx.stroke(); }
+  function currentCell(){ const rect=canvas.getBoundingClientRect(); return Math.floor(Math.min(rect.width/(W+1.2), rect.height/(H+1.2))); }
+  function token(p,color,label,cell,glow=false){
+    const cx=(p.x+.5)*cell, cy=(p.y+.5)*cell, r=cell*.34;
+    if(glow){ ctx.fillStyle=color.replace(')',',.18)').replace('rgb','rgba'); ctx.beginPath(); ctx.arc(cx,cy,r*1.8,0,Math.PI*2); ctx.fill(); }
+    ctx.fillStyle=color; ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#071019'; ctx.font=`800 ${Math.max(10,cell*.38)}px ui-sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(label,cx,cy+1);
+  }
+  function roundRect(x,y,w,h,r,fill){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); if(fill) ctx.fill(); }
+
+  function newMaze(){ setupState((state.mazeSeed+7919)>>>0, (state.resourceSeed+37)>>>0); }
+  function newResource(){ state.resourceSeed=(state.resourceSeed+104729)>>>0; generateMaze(); resetRunData(true); addLog('Resource changed. Confirmed corridor is invalid for this new target.'); }
+  function repeatSame(){ resetRunData(true); addLog('Repeat prepared for the same maze/resource. If proof exists, route reuse will be visible.'); beginRun(); }
+
+  $('cleanBtn').onclick=()=>createManifest('clean'); $('riskyBtn').onclick=()=>createManifest('risky'); $('tamperBtn').onclick=tamperArtifact; $('runBtn').onclick=beginRun; $('stepBtn').onclick=stepOnce; $('resetBtn').onclick=()=>{resetRunData(true); addLog('Run reset. Manifest preserved; route cache preserved only for exact repeat.');}; $('newMazeBtn').onclick=newMaze; $('newResBtn').onclick=newResource; $('repeatBtn').onclick=repeatSame;
+  new ResizeObserver(()=>draw()).observe(canvas);
+  setupState(12648430, 8191); updateReceipt(); draw();
+})();
+</script>
+</body>
+</html>

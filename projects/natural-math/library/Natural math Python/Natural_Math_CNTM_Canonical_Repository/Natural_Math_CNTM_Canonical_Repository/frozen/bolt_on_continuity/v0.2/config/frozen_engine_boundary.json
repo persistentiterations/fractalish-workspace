@@ -1,0 +1,71 @@
+{
+  "allowed_actions": [
+    "NO_ACTION",
+    "HOLD",
+    "RELEASE"
+  ],
+  "authoritative_commit": "205bee21b279fa63aef510fb23854eab17d44eb7",
+  "components": [
+    {
+      "component_id": "bounded_action_projector",
+      "disposition": "candidate_only",
+      "expected_sha256": "6650e834e9feb3774c02f7fb0a37b44e4e56a1b60a80b8dcdad8d59ecfed4955",
+      "future_proof_type": "behavior_equivalence",
+      "native_docker_authority_present": false,
+      "source_path": "frozen/bolt_on_continuity_v0_1/src/bolt_on_continuity/projection/bounded_action_projector.py"
+    },
+    {
+      "component_id": "controlled_native_executor",
+      "disposition": "candidate_only",
+      "expected_sha256": "116f5214ab62f3d7a3fdb68a27d8bd4323892199cafd88754d329298b945b707",
+      "future_proof_type": "source_and_command_equivalence",
+      "native_docker_authority_present": true,
+      "source_path": "frozen/bolt_on_continuity_v0_1/src/bolt_on_continuity/execution/controlled_native_executor.py"
+    },
+    {
+      "component_id": "continuity_pipeline",
+      "disposition": "candidate_only",
+      "expected_sha256": "c0c2a864dfda7859a0a08b0d834d452e5214b5be6e2d8be0b35de99f368354d7",
+      "future_proof_type": "behavior_equivalence",
+      "native_docker_authority_present": false,
+      "source_path": "frozen/bolt_on_continuity_v0_1/src/bolt_on_continuity/integration/continuity_pipeline.py"
+    },
+    {
+      "component_id": "dry_run_native_action_adapter",
+      "disposition": "candidate_only",
+      "expected_sha256": "3cf233e1fb57e761c5f3506666133723748d1cfe48d49ef31446cb3dc63a54ef",
+      "future_proof_type": "source_and_command_equivalence",
+      "native_docker_authority_present": true,
+      "source_path": "frozen/bolt_on_continuity_v0_1/src/bolt_on_continuity/adapter/dry_run_native_action_adapter.py"
+    },
+    {
+      "component_id": "host_owned_gateway",
+      "disposition": "candidate_only",
+      "expected_sha256": "fa168dd4a0d27f69af64227177d121a280137b0e07b244fa2904c678ffbcd160",
+      "future_proof_type": "adversarial_rejection_equivalence",
+      "native_docker_authority_present": true,
+      "source_path": "frozen/bolt_on_continuity_v0_1/src/bolt_on_continuity/gateway/host_owned_gateway.py"
+    },
+    {
+      "component_id": "incident_ledger",
+      "disposition": "candidate_only",
+      "expected_sha256": "9dbab3f0e8f94359de6e8f8c94b359908efec7ef16c8accb5c6e5fa0881c64d0",
+      "future_proof_type": "receipt_and_digest_equivalence",
+      "native_docker_authority_present": false,
+      "source_path": "frozen/bolt_on_continuity_v0_1/src/bolt_on_continuity/ledger/incident_ledger.py"
+    },
+    {
+      "component_id": "read_only_docker_observer",
+      "disposition": "candidate_only",
+      "expected_sha256": "e787d41777008bba49456cedea77b65828d3f8ebf08a992acb17a5033457084a",
+      "future_proof_type": "bounded_observation_equivalence",
+      "native_docker_authority_present": true,
+      "source_path": "frozen/bolt_on_continuity_v0_1/src/bolt_on_continuity/observer/read_only_docker_observer.py"
+    }
+  ],
+  "frozen_root": "frozen/bolt_on_continuity_v0_1",
+  "product": "Bolt-On Continuity for Docker",
+  "product_version": "0.2",
+  "schema_version": 1,
+  "stage": 1
+}

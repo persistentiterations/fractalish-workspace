@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Carrying Capacity - The Story of Growth</title>
+<style>
+:root{
+  --bg:#06080c;--panel:#0e141c;--line:#243040;--text:#e8eef4;--muted:#8494a8;
+  --gold:#d4b56a;--blue:#5a9fd4;--green:#5cba84;--red:#e05a66;--amber:#d4924a;
+  --purple:#a87acc;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;line-height:1.45;min-height:100vh;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+#world{position:fixed;inset:0;z-index:0;background:#04060a}
+#world canvas{display:block;width:100%;height:100%}
+
+.hud{position:fixed;inset:0;z-index:10;pointer-events:none;display:flex;flex-direction:column}
+.hud > *{pointer-events:auto}
+
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 18px;background:linear-gradient(180deg,#0a0e14ee,transparent);
+  backdrop-filter:blur(8px);
+  flex-wrap:wrap;
+}
+.brand{font-weight:800;letter-spacing:.12em;font-size:12px;color:#c0cad6}
+.brand span{color:var(--gold)}
+.stats{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;font-variant-numeric:tabular-nums}
+.stat{display:flex;flex-direction:column;gap:1px}
+.stat label{color:var(--muted);font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+.stat b{font-size:14px;font-weight:700}
+.stat b.ok{color:var(--green)}.stat b.warn{color:var(--amber)}.stat b.crit{color:var(--red)}
+.stat b.gold{color:var(--gold)}
+
+.center-msg{
+  flex:1;display:flex;align-items:center;justify-content:center;padding:20px;
+  pointer-events:none;
+}
+.msg-card{
+  max-width:440px;text-align:center;padding:32px 36px;
+  background:#0c121ae8;border:1px solid #2a3848;border-radius:20px;
+  backdrop-filter:blur(16px);box-shadow:0 32px 80px #000c;
+  opacity:0;transform:translateY(16px) scale(0.97);transition:.5s cubic-bezier(.16,1,.3,1);
+  pointer-events:auto;
+}
+.msg-card.show{opacity:1;transform:none}
+.msg-card .phase{font-size:10px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;font-weight:800;margin-bottom:8px}
+.msg-card h1{font:700 24px/1.2 Georgia,serif;margin-bottom:8px;letter-spacing:-.02em}
+.msg-card .sub{font-size:13px;color:#a8b6c4;margin-bottom:6px;font-style:italic}
+.msg-card p{font-size:14px;color:#a8b6c4;margin-bottom:18px;line-height:1.6}
+.msg-card .actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.msg-card .btn{
+  padding:10px 20px;border-radius:10px;font-weight:700;font-size:13px;
+  border:1px solid #3a4a5c;background:#121a24;transition:.2s;
+}
+.msg-card .btn:hover{border-color:#6a7a8c;background:#1a2430;transform:scale(1.02)}
+.msg-card .btn.primary{background:linear-gradient(180deg,#e0c878,#b88830);color:#141008;border-color:#e8d090}
+.msg-card .btn.danger{border-color:#8a3a42;color:#f0a0a8;background:#1a1014}
+.msg-card .btn.nature{border-color:#3a6a4a;color:#90d0a8;background:#0e1a14}
+.msg-card .btn.wise{border-color:#6a4a8a;color:#c8a0e0;background:#140e1a}
+
+.bottombar{
+  padding:10px 18px 14px;background:linear-gradient(0deg,#0a0e14ee,transparent);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+}
+.story-feed{
+  flex:1;min-width:180px;max-width:380px;
+  font-size:11px;color:var(--muted);line-height:1.5;
+  border-left:2px solid var(--gold);padding-left:12px;
+  min-height:40px;display:flex;align-items:center;
+}
+.story-feed .highlight{color:var(--gold);font-weight:600}
+.story-feed .event{animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.pressure-row{display:flex;gap:6px;flex-wrap:wrap}
+.p-chip{
+  padding:4px 10px;border-radius:999px;font-size:10px;font-weight:650;
+  border:1px solid #2a3848;background:#0e1620;color:#9aabbc;
+  transition:.25s;
+}
+.p-chip.hot{border-color:var(--red);color:#f0a0a8;background:#1a1014;box-shadow:0 0 20px #e05a6630}
+.p-chip.warm{border-color:var(--amber);color:#e8c090;background:#1a140e}
+.p-chip.cool{border-color:var(--blue);color:#80b8e0;background:#0e141a}
+
+.end-overlay{
+  position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
+  background:#04060ae0;backdrop-filter:blur(12px);opacity:0;pointer-events:none;transition:.7s;
+  padding:24px;
+}
+.end-overlay.show{opacity:1;pointer-events:auto}
+.end-card{
+  max-width:500px;padding:40px 36px;border-radius:20px;text-align:center;
+  background:#0c121a;border:1px solid #2a3848;box-shadow:0 40px 100px #000c;
+}
+.end-card.balance{border-color:#3a6a4a}
+.end-card.collapse{border-color:#8a3a42}
+.end-card .tag{font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:10px}
+.end-card.balance .tag{color:var(--green)}
+.end-card.collapse .tag{color:var(--red)}
+.end-card h2{font:700 26px/1.2 Georgia,serif;margin-bottom:10px}
+.end-card p{font-size:14px;color:#a8b6c4;margin-bottom:8px;line-height:1.6}
+.end-card .takeaway{font:600 15px/1.5 Georgia,serif;color:var(--gold);margin:16px 0 22px;padding-top:14px;border-top:1px solid #2a3848}
+.end-card .btn{padding:11px 22px;border-radius:10px;font-weight:700;font-size:13px;border:1px solid #3a4a5c;background:#121a24}
+.end-card .btn:hover{border-color:#6a7a8c;transform:scale(1.02)}
+.end-card .btn.primary{background:linear-gradient(180deg,#e0c878,#b88830);color:#141008;border-color:#e8d090}
+
+@media(max-width:520px){
+  .topbar{padding:8px 10px}.stats{gap:8px}.stat b{font-size:12px}
+  .msg-card{padding:20px 16px;margin:10px}.msg-card h1{font-size:20px}
+  .bottombar{padding:8px 10px 12px;flex-direction:column;align-items:stretch}
+  .story-feed{max-width:100%;border-left:none;padding-left:0;border-top:1px solid #2a3848;padding-top:8px}
+  .pressure-row{justify-content:center}
+}
+</style>
+</head>
+<body>
+<canvas id="world"></canvas>
+
+<div class="hud">
+  <div class="topbar">
+    <div class="brand">🌱 <span>Carrying</span> Capacity</div>
+    <div class="stats">
+      <div class="stat"><label>Population</label><b id="popVal" class="gold">12</b></div>
+      <div class="stat"><label>Food</label><b id="resVal" class="ok">94%</b></div>
+      <div class="stat"><label>Stress</label><b id="stressVal" class="ok">4%</b></div>
+      <div class="stat"><label>Year</label><b id="yearVal">0</b></div>
+    </div>
+  </div>
+
+  <div class="center-msg">
+    <div class="msg-card show" id="msgCard">
+      <div class="phase" id="msgPhase">🌿 The Beginning</div>
+      <h1 id="msgTitle">A small tribe finds a valley.</h1>
+      <div class="sub" id="msgSub">"There is enough for everyone. For now."</div>
+      <p id="msgBody">They settle. They grow. The land is generous—but generosity is always temporary. Watch what happens when a population discovers the edge of its world.</p>
+      <div class="actions">
+        <button class="btn primary" id="btnStart">Let them grow →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottombar">
+    <div class="story-feed" id="storyFeed">🌱 <span class="highlight">First settlement</span> — twelve souls, a river, and a promise of abundance.</div>
+    <div class="pressure-row" id="pressureRow">
+      <span class="p-chip" id="chipFood">🍎 Food</span>
+      <span class="p-chip" id="chipSpace">🌍 Space</span>
+      <span class="p-chip" id="chipConflict">⚔️ Conflict</span>
+      <span class="p-chip" id="chipDisease">🦠 Disease</span>
+    </div>
+  </div>
+</div>
+
+<div class="end-overlay" id="endOverlay">
+  <div class="end-card" id="endCard">
+    <div class="tag" id="endTag"></div>
+    <h2 id="endTitle"></h2>
+    <p id="endBody1"></p>
+    <p id="endBody2"></p>
+    <div class="takeaway" id="endTake"></div>
+    <button class="btn primary" id="btnAgain">🔄 Run it again</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const canvas = document.getElementById('world');
+const ctx = canvas.getContext('2d');
+let W, H, dpr;
+let storyTimeout = null;
+let storyQueue = [];
+
+function resize(){
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resize();
+window.addEventListener('resize', resize);
+
+const agents = [];
+const food = [];
+let year = 0;
+let running = false;
+let phase = 'intro';
+let lastTick = 0;
+let decisionPending = false;
+let resourceBase = 1;
+let storyIndex = 0;
+let generation = 1;
+let totalBorn = 12;
+let totalDied = 0;
+let peakPopulation = 12;
+
+const $ = id => document.getElementById(id);
+
+function rand(a, b){ return a + Math.random() * (b - a); }
+function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+const STORIES = {
+  intro: [
+    "🌱 <span class='highlight'>First settlement</span> — twelve souls, a river, and a promise of abundance.",
+    "🌾 The land is fertile. Children are born. The tribe grows.",
+    "🏞️ No one has seen the edge of the valley. It seems infinite."
+  ],
+  boom: [
+    "👶 <span class='highlight'>A baby boom</span> — the population doubles. Then doubles again.",
+    "🌽 Every harvest is plentiful. The young build new homes.",
+    "🎉 The elders remember when there were only twelve. Now they lose count.",
+    "🌿 The valley fills with laughter and the sound of axes.",
+    "📈 <span class='highlight'>Growth is exponential</span> — and exponential is a word for 'too fast to notice.'"
+  ],
+  pressure: [
+    "⚠️ <span class='highlight'>The first empty net</span> — the river gives less than before.",
+    "🏠 There are no more good places to build. The young compete.",
+    "🍂 The elders speak of 'limits.' The young ask, 'What are limits?'",
+    "⚖️ <span class='highlight'>Pressure builds</span> — not as a shout, but as a quiet tightening.",
+    "🔄 The tribe must choose: adapt, or push harder."
+  ],
+  balance_run: [
+    "🌳 <span class='highlight'>The tribe learns</span> — they plant more than they take. The forest responds.",
+    "🕊️ Births slow. Deaths find their rhythm. The valley breathes.",
+    "📊 <span class='highlight'>Equilibrium</span> — not a goal, but a process. The system finds its shape.",
+    "🧘 The elders say: 'This is how we last. Not by taking more, but by needing less.'"
+  ],
+  collapse_run: [
+    "🔥 <span class='highlight'>The forest is bare</span> — they took everything that would burn.",
+    "🦴 The last deer is eaten. The river is empty. The children cry.",
+    "⏳ <span class='highlight'>Overshoot</span> — a word that means 'we didn't stop in time.'",
+    "💀 One by one, they fall. Not with a bang — with a whimper.",
+    "🏚️ The valley is quiet. The homes are empty. The story ends."
+  ]
+};
+
+function addStory(msg){
+  storyQueue.push(msg);
+  if(!storyTimeout) showNextStory();
+}
+
+function showNextStory(){
+  if(storyQueue.length === 0){ storyTimeout = null; return; }
+  const msg = storyQueue.shift();
+  const feed = $('storyFeed');
+  feed.innerHTML = msg;
+  feed.className = 'story-feed event';
+  storyTimeout = setTimeout(() => {
+    feed.className = 'story-feed';
+    storyTimeout = null;
+    showNextStory();
+  }, 4500);
+}
+
+function spawnAgent(x, y, energy, size){
+  agents.push({
+    x: x ?? rand(40, W - 40),
+    y: y ?? rand(40, H - 40),
+    vx: rand(-0.6, 0.6),
+    vy: rand(-0.6, 0.6),
+    energy: energy ?? rand(0.55, 1),
+    age: 0,
+    size: size ?? rand(2.2, 3.8),
+    generation: generation,
+    children: 0,
+    alive: true
+  });
+}
+
+function spawnFood(n){
+  for(let i = 0; i < n; i++){
+    food.push({
+      x: rand(20, W - 20),
+      y: rand(20, H - 20),
+      life: rand(80, 200)
+    });
+  }
+}
+
+function initWorld(){
+  agents.length = 0;
+  food.length = 0;
+  year = 0;
+  resourceBase = 1;
+  generation = 1;
+  totalBorn = 12;
+  totalDied = 0;
+  peakPopulation = 12;
+  storyQueue = [];
+  storyTimeout = null;
+  for(let i = 0; i < 12; i++) spawnAgent();
+  spawnFood(90);
+  addStory(STORIES.intro[0]);
+  setTimeout(() => addStory(STORIES.intro[1]), 2000);
+  setTimeout(() => addStory(STORIES.intro[2]), 4500);
+  updateHUD();
+}
+
+initWorld();
+
+function setMsg(phaseName, title, sub, body, buttons){
+  phase = phaseName;
+  const phaseLabels = {
+    intro: '🌿 The Beginning',
+    boom: '📈 Expansion',
+    pressure: '⚖️ Pressure',
+    crisis: '⚠️ Crisis',
+    balance_run: '🔄 Adaptation',
+    collapse_run: '💀 Overshoot'
+  };
+  $('msgPhase').textContent = phaseLabels[phaseName] || phaseName;
+  $('msgTitle').textContent = title;
+  $('msgSub').textContent = sub || '';
+  $('msgBody').textContent = body || '';
+  const actions = $('msgCard').querySelector('.actions');
+  actions.innerHTML = '';
+  (buttons || []).forEach(b => {
+    const btn = document.createElement('button');
+    btn.className = 'btn ' + (b.cls || '');
+    btn.textContent = b.label;
+    btn.onclick = b.fn;
+    actions.appendChild(btn);
+  });
+  $('msgCard').classList.add('show');
+}
+
+function hideMsg(){ $('msgCard').classList.remove('show'); }
+
+function startGrowth(){
+  hideMsg();
+  running = true;
+  phase = 'boom';
+  decisionPending = false;
+  addStory(STORIES.boom[0]);
+  setTimeout(() => addStory(STORIES.boom[1]), 3000);
+  setTimeout(() => addStory(STORIES.boom[2]), 6000);
+}
+
+function offerPressureChoice(){
+  running = false;
+  decisionPending = true;
+  addStory(STORIES.pressure[0]);
+  setTimeout(() => addStory(STORIES.pressure[1]), 3000);
+  setTimeout(() => addStory(STORIES.pressure[2]), 6000);
+
+  setMsg('pressure',
+    'The valley is full. Food thins. The young and the old compete for scraps.',
+    '"Growth has a shadow. The shadow is called limits."',
+    'Two paths lie ahead. One bends. One breaks. Choose carefully.',
+    [
+      { label: '🌳 Adapt — learn to live within limits', cls: 'nature', fn: () => choosePath('balance') },
+      { label: '🔥 Push — take more, ignore the signs', cls: 'danger', fn: () => choosePath('collapse') }
+    ]
+  );
+}
+
+function choosePath(path){
+  hideMsg();
+  decisionPending = false;
+  running = true;
+  phase = path === 'balance' ? 'balance_run' : 'collapse_run';
+  if(path === 'balance'){
+    resourceBase = 0.55;
+    addStory('🌳 <span class="highlight">The tribe chooses wisdom</span> — they plant trees instead of burning them.');
+    setTimeout(() => addStory(STORIES.balance_run[1]), 4000);
+  } else {
+    resourceBase = 0.9;
+    addStory('🔥 <span class="highlight">The tribe chooses hubris</span> — they take everything, believing more will come.');
+    setTimeout(() => addStory(STORIES.collapse_run[1]), 4000);
+  }
+}
+
+function endBalance(){
+  running = false;
+  phase = 'balance';
+  $('endCard').className = 'end-card balance';
+  $('endTag').textContent = '🌳 Equilibrium';
+  $('endTitle').textContent = 'The population found its balance.';
+  $('endBody1').textContent = 'They learned that more is not always better. They learned that limits are not enemies—they are teachers. The valley sustained them, and they sustained the valley.';
+  $('endBody2').textContent = `${totalBorn} were born. ${totalDied} died. The population settled at ${agents.length}. They will live here, in this rhythm, for generations.`;
+  $('endTake').textContent = '✦ This is what sustainability looks like. Not a permanent state—a constant adjustment. A dance with the carrying capacity. The doctrine that bends survives.';
+  $('endOverlay').classList.add('show');
+}
+
+function endCollapse(){
+  running = false;
+  phase = 'collapse';
+  $('endCard').className = 'end-card collapse';
+  $('endTag').textContent = '💀 Collapse';
+  $('endTitle').textContent = 'They took everything. Then there was nothing.';
+  $('endBody1').textContent = 'The valley is empty. The homes are silent. The river runs clear again—but no one is there to drink.';
+  $('endBody2').textContent = `${totalBorn} were born. ${totalDied} died. At the peak, there were ${peakPopulation}. Now there are none.`;
+  $('endTake').textContent = '✦ Overshoot is not dramatic until the buffer is gone. Then the cascade is short. The doctrine that ignores limits gets an empty field.';
+  $('endOverlay').classList.add('show');
+}
+
+$('btnStart').onclick = startGrowth;
+$('btnAgain').onclick = () => {
+  $('endOverlay').classList.remove('show');
+  initWorld();
+  setMsg('intro',
+    'A small tribe finds a valley.',
+    '"There is enough for everyone. For now."',
+    'They settle. They grow. The land is generous—but generosity is always temporary. Watch what happens when a population discovers the edge of its world.',
+    [{ label: 'Let them grow →', cls: 'primary', fn: startGrowth }]
+  );
+};
+
+function step(dt){
+  if(!running) return;
+
+  year += dt * 0.35;
+  const pop = agents.length;
+  const density = pop / Math.max(1, (W * H) / 12000);
+
+  const foodTarget = Math.floor(70 * resourceBase * (1 - density * 0.35));
+  if(food.length < foodTarget && Math.random() < 0.4 * resourceBase){
+    spawnFood(1 + Math.floor(Math.random() * 2));
+  }
+
+  // Track peak
+  if(pop > peakPopulation) peakPopulation = pop;
+
+  for(let i = agents.length - 1; i >= 0; i--){
+    const a = agents[i];
+    a.age += dt;
+    a.energy -= dt * 0.018;
+
+    let nearest = null, nd = 1e9;
+    for(const f of food){
+      const dx = f.x - a.x, dy = f.y - a.y;
+      const d = dx*dx + dy*dy;
+      if(d < nd){ nd = d; nearest = f; }
+    }
+    if(nearest && a.energy < 0.85){
+      const dx = nearest.x - a.x, dy = nearest.y - a.y;
+      const d = Math.sqrt(nd) || 1;
+      a.vx += (dx / d) * 0.04;
+      a.vy += (dy / d) * 0.04;
+    } else {
+      a.vx += rand(-0.03, 0.03);
+      a.vy += rand(-0.03, 0.03);
+    }
+
+    for(let j = 0; j < Math.min(8, agents.length); j++){
+      const o = agents[(i + 1 + j) % agents.length];
+      if(o === a || !o.alive) continue;
+      const dx = a.x - o.x, dy = a.y - o.y;
+      const d2 = dx*dx + dy*dy;
+      if(d2 < 140 && d2 > 0){
+        a.vx += dx * 0.002;
+        a.vy += dy * 0.002;
+      }
+    }
+
+    const sp = Math.hypot(a.vx, a.vy) || 1;
+    const maxSp = 1.35;
+    if(sp > maxSp){ a.vx *= maxSp/sp; a.vy *= maxSp/sp; }
+
+    a.x += a.vx * 60 * dt;
+    a.y += a.vy * 60 * dt;
+    if(a.x < 8){ a.x = 8; a.vx *= -0.6; }
+    if(a.x > W-8){ a.x = W-8; a.vx *= -0.6; }
+    if(a.y < 8){ a.y = 8; a.vy *= -0.6; }
+    if(a.y > H-8){ a.y = H-8; a.vy *= -0.6; }
+
+    for(let fi = food.length - 1; fi >= 0; fi--){
+      const f = food[fi];
+      const dx = f.x - a.x, dy = f.y - a.y;
+      if(dx*dx + dy*dy < 50){
+        a.energy = Math.min(1.2, a.energy + 0.35);
+        food.splice(fi, 1);
+        break;
+      }
+    }
+
+    const birthChance = phase === 'collapse_run' ? 0.012 : (phase === 'balance_run' ? 0.0045 : 0.009);
+    if(a.energy > 0.75 && a.age > 2.5 && Math.random() < birthChance * dt * 60 * (1.1 - density * 0.4)){
+      a.energy -= 0.28;
+      a.children++;
+      totalBorn++;
+      spawnAgent(a.x + rand(-12,12), a.y + rand(-12,12), 0.45, rand(2,3.5));
+      if(totalBorn % 5 === 0 && phase === 'boom'){
+        addStory(`👶 <span class='highlight'>${totalBorn} births</span> — the tribe swells. The valley fills.`);
+      }
+    }
+
+    const stress = clamp((density - 0.5) * 1.4 + (1 - resourceBase) * 0.5, 0, 1);
+    let death = 0;
+    if(a.energy <= 0) death = 1;
+    if(a.age > 28 + rand(0, 10)) death = 1;
+    if(stress > 0.45 && Math.random() < stress * 0.015 * dt * 60) death = 1;
+    if(phase === 'balance_run' && stress > 0.3 && Math.random() < 0.02 * dt * 60) death = 1;
+    if(phase === 'collapse_run' && a.energy < 0.25 && Math.random() < 0.03 * dt * 60) death = 1;
+
+    if(death){
+      a.alive = false;
+      totalDied++;
+      if(totalDied % 3 === 0 && phase === 'collapse_run'){
+        addStory(`💀 <span class='highlight'>${totalDied} deaths</span> — the population thins. The valley grows quiet.`);
+      }
+      agents.splice(i, 1);
+    }
+  }
+
+  for(let i = food.length - 1; i >= 0; i--){
+    food[i].life -= dt * 30;
+    if(food[i].life <= 0) food.splice(i, 1);
+  }
+
+  // Phase transitions
+  if(phase === 'boom' && pop > 95 && !decisionPending){
+    offerPressureChoice();
+  }
+  if(phase === 'balance_run'){
+    if(pop > 30 && pop < 95 && year > 18){
+      const stress = clamp((density - 0.5) * 1.4, 0, 1);
+      if(stress < 0.55 && Math.random() < 0.008) endBalance();
+    }
+    if(year > 45 && pop > 20 && pop < 120) endBalance();
+    if(pop < 2 && year > 10) endCollapse();
+  }
+  if(phase === 'collapse_run'){
+    if(pop < 8 && year > 12) endCollapse();
+    if(pop === 0) endCollapse();
+    if(pop > 30 && year > 25 && Math.random() < 0.005) endBalance();
+  }
+
+  updateHUD();
+}
+
+function updateHUD(){
+  const pop = agents.length;
+  $('popVal').textContent = pop;
+  const density = pop / Math.max(1, (W * H) / 12000);
+  const resPct = clamp(Math.round((food.length / 90) * 100 * resourceBase), 0, 100);
+  const stress = clamp(Math.round(((density - 0.4) * 120 + (100 - resPct) * 0.4)), 0, 100);
+
+  const rv = $('resVal');
+  rv.textContent = resPct + '%';
+  rv.className = resPct > 55 ? 'ok' : resPct > 25 ? 'warn' : 'crit';
+
+  const sv = $('stressVal');
+  sv.textContent = stress + '%';
+  sv.className = stress < 30 ? 'ok' : stress < 60 ? 'warn' : 'crit';
+
+  $('yearVal').textContent = Math.floor(year);
+
+  setChip('chipFood', resPct < 35 ? 'hot' : resPct < 60 ? 'warm' : 'cool');
+  setChip('chipSpace', density > 1.1 ? 'hot' : density > 0.7 ? 'warm' : 'cool');
+  setChip('chipConflict', stress > 55 ? 'hot' : stress > 30 ? 'warm' : 'cool');
+  setChip('chipDisease', stress > 65 ? 'hot' : stress > 40 ? 'warm' : 'cool');
+}
+
+function setChip(id, cls){
+  const el = $(id);
+  el.className = 'p-chip' + (cls ? ' ' + cls : '');
+}
+
+function draw(){
+  ctx.fillStyle = '#06080c';
+  ctx.fillRect(0, 0, W, H);
+
+  // Soft ground texture
+  ctx.globalAlpha = 0.3;
+  for(let i = 0; i < 40; i++){
+    ctx.beginPath();
+    ctx.fillStyle = '#0a1410';
+    ctx.arc(rand(0,W), rand(0,H), rand(10,30), 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Food
+  ctx.globalAlpha = 0.4;
+  for(const f of food){
+    const brightness = 40 + (f.life / 200) * 40;
+    ctx.beginPath();
+    ctx.fillStyle = `rgb(${brightness+20},${brightness+60},${brightness+20})`;
+    ctx.arc(f.x, f.y, 2 + (f.life/200)*1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Agents with glow
+  for(const a of agents){
+    const stressTint = clamp(1 - a.energy, 0, 1);
+    const g = Math.floor(140 - stressTint * 90);
+    const r = Math.floor(80 + stressTint * 140);
+    const b = Math.floor(110 - stressTint * 50);
+
+    // Glow
+    const grad = ctx.createRadialGradient(a.x, a.y, 0, a.x, a.y, a.size * 3);
+    grad.addColorStop(0, `rgba(${r},${g},${b},0.3)`);
+    grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(a.x, a.y, a.size * 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Body
+    ctx.beginPath();
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.arc(a.x, a.y, a.size, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eye
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(a.x - a.size*0.3, a.y - a.size*0.3, a.size*0.25, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#222';
+    ctx.beginPath();
+    ctx.arc(a.x - a.size*0.2, a.y - a.size*0.25, a.size*0.1, 0, Math.PI*2);
+    ctx.fill();
+
+    // Generation mark
+    if(a.generation > 2){
+      ctx.strokeStyle = `rgba(255,215,0,${0.2 + a.generation * 0.03})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(a.x, a.y, a.size + 2, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+
+  // Vignette
+  const grd = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.2, W/2, H/2, Math.max(W,H)*0.8);
+  grd.addColorStop(0, 'transparent');
+  grd.addColorStop(1, '#00000066');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function frame(t){
+  const dt = Math.min(0.05, (t - lastTick) / 1000) || 0.016;
+  lastTick = t;
+  step(dt);
+  draw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

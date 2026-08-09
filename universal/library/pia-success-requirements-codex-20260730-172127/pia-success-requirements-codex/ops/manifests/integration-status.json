@@ -1,0 +1,99 @@
+{
+  "repository_identity": {
+    "status": "VERIFIED",
+    "canonical_repository": "C:\\Users\\moop\\cognitive-basin-platform",
+    "shared_git_common_dir": "C:\\Users\\moop\\cognitive-basin-platform\\.git",
+    "remote_main_sha": "cca9b7b9b7a4e7a3c8710bf3256c2287c857cd1b"
+  },
+  "ci": {
+    "status": "VERIFIED",
+    "main_run_id": 27718801072,
+    "workflow": "ci-non-deploying",
+    "conclusion": "success"
+  },
+  "local_ephux_service": {
+    "status": "PRODUCTIZED_BASELINE",
+    "routes_verified": 17,
+    "required_routes_present": true,
+    "acceptance_scenarios_passed": 14,
+    "acceptance_scenarios_total": 14
+  },
+  "local_ephux_surface": {
+    "status": "IMPLEMENTED",
+    "installable_pwa_shell": true,
+    "embedded_token_in_shell": false,
+    "session_list_and_reopen": true,
+    "portable_export_import": true,
+    "human_review_controls": true,
+    "browser_verified": true,
+    "evaluation_lab_surface": true,
+    "natural_math_lab_surface": true
+  },
+  "package_layout": {
+    "status": "VERIFIED",
+    "canonical_implementation_roots": [
+      "python/basinlab",
+      "python/ephux_local",
+      "python/provider_lab",
+      "python/sandbox_lab",
+      "python/evaluation_lab",
+      "python/natural_math_lab",
+      "python/cognitive_basin"
+    ],
+    "compatibility_wrappers": [
+      "basinlab",
+      "ephux_local",
+      "provider_lab",
+      "sandbox_lab",
+      "evaluation_lab",
+      "natural_math_lab",
+      "cognitive_basin"
+    ],
+    "duplicated_business_logic": false,
+    "wrapper_tests_green": true
+  },
+  "provider_fabric": {
+    "status": "IMPLEMENTED",
+    "governed_router": true,
+    "usage_ledger": true,
+    "secret_safe_inventory": true,
+    "compact_reasoner_packet": true,
+    "vibethinker_adapter_live_tested": false
+  },
+  "sandbox_runner": {
+    "status": "IMPLEMENTED",
+    "runner_receipts": true,
+    "restriction_classification": [
+      "ENFORCED",
+      "BEST_EFFORT",
+      "UNSUPPORTED"
+    ],
+    "adversarial_acceptance": true,
+    "production_secure_claimed": false
+  },
+  "evaluation_lab": {
+    "status": "IMPLEMENTED",
+    "typed_task_registry": true,
+    "interface_comparison": true,
+    "failure_corpus": true,
+    "majority_wrong_suite": true,
+    "unresolved_suite": true
+  },
+  "natural_math_lab": {
+    "status": "IMPLEMENTED",
+    "deterministic_simulation": true,
+    "parameter_sweep": true,
+    "exact_geometry": true,
+    "static_visualizations": true,
+    "default_repo_mutation": false
+  },
+  "aggregate_acceptance": {
+    "status": "IMPLEMENTED",
+    "suite_manifest": true,
+    "clean_environment_wrapper_check": true
+  },
+  "artifacts": {
+    "status": "GENERATED",
+    "root": "C:\\Users\\moop\\Downloads\\Articles on X.com\\Fractalish.com\\build\\ephux-product-main-audit-ab8714e"
+  }
+}

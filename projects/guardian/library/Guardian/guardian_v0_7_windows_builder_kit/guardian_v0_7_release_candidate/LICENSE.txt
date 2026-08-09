@@ -1,0 +1,11 @@
+Copyright (c) 2026 Guardian Project. All rights reserved.
+
+This evaluation release may be used for testing and review. It may not be
+resold, sublicensed, or represented as certified security software without
+written permission.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. Guardian may
+miss harmful, unsafe, or newly developed content. A pass result does not mean
+that an artifact is completely safe.
+
+Final commercial terms should be reviewed by qualified legal counsel.

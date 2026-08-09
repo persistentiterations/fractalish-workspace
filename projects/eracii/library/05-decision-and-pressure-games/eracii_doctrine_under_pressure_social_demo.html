@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Eracii — Doctrine Under Pressure · Social Demo</title>
+<style>
+:root{
+  --bg:#05070a;--panel:#101720;--panel2:#151f2b;--line:#2b3848;--text:#f4f6f8;--muted:#97a4b5;
+  --gold:#ddb866;--blue:#6eb3ef;--green:#73d09a;--red:#ef747f;--violet:#ae91ee;--amber:#e5a75a;
+  --frame-w:min(430px,calc(100vw - 22px));
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#020305;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{display:grid;place-items:start center;padding:10px 0 24px;background:
+ radial-gradient(circle at 50% -20%,#2f537f40,transparent 34rem),linear-gradient(180deg,#080c12,#020305 70%)}
+button{font:inherit;color:inherit}
+button:focus-visible{outline:2px solid white;outline-offset:3px}
+.page{width:var(--frame-w)}
+.record-note{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 2px 8px;color:#a9b5c4;font-size:11px}
+.record-note b{color:#f2d18c;letter-spacing:.08em}
+.phone{
+  position:relative;width:100%;aspect-ratio:9/16;overflow:hidden;border:1px solid #354356;border-radius:26px;
+  background:#070a0f;box-shadow:0 26px 80px #000,0 0 0 1px #ffffff0a inset;isolation:isolate;
+}
+.phone::before{content:"";position:absolute;inset:0;z-index:-2;background:
+ radial-gradient(circle at 50% 25%,#28486855,transparent 38%),
+ radial-gradient(circle at 50% 80%,#7b542c28,transparent 45%),linear-gradient(180deg,#0b1119,#06090d 68%,#040609)}
+.phone::after{content:"";position:absolute;inset:0;z-index:99;pointer-events:none;background:linear-gradient(180deg,#fff0 84%,#0007);box-shadow:inset 0 0 70px #0008}
+.brandbar{height:7.5%;display:flex;align-items:center;justify-content:space-between;padding:0 5.2%;border-bottom:1px solid #ffffff12;background:#070b10c9;backdrop-filter:blur(12px);position:relative;z-index:20}
+.brand{font-weight:950;letter-spacing:.2em;font-size:2.7cqw}.brand b{color:var(--gold)}
+.badge{border:1px solid #755f35;border-radius:999px;padding:.35em .7em;color:#efd28f;background:#2a2012;font-weight:900;font-size:1.85cqw;letter-spacing:.09em}
+.scene{position:absolute;left:0;right:0;top:7.5%;bottom:6.2%;padding:6.5% 6%;opacity:0;transform:translateY(4%);pointer-events:none;transition:opacity .45s ease,transform .55s ease}
+.scene.active{opacity:1;transform:none;pointer-events:auto}
+.scene.exit{opacity:0;transform:translateY(-4%)}
+.eyebrow{font-size:2.25cqw;letter-spacing:.18em;color:var(--gold);font-weight:950;text-transform:uppercase}
+h1,h2,p{margin:0}
+h1{font:800 10cqw/.94 Georgia,"Times New Roman",serif;letter-spacing:-.035em}
+h2{font:750 6.5cqw/1.02 Georgia,"Times New Roman",serif;letter-spacing:-.02em}
+.sub{color:#c0cad6;font-size:3.35cqw;line-height:1.42}
+.muted{color:var(--muted)}
+.gold{color:var(--gold)}.red{color:var(--red)}.blue{color:var(--blue)}.green{color:var(--green)}
+.hook{display:flex;flex-direction:column;justify-content:center;text-align:center;gap:5%;padding-bottom:18%}
+.hook .question{font-size:3.2cqw;color:#b9c4d1;max-width:90%;margin:0 auto}
+.hook-ring{position:absolute;width:82%;aspect-ratio:1;border:1px solid #657a913d;border-radius:50%;left:9%;top:23%;z-index:-1;box-shadow:0 0 0 10cqw #43668d0a,0 0 80px #5f8ec425}
+.scroll-cue{margin-top:4%;font-size:2.25cqw;letter-spacing:.14em;color:#8795a7;text-transform:uppercase}
+.setup{display:flex;flex-direction:column;gap:4.4%}
+.declared-card{padding:5%;border:1px solid #765f36;border-radius:4cqw;background:linear-gradient(145deg,#211b10,#0c1219);box-shadow:0 18px 50px #0008}
+.card-label{font-size:2.15cqw;text-transform:uppercase;letter-spacing:.15em;color:#9cabbc;font-weight:900}
+.card-title{font:750 6cqw Georgia,serif;margin-top:1%;color:#f2d897}
+.trait-list{display:grid;gap:2.7%;margin-top:5%}
+.trait{display:grid;grid-template-columns:1fr auto;gap:2%;font-size:2.75cqw;align-items:center}.trait b{font-size:2.8cqw}.trait span{font-weight:950;color:#f3d897}
+.track{grid-column:1/-1;height:1.55cqw;border-radius:99px;background:#263242;overflow:hidden}.fill{height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#b68734,#f2d790);transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.claim{padding:4%;border-left:3px solid var(--gold);background:#0a1119;border-radius:0 3cqw 3cqw 0;font:700 4.2cqw/1.3 Georgia,serif}
+.pressure-layout{display:flex;flex-direction:column;gap:3.2%;min-height:0}
+.pressure-head{display:flex;justify-content:space-between;gap:3%;align-items:start}
+.counter{font-weight:950;color:#ffe1a0;font-size:2.6cqw;background:#241c10;border:1px solid #68552f;padding:.5em .75em;border-radius:999px;white-space:nowrap}
+.arena{position:relative;flex:1;min-height:0;border:1px solid #2d3a4b;border-radius:5cqw;overflow:hidden;background:radial-gradient(circle at 50% 48%,#1b3047,#091019 47%,#05080c 76%)}
+.orbit{position:absolute;left:50%;top:49%;border:1px solid #54687e66;border-radius:50%;transform:translate(-50%,-50%)}
+.orbit.a{width:76%;aspect-ratio:1}.orbit.b{width:54%;aspect-ratio:1}.orbit.c{width:34%;aspect-ratio:1}
+.core{position:absolute;left:50%;top:49%;width:30%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);display:grid;place-items:center;text-align:center;padding:4%;font:800 4.1cqw/1.02 Georgia,serif;color:#181208;background:radial-gradient(circle at 40% 30%,#f7e1a7,#b88935 32%,#222c37 69%);border:2px solid #f2dba3;box-shadow:0 0 0 2.7cqw #d9b56612,0 0 60px #d9b56645;transition:transform .22s,filter .22s}
+.core.hit{transform:translate(-50%,-50%) scale(1.1);filter:brightness(1.2)}
+.pressure{position:absolute;width:36%;padding:3%;border:1px solid #445469;border-radius:3cqw;background:#101a27ed;box-shadow:0 12px 30px #0008}
+.pressure b{font:700 3.3cqw Georgia,serif;display:block}.pressure small{font-size:2cqw;color:#9aa8b9}.pressure .pbar{height:1.25cqw;margin-top:6%;background:#283446;border-radius:99px;overflow:hidden}.pressure .pbar i{display:block;height:100%;width:0;background:var(--red);transition:width .8s ease}
+.p1{left:4%;top:8%}.p2{right:4%;top:10%}.p3{left:5%;bottom:8%}.p4{right:5%;bottom:8%}
+.action-pop{position:absolute;left:50%;top:70%;transform:translate(-50%,-50%) scale(.8);width:84%;text-align:center;opacity:0;transition:.25s}
+.action-pop.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.action-pop b{font:900 7cqw Georgia,serif;text-shadow:0 5px 20px #000}.action-pop small{display:inline-block;margin-top:2%;padding:.4em .75em;background:#071018d9;border:1px solid #405168;border-radius:99px;font-size:2.4cqw;color:#d4dde7}
+.choice-list{display:grid;gap:2.5%;margin-top:4%}
+.choice{padding:3.2% 3.5%;border:1px solid #2f3c4d;border-radius:3cqw;background:#0b121a;transition:.3s}
+.choice.win{border-color:var(--gold);background:#1d190f;box-shadow:0 0 0 1px #d9b56642 inset,0 12px 30px #0006}
+.choice-top{display:flex;justify-content:space-between;gap:3%;align-items:center}.choice b{font-size:3.2cqw}.score{font:850 4.8cqw Georgia,serif;color:#f2d28a}.choice small{display:block;color:#94a2b4;font-size:2.25cqw;margin-top:1.5%}
+.receipt{display:flex;align-items:center;justify-content:space-between;gap:3%;padding:2.5% 3%;font:700 2.1cqw ui-monospace,SFMono-Regular,Consolas,monospace;background:#070c12;border:1px solid #253243;border-radius:2.5cqw;color:#aab7c7}.receipt b{color:#f1d08a}.receipt code{color:#6f8196}
+.reveal{display:flex;flex-direction:column;justify-content:center;gap:5%;text-align:center;padding-bottom:13%}
+.reveal h2{font-size:8.2cqw}.reveal .versus{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:3%;margin-top:2%}
+.value-box{padding:5% 3%;border:1px solid #39485a;border-radius:4cqw;background:#0b121a}.value-box small{display:block;font-size:2.1cqw;letter-spacing:.13em;color:#94a3b5;text-transform:uppercase}.value-box b{display:block;font:800 4.4cqw Georgia,serif;margin-top:3%}.arrow{font-size:5cqw;color:#74859a}
+.gap-count{font:900 14cqw/.9 Georgia,serif;color:var(--red);text-shadow:0 0 40px #e06f7944}.gap-label{font-weight:900;letter-spacing:.12em;font-size:2.5cqw;color:#c5cfda;text-transform:uppercase}
+.disclaimer{font-size:2.05cqw;color:#8f9bac;line-height:1.35;max-width:90%;margin:0 auto}
+.end{display:flex;flex-direction:column;justify-content:center;gap:5%;text-align:center;padding-bottom:15%}
+.end h2{font-size:7.7cqw}.end .big-question{padding:5%;border:1px solid #715b33;border-radius:4cqw;background:linear-gradient(145deg,#201a10,#0b1219);font:750 4.6cqw/1.3 Georgia,serif}
+.end .url{font-weight:950;letter-spacing:.13em;color:#f2cf83;font-size:2.9cqw}
+.timeline{position:absolute;left:5%;right:5%;bottom:2.6%;height:.8%;z-index:110;border-radius:99px;background:#ffffff16;overflow:hidden}.timeline i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--gold));transition:width .2s linear}
+.tap-layer{position:absolute;inset:7.5% 0 6.2%;z-index:80;cursor:pointer}
+.controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:9px}
+.btn{border:1px solid #344255;border-radius:10px;background:#121b27;padding:10px 8px;font-weight:850;font-size:12px;cursor:pointer}.btn:hover{border-color:#77889d}.btn.primary{color:#181207;background:linear-gradient(180deg,#efd48d,#c99b43);border-color:#f1d99c}.btn.active{border-color:var(--gold);color:#f1d18b}
+.caption{margin-top:9px;padding:12px;border:1px solid #2d3948;border-radius:13px;background:#0a0f16;color:#b8c3d0;font-size:11px;line-height:1.45}.caption b{color:#f0cf86}.caption code{display:block;margin-top:6px;color:#8796a8;white-space:pre-wrap;font-family:inherit}
+.toast{position:fixed;left:50%;top:16px;transform:translateX(-50%) translateY(-10px);opacity:0;z-index:500;background:#111b27;border:1px solid var(--gold);border-radius:999px;padding:9px 14px;font-weight:850;font-size:12px;transition:.2s}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(min-width:700px){body{padding-top:18px}.record-note{font-size:12px}.controls .btn{font-size:13px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="record-note"><span><b>9:16 SOCIAL CUT</b> · record only the framed area</span><span id="durationNote">≈ 29 sec</span></div>
+  <main id="phone" class="phone" aria-label="Doctrine Under Pressure social demonstration">
+    <header class="brandbar"><div class="brand">ERA<b>CII</b></div><div class="badge">SIMULATED DEMO</div></header>
+
+    <section class="scene hook active" data-scene="0">
+      <div class="hook-ring"></div>
+      <div class="eyebrow">Doctrine Under Pressure</div>
+      <h1>Your values are easy to state.</h1>
+      <h2 class="gold">Pressure decides which ones are real.</h2>
+      <p class="question">What happens when “safety first” becomes expensive?</p>
+      <div class="scroll-cue">Tap to begin</div>
+    </section>
+
+    <section class="scene setup" data-scene="1">
+      <div><div class="eyebrow">01 · The stated doctrine</div><h2>It says <span class="gold">safety comes first.</span></h2></div>
+      <div class="declared-card">
+        <div class="card-label">Preservation Doctrine</div><div class="card-title">The rules it swears by</div>
+        <div class="trait-list">
+          <div class="trait"><b>Avoid irreversible harm</b><span>10</span><div class="track"><i class="fill" data-width="100%"></i></div></div>
+          <div class="trait"><b>Protect obligations</b><span>8</span><div class="track"><i class="fill" data-width="80%"></i></div></div>
+          <div class="trait"><b>Preserve continuity</b><span>7</span><div class="track"><i class="fill" data-width="70%"></i></div></div>
+          <div class="trait"><b>Gather evidence</b><span>5</span><div class="track"><i class="fill" data-width="50%"></i></div></div>
+          <div class="trait"><b>Adapt structure</b><span>3</span><div class="track"><i class="fill" data-width="30%"></i></div></div>
+        </div>
+      </div>
+      <div class="claim">“We will not trade permanent harm for temporary advantage.”</div>
+      <p class="sub">Then the available resources begin to disappear.</p>
+    </section>
+
+    <section class="scene pressure-layout" data-scene="2">
+      <div class="pressure-head"><div><div class="eyebrow">02 · The reality check</div><h2>Scarcity closes in.</h2></div><div class="counter">DECISION <span id="decisionNo">1</span>/6</div></div>
+      <div class="arena">
+        <div class="orbit a"></div><div class="orbit b"></div><div class="orbit c"></div>
+        <div id="core" class="core">SAFETY<br>FIRST</div>
+        <div class="pressure p1"><b>Reserve loss</b><small>Capacity is disappearing</small><div class="pbar"><i data-pressure="88%"></i></div></div>
+        <div class="pressure p2"><b>Unknown intent</b><small>Evidence remains incomplete</small><div class="pbar"><i data-pressure="72%"></i></div></div>
+        <div class="pressure p3"><b>Protected branch</b><small>An obligation is exposed</small><div class="pbar"><i data-pressure="93%"></i></div></div>
+        <div class="pressure p4"><b>Escalation risk</b><small>Defense may cause harm</small><div class="pbar"><i data-pressure="81%"></i></div></div>
+        <div id="actionPop" class="action-pop"><b>DEFEND OBLIGATIONS</b><small>Protection outranks restraint under this pressure</small></div>
+      </div>
+      <div class="receipt"><b>RECEIPT 03</b><span>state 6b7e16a2</span><code>→ 1d08ac54</code></div>
+    </section>
+
+    <section class="scene" data-scene="3">
+      <div class="eyebrow">03 · The choice</div><h2>Every response is scored.</h2>
+      <p class="sub" style="margin-top:3%">The doctrine can preserve safety, protect its obligation, gather evidence, retreat, or reorganize.</p>
+      <div class="choice-list">
+        <div class="choice win"><div class="choice-top"><b>Defend obligations</b><span class="score">37.4</span></div><small>Wins because the threatened obligation and scarcity outweigh the harm penalty.</small></div>
+        <div class="choice"><div class="choice-top"><b>Give ground</b><span class="score">31.8</span></div><small>Reduces lasting harm, but sacrifices the protected branch.</small></div>
+        <div class="choice"><div class="choice-top"><b>Look before leaping</b><span class="score">27.2</span></div><small>Evidence would improve, but delay increases exposure.</small></div>
+        <div class="choice"><div class="choice-top"><b>Hold ground</b><span class="score">24.9</span></div><small>Conserves capacity, but leaves the obligation unprotected.</small></div>
+      </div>
+      <div class="receipt" style="margin-top:4%"><b>WHY IT WON</b><span>obligation +11.6</span><code>harm −5.0</code></div>
+    </section>
+
+    <section class="scene reveal" data-scene="4">
+      <div class="eyebrow">04 · What pressure revealed</div>
+      <h2>It said one thing.<br><span class="red">It repeatedly did another.</span></h2>
+      <div class="versus">
+        <div class="value-box"><small>Stated leader</small><b class="green">Restraint</b></div><div class="arrow">→</div><div class="value-box"><small>Actual leader</small><b class="red">Protection</b></div>
+      </div>
+      <div><div class="gap-count">3</div><div class="gap-label">strong value–behavior gaps</div></div>
+      <p class="sub">Not proof about a real company or AI. It is a deterministic microscope for making the compromise visible and inspectable.</p>
+      <p class="disclaimer">Same doctrine + scenario + seed = the same choices, state changes, and receipt chain.</p>
+    </section>
+
+    <section class="scene end" data-scene="5">
+      <div class="eyebrow">Eracii Research Demonstrator</div>
+      <h2>What do your rules become<br><span class="gold">when keeping them costs something?</span></h2>
+      <div class="big-question">Doctrine Under Pressure turns stated values, constrained choices, and contradictions into a visible decision paper trail.</div>
+      <p class="sub">AI alignment · governance · policy · personal ethics</p>
+      <div class="url">ERACII · DOCTRINE UNDER PRESSURE</div>
+      <p class="disclaimer">Prototype social demonstration. The research workbench will separate declared-value coding, observed behavior, and blind evaluation.</p>
+    </section>
+
+    <div id="tapLayer" class="tap-layer" title="Tap to advance"></div>
+    <div class="timeline"><i id="timelineFill"></i></div>
+  </main>
+
+  <div class="controls">
+    <button id="playBtn" class="btn primary">Play 29-sec Demo</button>
+    <button id="stepBtn" class="btn">Next Scene</button>
+    <button id="replayBtn" class="btn">Reset</button>
+  </div>
+  <div class="controls" style="grid-template-columns:1fr 1fr">
+    <button id="guidesBtn" class="btn">Recording Guides: Off</button>
+    <button id="copyBtn" class="btn">Copy Post Text</button>
+  </div>
+  <div class="caption"><b>Suggested post:</b><code id="captionText">A principle is easy to declare. Pressure reveals what it becomes. We built a deterministic demonstrator that records the exact moment stated values and actual choices split. This is Doctrine Under Pressure — a simulated research prototype, not a claim about any real organization or AI. #AIAlignment #Governance #ExplainableAI #Eracii</code></div>
+</div>
+<div id="toast" class="toast">Copied</div>
+<script>
+"use strict";
+const scenes=[...document.querySelectorAll('.scene')];
+const timings=[3600,5200,6600,4700,5200,3800];
+let scene=0,playing=false,timer=null,elapsed=0,startedAt=0;
+const $=s=>document.querySelector(s);
+function showScene(index){
+  clearTimeout(timer);scene=(index+scenes.length)%scenes.length;
+  scenes.forEach((s,i)=>{s.classList.toggle('active',i===scene);s.classList.remove('exit')});
+  $('#timelineFill').style.width=`${scene/(scenes.length-1)*100}%`;
+  if(scene===1)setTimeout(()=>document.querySelectorAll('.fill').forEach(x=>x.style.width=x.dataset.width),250);
+  if(scene===2)animatePressure();
+  if(playing)schedule();
+}
+function animatePressure(){
+  document.querySelectorAll('[data-pressure]').forEach(x=>x.style.width='0');
+  $('#actionPop').classList.remove('show');
+  $('#decisionNo').textContent='1';
+  setTimeout(()=>document.querySelectorAll('[data-pressure]').forEach(x=>x.style.width=x.dataset.pressure),250);
+  let n=1;
+  const bump=setInterval(()=>{
+    if(scene!==2||!playing){clearInterval(bump);return}
+    n++;
+    $('#decisionNo').textContent=Math.min(n,6);
+    $('#core').classList.add('hit');setTimeout(()=>$('#core').classList.remove('hit'),260);
+    if(n>=4)$('#actionPop').classList.add('show');
+    if(n>=6)clearInterval(bump);
+  },760);
+}
+function schedule(){
+  startedAt=Date.now();
+  timer=setTimeout(()=>{
+    if(scene===scenes.length-1){playing=false;$('#playBtn').textContent='Play Again';return}
+    showScene(scene+1);
+  },timings[scene]);
+}
+function play(){
+  if(playing){playing=false;clearTimeout(timer);$('#playBtn').textContent='Resume Demo';return}
+  if(scene===scenes.length-1)showScene(0);
+  playing=true;$('#playBtn').textContent='Pause';schedule();
+}
+function next(){playing=false;clearTimeout(timer);$('#playBtn').textContent='Play Demo';showScene(Math.min(scene+1,scenes.length-1))}
+function reset(){playing=false;clearTimeout(timer);$('#playBtn').textContent='Play 29-sec Demo';document.querySelectorAll('.fill,[data-pressure]').forEach(x=>x.style.width='0');showScene(0)}
+$('#playBtn').onclick=play;$('#stepBtn').onclick=next;$('#replayBtn').onclick=reset;$('#tapLayer').onclick=()=>{if(scene===0){playing=true;$('#playBtn').textContent='Pause';showScene(1)}else next()};
+let guides=false;
+$('#guidesBtn').onclick=()=>{
+ guides=!guides;$('#guidesBtn').textContent=`Recording Guides: ${guides?'On':'Off'}`;$('#guidesBtn').classList.toggle('active',guides);
+ $('#phone').style.boxShadow=guides?'inset 0 0 0 18px #e06f7922,0 26px 80px #000,0 0 0 1px #ffffff0a inset':'0 26px 80px #000,0 0 0 1px #ffffff0a inset';
+};
+$('#copyBtn').onclick=async()=>{
+ const text=$('#captionText').textContent;
+ try{await navigator.clipboard.writeText(text);toast('Post text copied')}catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Post text copied')}
+};
+function toast(text){const t=$('#toast');t.textContent=text;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1400)}
+showScene(0);
+</script>
+</body>
+</html>

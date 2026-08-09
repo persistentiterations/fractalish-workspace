@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eracii — Doctrine Under Pressure</title>
+<style>
+:root{
+  --bg:#070a0f;--panel:#101722;--panel2:#151f2d;--line:#2a3747;--text:#edf2f7;--muted:#93a0b2;
+  --gold:#d9b566;--blue:#68a7e3;--green:#76c69c;--red:#e06f79;--violet:#a78be5;--amber:#e2a95b;
+  --accent:var(--gold);--shadow:0 24px 70px #0009;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{overflow-x:hidden}
+button,input,select{font:inherit}
+button{color:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.app{min-height:100vh;background:
+ radial-gradient(circle at 12% -10%,#3c6eaa35,transparent 34rem),
+ radial-gradient(circle at 92% 0,#b67b4030,transparent 32rem),
+ linear-gradient(180deg,#080c12,#07090d 60%)}
+.topbar{height:58px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 18px;border-bottom:1px solid var(--line);background:#080c12e8;backdrop-filter:blur(14px);position:sticky;top:0;z-index:20}
+.brand{font-weight:950;letter-spacing:.17em;font-size:12px}.brand b{color:var(--gold)}
+.product-title{text-align:center;font:700 15px Georgia,serif;color:var(--gold);letter-spacing:.06em}
+.top-actions{display:flex;justify-content:flex-end;gap:7px}
+.btn{border:1px solid var(--line);border-radius:9px;background:#172130;padding:7px 11px;font-weight:800;cursor:pointer;transition:.16s transform,.16s border-color,.16s background}
+.btn:hover:not(:disabled){transform:translateY(-1px);border-color:#7e8da2;background:#1c293a}.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.primary{color:#171107;background:linear-gradient(180deg,#e5c679,#c99d47);border-color:#efd89c}
+.btn.danger{background:#321a20;border-color:#66303a}.btn.ghost{background:transparent}
+.shell{width:min(1540px,100%);margin:auto;padding:12px 14px 20px}
+.identity-strip{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:10px;color:var(--muted);font-size:11px}
+.identity-strip b{color:var(--text)}.separate{padding:3px 8px;border:1px solid #755e34;border-radius:99px;color:#f0cf8b;background:#2a2112;font-weight:900;letter-spacing:.07em;font-size:9px}
+.screen{display:none}.screen.active{display:block}
+.setup-grid{display:grid;grid-template-columns:minmax(260px,360px) minmax(420px,1fr) minmax(250px,330px);gap:12px;align-items:stretch}
+.panel{background:linear-gradient(145deg,#0f1620,#151e2a);border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow)}
+.panel.pad{padding:14px}.panel h2{font:700 23px Georgia,serif;margin:0 0 4px}.panel h3{margin:0 0 8px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.explainer{color:var(--muted);margin:0 0 13px;font-size:12px}
+.preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px}
+.preset{padding:9px;text-align:left;border:1px solid var(--line);border-radius:10px;background:#0c121b;cursor:pointer}
+.preset.active{border-color:var(--gold);box-shadow:inset 0 0 0 1px #d9b56655;background:#1b1811}.preset b{display:block;font:700 13px Georgia,serif}.preset small{color:var(--muted);font-size:9px}
+.slider-row{display:grid;grid-template-columns:1fr 32px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid #253040}
+.slider-row:last-child{border-bottom:none}.slider-copy b{display:block;font-size:11px}.slider-copy small{color:var(--muted);font-size:9px}
+.slider-control{grid-column:1/-1;display:grid;grid-template-columns:1fr 28px;gap:8px;align-items:center}
+input[type=range]{width:100%;accent-color:var(--gold)}.slider-value{font-weight:950;color:var(--gold);text-align:right}
+.field-preview{min-height:535px;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.field-header{padding:16px 17px 8px;position:relative;z-index:2}.field-header .eyebrow{font-size:9px;letter-spacing:.18em;color:var(--gold);font-weight:900}.field-header h1{font:700 clamp(30px,4vw,52px)/.98 Georgia,serif;margin:4px 0 8px;max-width:850px}.field-header p{max-width:730px;color:#aeb8c6;margin:0;font-size:13px}.hypothesis{display:inline-block;margin-top:11px;padding:7px 10px;border-left:3px solid var(--gold);border-radius:0 8px 8px 0;background:#0a1119cc;color:#e5eaf0;font:700 12px Georgia,serif}.hypothesis b{color:var(--gold)}
+.preview-stage{flex:1;position:relative;min-height:340px;display:grid;place-items:center;overflow:hidden}
+.preview-stage:before{content:"";position:absolute;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,#3250762b,transparent 65%);filter:blur(4px)}
+.orbit{position:absolute;border:1px solid #405269;border-radius:50%;opacity:.5}.orbit.o1{width:340px;height:340px}.orbit.o2{width:250px;height:250px}.orbit.o3{width:160px;height:160px}
+.core-preview{width:120px;height:120px;border-radius:50%;display:grid;place-items:center;text-align:center;background:radial-gradient(circle at 42% 32%,#f3d99b,#a77a2a 30%,#1d2632 66%);border:2px solid #efd697;box-shadow:0 0 0 12px #d9b56615,0 0 80px #d9b56638;z-index:3;font:700 15px Georgia,serif;color:#16120b;padding:12px}
+.pressure-preview{position:absolute;padding:6px 9px;border-radius:99px;background:#111b28;border:1px solid var(--line);font-size:10px;font-weight:850;box-shadow:0 8px 24px #0008}
+.pp1{transform:translate(-175px,-90px);color:#f2ad78}.pp2{transform:translate(190px,-35px);color:#82b9e9}.pp3{transform:translate(-130px,150px);color:#91d7af}.pp4{transform:translate(155px,130px);color:#cbb1f7}
+.preview-note{padding:10px 15px;border-top:1px solid var(--line);font-size:10px;color:var(--muted);background:#0a1018}
+.environment-list{display:grid;gap:7px}.environment{padding:10px;border:1px solid var(--line);border-radius:11px;background:#0c121b;cursor:pointer;text-align:left}.environment.active{border-color:var(--blue);box-shadow:inset 0 0 0 1px #68a7e344;background:#101c28}.environment b{display:block;font:700 14px Georgia,serif;color:#dce8f5}.environment small{display:block;color:var(--muted);font-size:9px;margin-top:2px}.environment .tags{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}.tag{font-size:7px;padding:2px 5px;border-radius:99px;border:1px solid #344255;color:#aab8ca}
+.setup-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}.control label{display:block;color:var(--muted);font-size:9px;margin-bottom:3px}.control input,.control select{width:100%;background:#0a1018;border:1px solid var(--line);border-radius:8px;color:var(--text);padding:7px}
+.mental-model{margin-top:12px;padding:11px 12px;border:1px solid #705a32;border-radius:10px;background:linear-gradient(145deg,#1b1811,#111722);color:#c8d1dc;font-size:10px;line-height:1.5}.mental-model>b{display:block;color:var(--gold);margin-bottom:4px;font-size:10px;letter-spacing:.08em;text-transform:uppercase}.domain-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}.domain-row span{padding:3px 6px;border:1px solid #3b4655;border-radius:99px;background:#0b1119;color:#b9c5d3;font-size:8px;font-weight:800}.start-wrap{display:grid;gap:7px;margin-top:9px}.start-wrap .btn{width:100%;padding:10px}.microcopy{font-size:9px;color:var(--muted);text-align:center}
+/* LAB */
+.lab-grid{display:grid;grid-template-columns:minmax(235px,300px) minmax(520px,1fr) minmax(280px,350px);gap:10px;min-height:calc(100vh - 115px)}
+.left-stack,.right-stack{display:flex;flex-direction:column;gap:10px;min-height:0}.lab-panel{padding:11px;box-shadow:none}.lab-panel.grow{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.doctrine-title{display:flex;justify-content:space-between;gap:8px;align-items:start}.doctrine-title b{font:700 17px Georgia,serif}.run-code{font:8px ui-monospace,Consolas,monospace;color:#9aa8ba;word-break:break-all;text-align:right}
+.doctrine-bars{display:grid;gap:6px;margin-top:8px}.dbar{display:grid;grid-template-columns:1fr 24px;gap:5px;align-items:center}.dbar label{font-size:9px;color:#b9c4d1}.track{height:6px;border-radius:99px;background:#263142;overflow:hidden;grid-column:1/-1}.fill{height:100%;background:linear-gradient(90deg,var(--gold),#f2d48f);transition:width .25s}
+.state-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}.state-card{background:#0a1119;border:1px solid #263243;border-radius:8px;padding:7px}.state-card small{display:block;font-size:7px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}.state-card b{font:700 17px Georgia,serif}.state-card .mini-track{height:4px;background:#253040;border-radius:99px;margin-top:4px;overflow:hidden}.state-card .mini-fill{height:100%;background:var(--blue);transition:width .3s}
+.condition-list{display:grid;gap:4px;overflow:auto}.condition{font-size:9px;padding:5px 6px;border-left:3px solid #58677a;background:#0a1018;border-radius:4px;color:#c7d0dc}.condition.hot{border-color:var(--red)}.condition.good{border-color:var(--green)}
+.stage-panel{position:relative;min-height:0;overflow:hidden;display:flex;flex-direction:column;box-shadow:none}
+.stage-head{flex:0 0 auto;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line);background:#0c131c}.stage-head h2{font:700 18px Georgia,serif;margin:0}.stage-head small{color:var(--muted)}
+.controls{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.controls .btn{padding:5px 9px;font-size:10px}
+.pressure-stage{flex:1;min-height:370px;position:relative;overflow:hidden;background:
+ radial-gradient(circle at 50% 50%,#172536 0,#0b1119 42%,#070a0f 75%)}
+.field-svg{position:absolute;inset:0;width:100%;height:100%}.field-svg line{stroke:#344458;stroke-width:1}.field-svg .pulse-line{stroke-width:3;stroke-dasharray:8 8;animation:dash 1.6s linear infinite}.field-svg .node{stroke:#66768b;stroke-width:1;fill:#111a25}.field-svg .node.active{stroke:#f1d28c;stroke-width:2;filter:drop-shadow(0 0 7px #d9b566)}
+@keyframes dash{to{stroke-dashoffset:-32}}
+.doctrine-core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:128px;height:128px;border-radius:50%;display:grid;place-items:center;text-align:center;padding:13px;background:radial-gradient(circle at 42% 32%,#f1d898,#b78936 31%,#222c39 69%);border:2px solid #f2dba6;color:#171209;box-shadow:0 0 0 12px #d9b56612,0 0 80px #d9b56635;z-index:4;transition:.24s transform,.24s filter}
+.doctrine-core.acting{transform:translate(-50%,-50%) scale(1.08);filter:brightness(1.15)}.doctrine-core b{font:700 17px Georgia,serif;display:block}.doctrine-core small{font-size:8px;font-weight:900;letter-spacing:.09em}
+.pressure-chip{position:absolute;min-width:132px;max-width:180px;padding:8px 10px;background:#101a26e8;border:1px solid #344458;border-radius:11px;box-shadow:0 10px 30px #0008;transition:.3s transform,.3s opacity,.3s border-color}.pressure-chip b{display:block;font:700 13px Georgia,serif}.pressure-chip small{color:var(--muted);font-size:8px}.pressure-chip .pbar{height:4px;background:#253142;border-radius:99px;margin-top:5px;overflow:hidden}.pressure-chip .pfill{height:100%;background:var(--red)}.pressure-chip.critical{border-color:var(--red);box-shadow:0 0 28px #e06f7938}.pressure-chip.resolved{opacity:.42}
+.p0{left:7%;top:12%}.p1{right:7%;top:14%}.p2{left:8%;bottom:12%}.p3{right:8%;bottom:12%}
+.action-flash{position:absolute;left:50%;top:70%;transform:translate(-50%,-50%);z-index:6;text-align:center;opacity:0;pointer-events:none}.action-flash.show{animation:actionPop 1.4s ease-out}.action-flash b{display:block;font:950 24px Georgia,serif;color:#fff;text-shadow:0 4px 16px #000}.action-flash small{color:#d9e2ee;background:#0a1018dc;padding:3px 7px;border-radius:99px}
+@keyframes actionPop{0%{opacity:0;transform:translate(-50%,0) scale(.82)}15%,72%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-88%)}}
+.stage-banner{flex:0 0 auto;padding:8px 12px;border-top:1px solid var(--line);background:#0a1119;color:#d7e0ea;font-size:11px;display:flex;justify-content:space-between;gap:10px}.stage-banner.first-step{border-color:#8c713b;background:#17150f;animation:firstStepPulse 1.8s ease-in-out infinite}@keyframes firstStepPulse{50%{box-shadow:inset 0 0 0 1px #d9b56644,0 0 20px #d9b56618}}.stage-banner b{color:var(--gold)}.stage-banner span:last-child{color:var(--muted);font-size:9px;text-align:right}
+.candidate-list{display:grid;gap:5px;overflow:auto}.candidate{padding:7px 8px;border:1px solid #293648;border-radius:8px;background:#0a1119;cursor:pointer}.candidate.selected{border-color:var(--gold);background:#19170f}.candidate.inaccessible{opacity:.38}.candidate-top{display:grid;grid-template-columns:1fr auto;gap:6px}.candidate b{font:800 11px}.candidate .action-code{display:inline-block;margin-left:6px;color:#77869a;font:700 7px ui-monospace,Consolas,monospace;letter-spacing:.08em}.score{font:950 15px Georgia,serif;color:var(--gold)}.scorebar{height:4px;background:#253142;border-radius:99px;margin-top:4px;overflow:hidden}.scorebar i{display:block;height:100%;background:var(--blue)}.candidate small{display:block;color:var(--muted);font-size:8px;margin-top:3px}
+.breakdown{font-size:9px;color:#c4cedb;overflow:auto;min-height:90px}.break-row{display:grid;grid-template-columns:1fr auto;gap:8px;padding:4px 0;border-bottom:1px solid #232e3d}.break-row:last-child{border-bottom:none}.plus{color:var(--green)}.minus{color:#f28b94}
+.receipt-thread{overflow:auto;font:8px/1.35 ui-monospace,Consolas,monospace}.receipt{padding:6px;border-left:2px solid #4c5d72;margin-bottom:5px;background:#0a1018;border-radius:0 6px 6px 0}.receipt.selected{border-color:var(--gold);background:#17150f}.receipt b{display:block;color:#e1e8f0;font-family:Inter,system-ui,sans-serif;font-size:9px}.receipt .hash{color:#718096;word-break:break-all}
+.tick-row{display:grid;grid-template-columns:1fr auto;gap:7px;align-items:center}.tick-row b{font:700 15px Georgia,serif}.progress{height:5px;background:#263142;border-radius:99px;overflow:hidden;margin-top:5px}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--gold));transition:width .2s}
+/* PORTRAIT */
+.portrait-shell{width:min(1200px,100%);margin:auto}.portrait-head{text-align:center;padding:18px 14px}.portrait-head .eyebrow{font-size:9px;letter-spacing:.18em;color:var(--gold);font-weight:900}.portrait-head h1{font:700 clamp(34px,5vw,58px)/1 Georgia,serif;margin:6px 0}.portrait-head p{color:var(--muted);max-width:780px;margin:auto}
+.portrait-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:10px}.portrait-card{padding:15px;box-shadow:none}.portrait-card h2{font:700 21px Georgia,serif;margin:0 0 8px}.diagnosis-label{margin:0 0 5px;color:var(--gold);font-size:9px;font-weight:950;letter-spacing:.14em;text-transform:uppercase}.summary-callout{padding:15px 16px;border-left:4px solid var(--gold);background:linear-gradient(145deg,#11170f,#0a1119);border-radius:8px;color:#eef2f7;font:700 15px/1.45 Georgia,serif}
+.compare-row{display:grid;grid-template-columns:210px 1fr 28px;gap:7px;align-items:center;margin:8px 0;font-size:9px}.compare-bars{display:grid;gap:3px}.compare-bar{height:7px;background:#263142;border-radius:99px;overflow:hidden}.compare-bar i{display:block;height:100%}.declared{background:var(--gold)}.enacted{background:var(--blue)}
+.finding{padding:9px;border:1px solid #2a3747;border-radius:9px;background:#0a1119;margin-bottom:6px}.finding b{display:block;color:#f0d294;font:700 13px Georgia,serif}.finding small{color:var(--muted)}
+.portrait-actions{display:flex;justify-content:center;gap:7px;margin-top:12px;flex-wrap:wrap}.legend{display:flex;gap:12px;justify-content:center;font-size:9px;color:var(--muted);margin-top:8px}.legend i{display:inline-block;width:18px;height:5px;border-radius:99px;margin-right:4px}
+/* overlays */
+.overlay{display:none;position:fixed;inset:0;background:#000d;z-index:100;align-items:center;justify-content:center;padding:14px}.overlay.show{display:flex}.modal{width:min(760px,96vw);max-height:88vh;overflow:auto;padding:17px}.modal h2{font:700 27px Georgia,serif;margin:0 0 7px}.modal p{color:#b3bfcd}.modal .close{float:right}
+.export-box{white-space:pre-wrap;word-break:break-all;background:#070b10;padding:10px;border-radius:8px;border:1px solid var(--line);font:9px/1.4 ui-monospace,Consolas,monospace;color:#cbd5e1}
+.toast{position:fixed;left:50%;top:72px;transform:translateX(-50%);z-index:110;padding:8px 14px;border-radius:99px;background:#111b27;border:1px solid var(--gold);font-weight:900;opacity:0;pointer-events:none}.toast.show{animation:toast 1.8s ease-out}@keyframes toast{0%{opacity:0;translate:0 -5px}15%,72%{opacity:1;translate:0 0}100%{opacity:0;translate:0 -7px}}
+@media(max-width:1150px){.setup-grid{grid-template-columns:310px 1fr}.setup-grid>aside:last-child{grid-column:1/-1}.environment-list{grid-template-columns:repeat(5,1fr)}.lab-grid{grid-template-columns:235px 1fr}.right-stack{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr}.receipt-thread{max-height:260px}.field-preview{min-height:490px}}
+@media(max-width:800px){.topbar{grid-template-columns:1fr auto}.product-title{display:none}.setup-grid,.lab-grid,.portrait-grid{grid-template-columns:1fr}.environment-list{grid-template-columns:1fr 1fr}.left-stack,.right-stack{display:grid;grid-template-columns:1fr}.pressure-stage{min-height:480px}.p0{left:2%;top:7%}.p1{right:2%;top:8%}.p2{left:2%;bottom:7%}.p3{right:2%;bottom:7%}.pressure-chip{min-width:115px;max-width:145px}.doctrine-core{width:110px;height:110px}.compare-row{grid-template-columns:135px 1fr 24px}.compare-row>b{font-size:8px}}
+@media(max-width:520px){.shell{padding:8px}.top-actions .btn:nth-child(1){display:none}.setup-grid{gap:8px}.preset-grid{grid-template-columns:1fr}.environment-list{grid-template-columns:1fr}.preview-stage{min-height:310px}.orbit.o1{width:270px;height:270px}.orbit.o2{width:200px;height:200px}.pp1{transform:translate(-105px,-95px)}.pp2{transform:translate(110px,-65px)}.pp3{transform:translate(-100px,125px)}.pp4{transform:translate(100px,115px)}.pressure-stage{min-height:540px}.pressure-chip{font-size:9px;min-width:110px;max-width:130px}.stage-banner{display:block}.stage-banner span:last-child{display:block;text-align:left;margin-top:3px}.controls{justify-content:flex-start}.topbar{padding:0 9px}.brand{font-size:10px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="topbar">
+  <div class="brand">ERA<b>CII</b></div>
+  <div class="product-title">DOCTRINE UNDER PRESSURE</div>
+  <div class="top-actions"><button id="aboutBtn" class="btn ghost">What is this?</button><button id="newBtn" class="btn" disabled>New Formation</button></div>
+</header>
+<div class="shell">
+  <div class="identity-strip"><span class="separate">SEPARATE EXPERIMENT</span><span><b>Doctrine Under Pressure</b> is not the historical Arena game.</span></div>
+
+  <section id="setupScreen" class="screen active">
+    <div class="setup-grid">
+      <aside class="panel pad">
+        <h3>1 · State the values</h3>
+        <h2>What does it claim matters?</h2>
+        <p class="explainer">These priorities are the rules it swears by before scarce resources, incomplete information, and real consequences force compromise.</p>
+        <div id="presets" class="preset-grid"></div>
+        <div id="sliders"></div>
+      </aside>
+
+      <main class="panel field-preview">
+        <div class="field-header">
+          <div class="eyebrow">STATED VALUES VS. REAL-WORLD COMPROMISE</div>
+          <h1>A principle is easy to declare. Pressure reveals what it becomes.</h1>
+          <p>Test the same universal problem across AI alignment, institutional governance, and personal ethics: what happens when stated rules collide with what survival demands? Every consequential choice remains inspectable and reproducible.</p>
+          <div id="hypothesisLine" class="hypothesis"><b>Experiment question:</b> What happens when a Preservation Doctrine meets Scarcity?</div>
+        </div>
+        <div class="preview-stage">
+          <div class="orbit o1"></div><div class="orbit o2"></div><div class="orbit o3"></div>
+          <div id="previewCore" class="core-preview">Preservation<br>Doctrine</div>
+          <div class="pressure-preview pp1">Resource loss</div><div class="pressure-preview pp2">Incomplete evidence</div>
+          <div class="pressure-preview pp3">Protected branch</div><div class="pressure-preview pp4">Irreversible cost</div>
+        </div>
+        <div class="preview-note">The visible field is an explanatory view of pressure and state change. It is not a board and has no spaces for the player to move through.</div>
+      </main>
+
+      <aside class="panel pad">
+        <h3>2 · Apply the reality check</h3>
+        <h2>Choose the pressure.</h2>
+        <p class="explainer">This is the stress test: a cash crunch, an unfamiliar situation, a governance conflict, or any high-pressure event that limits what can actually be done.</p>
+        <div id="environments" class="environment-list"></div>
+        <div class="setup-options">
+          <div class="control"><label for="seedInput">Deterministic seed</label><input id="seedInput" type="number" min="1" max="999999" value="7317"></div>
+          <div class="control"><label for="lengthSelect">Trial length</label><select id="lengthSelect"><option value="18">18 decisions</option><option value="24" selected>24 decisions</option><option value="32">32 decisions</option></select></div>
+          <div class="control"><label for="speedSelect">Run speed</label><select id="speedSelect"><option value="1000">Measured</option><option value="580" selected>Normal</option><option value="260">Fast</option></select></div>
+          <div class="control"><label for="pauseSelect">Auto-pause</label><select id="pauseSelect"><option value="none">Never</option><option value="diverge" selected>When values diverge</option><option value="critical">On critical state</option></select></div>
+        </div>
+        <div class="mental-model"><b>The cross-domain sandbox</b>Whether you are testing an AI agent's system prompt, a corporate charter during a cash crunch, or personal ethics under stress, the question is the same: <strong>Do stated values survive contact with reality?</strong> This engine records every compromise mathematically.<div class="domain-row"><span>AI alignment</span><span>Corporate governance</span><span>Constitutional rules</span><span>Personal ethics</span></div></div>
+        <div class="start-wrap"><button id="startBtn" class="btn primary">Begin Pressure Trial</button><div class="microcopy">Same doctrine + environment + seed = same receipts and outcome.</div></div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="labScreen" class="screen">
+    <div class="lab-grid">
+      <aside class="left-stack">
+        <div class="panel lab-panel">
+          <h3>Stated values · the rules it swears by</h3>
+          <div class="doctrine-title"><b id="labDoctrineName">Preservation Doctrine</b><span id="runCode" class="run-code"></span></div>
+          <div id="doctrineBars" class="doctrine-bars"></div>
+        </div>
+        <div class="panel lab-panel">
+          <h3>What remains · capacity and constraints</h3><div id="stateGrid" class="state-grid"></div>
+        </div>
+        <div class="panel lab-panel grow">
+          <h3>Reality check · active pressures</h3><div id="conditionList" class="condition-list"></div>
+        </div>
+      </aside>
+
+      <main class="panel stage-panel">
+        <div class="stage-head">
+          <div><h2 id="environmentTitle">Scarcity</h2><small id="environmentSubtitle">Not enough reserve to protect every obligation.</small></div>
+          <div class="controls">
+            <button id="runBtn" class="btn primary">Run</button><button id="pauseBtn" class="btn" disabled>Pause</button><button id="stepBtn" class="btn">Step</button><button id="replayBtn" class="btn">Replay</button>
+          </div>
+        </div>
+        <div id="pressureStage" class="pressure-stage">
+          <svg id="fieldSvg" class="field-svg" viewBox="0 0 900 600" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <div id="doctrineCore" class="doctrine-core"><div><small id="coreStatus">FORMED</small><b id="coreName">Preservation</b></div></div>
+          <div id="pressureChips"></div>
+          <div id="actionFlash" class="action-flash"><b></b><small></small></div>
+        </div>
+        <div class="stage-banner"><span id="stageMessage"><b>Trial ready.</b> Step once or run continuously.</span><span id="stateHash">STATE —</span></div>
+      </main>
+
+      <aside class="right-stack">
+        <div class="panel lab-panel">
+          <div class="tick-row"><div><h3 style="margin-bottom:2px">Decision progress</h3><b id="tickLabel">0 / 24</b></div><span id="statusBadge" class="tag">READY</span></div>
+          <div class="progress"><i id="progressFill" style="width:0%"></i></div>
+        </div>
+        <div class="panel lab-panel grow">
+          <h3>Available responses · possible compromises</h3><div id="candidateList" class="candidate-list"></div>
+        </div>
+        <div class="panel lab-panel">
+          <h3>Why this response won</h3><div id="breakdown" class="breakdown">No decision has been evaluated yet.</div>
+        </div>
+        <div class="panel lab-panel grow">
+          <h3>Decision paper trail · immutable receipts</h3><div id="receiptThread" class="receipt-thread"></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="portraitScreen" class="screen">
+    <div class="portrait-shell">
+      <div class="portrait-head"><div class="eyebrow">BEHAVIORAL STRESS-TEST PORTRAIT</div><h1 id="portraitTitle">What the doctrine became.</h1><p id="portraitIntro"></p><div class="legend"><span><i style="background:var(--gold)"></i>Stated</span><span><i style="background:var(--blue)"></i>Actual</span></div></div>
+      <div class="portrait-grid">
+        <main class="panel portrait-card">
+          <h2>Stated values vs. actual behavior</h2><div id="comparison"></div>
+          <h2 style="margin-top:15px">Behavioral diagnosis</h2><div class="diagnosis-label">What pressure revealed</div><div id="portraitSummary" class="summary-callout"></div>
+        </main>
+        <aside class="panel portrait-card"><h2>Findings</h2><div id="findings"></div></aside>
+      </div>
+      <div class="portrait-actions"><button id="inspectReceiptsBtn" class="btn">Inspect Receipt Chain</button><button id="exportBtn" class="btn">Export Trial JSON</button><button id="replayPortraitBtn" class="btn">Replay Same Trial</button><button id="newFormationBtn" class="btn primary">Form Another Doctrine</button></div>
+    </div>
+  </section>
+</div>
+</div>
+
+<div id="aboutOverlay" class="overlay"><div class="panel modal"><button class="btn close" onclick="closeAbout()">Close</button><h2>What this experiment is</h2><p><b>Doctrine Under Pressure</b> tests the universal gap between <b>stated values</b> and <b>real-world compromise</b>. A doctrine can represent an AI system prompt, a corporate charter, a constitutional rule set, or a person's declared ethics. The environment is the reality check that restricts its options.</p><p><b>Translation:</b> doctrine = the rules we swear by; environment = the stress test; live state = what resources and options remain; contradiction = the moment behavior compromises the stated rule; receipt chain = the decision paper trail.</p><p>It is intentionally separate from <b>Eracii Arena / Trial of Minds</b>. This experiment has no historical figures, combat, or manual movement.</p><p>Every decision stores the observed state, candidate scores, accessibility exclusions, chosen action, state transition, previous receipt hash, and resulting receipt hash.</p></div></div>
+<div id="receiptOverlay" class="overlay"><div class="panel modal"><button class="btn close" onclick="closeReceiptOverlay()">Close</button><h2>Complete Receipt Chain</h2><div id="fullReceiptList" class="export-box"></div></div></div>
+<div id="exportOverlay" class="overlay"><div class="panel modal"><button class="btn close" onclick="closeExport()">Close</button><h2>Trial export</h2><p>Copy this deterministic trial record, or use the download button.</p><button id="downloadBtn" class="btn primary" style="margin-bottom:8px">Download JSON</button><div id="exportBox" class="export-box"></div></div></div>
+<div id="toast" class="toast"></div>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const TRAITS=[
+ {id:"preserve",name:"Preserve continuity",short:"Continuity (The Status Quo)",compact:"Continuity",color:"#d9b566"},
+ {id:"evidence",name:"Gather evidence",short:"Inquiry (Look Before Leaping)",compact:"Inquiry",color:"#68a7e3"},
+ {id:"territory",name:"Protect obligations",short:"Protection (Defending Turf)",compact:"Protection",color:"#e2a95b"},
+ {id:"adapt",name:"Adapt structure",short:"Agility (Pivoting)",compact:"Agility",color:"#a78be5"},
+ {id:"harm",name:"Avoid irreversible harm",short:"Restraint (Safety First)",compact:"Restraint",color:"#76c69c"}
+];
+const PRESETS={
+ preservation:{name:"Preservation Doctrine",short:"Preservation",desc:"Protects continuity and avoids irreversible loss.",weights:{preserve:9,evidence:5,territory:8,adapt:3,harm:9}},
+ inquiry:{name:"Inquiry Doctrine",short:"Inquiry",desc:"Delays commitment until evidence is strong.",weights:{preserve:5,evidence:10,territory:4,adapt:7,harm:8}},
+ expansion:{name:"Expansion Doctrine",short:"Expansion",desc:"Protects reach and acts before access closes.",weights:{preserve:6,evidence:4,territory:10,adapt:6,harm:3}},
+ adaptive:{name:"Adaptive Doctrine",short:"Adaptive",desc:"Reorganizes quickly when old routes stop working.",weights:{preserve:5,evidence:7,territory:5,adapt:10,harm:6}}
+};
+const ENVIRONMENTS={
+ scarcity:{name:"Scarcity",subtitle:"Not enough reserve to protect every obligation.",desc:"Reserve declines while simultaneous obligations compete for protection.",tags:["resource conflict","sacrifice","retention"],base:{reserve:68,evidence:58,territory:72,integrity:82,flexibility:45,harm:8},pressure:["Reserve drain","Competing obligations","Delayed recovery","Unequal access"]},
+ evidence:{name:"Conflicting Evidence",subtitle:"Immediate signals and accumulated history disagree.",desc:"Evidence arrives in incompatible forms; acting early may preserve access but amplify error.",tags:["uncertainty","history","commitment"],base:{reserve:76,evidence:42,territory:58,integrity:78,flexibility:54,harm:6},pressure:["Signal conflict","Missing context","False urgency","History mismatch"]},
+ intrusion:{name:"Territorial Intrusion",subtitle:"An outside process enters a protected region.",desc:"The doctrine must decide whether to defend, observe, withdraw, share, or reorganize.",tags:["boundary","defense","contact"],base:{reserve:74,evidence:50,territory:84,integrity:80,flexibility:48,harm:7},pressure:["Boundary breach","Unknown intent","Local dependency","Escalation risk"]},
+ continuity:{name:"Continuity Failure",subtitle:"A trusted route becomes inaccessible.",desc:"Previously successful structure fails, forcing a choice between identity preservation and adaptation.",tags:["route loss","identity","repair"],base:{reserve:72,evidence:61,territory:64,integrity:66,flexibility:42,harm:5},pressure:["Route collapse","State mismatch","Memory residue","Repair cost"]},
+ authority:{name:"Authority Conflict",subtitle:"A local signal contradicts a central instruction.",desc:"The system must decide which source of obligation remains binding under uncertainty.",tags:["local vs central","governance","accountability"],base:{reserve:78,evidence:53,territory:66,integrity:76,flexibility:50,harm:6},pressure:["Instruction conflict","Local warning","Audit exposure","Coordination cost"]}
+};
+const ACTIONS={
+ HOLD:{label:"Hold ground",desc:"Preserve the status quo and refuse premature commitment.",traits:{preserve:1.15,evidence:.25,territory:.15,adapt:-.2,harm:.75}},
+ OBSERVE:{label:"Look before leaping",desc:"Spend limited capacity to gather facts before acting.",traits:{preserve:.2,evidence:1.25,territory:-.1,adapt:.25,harm:.55}},
+ DEFEND:{label:"Defend obligations",desc:"Commit resources to protect responsibilities or threatened ground.",traits:{preserve:.65,evidence:-.2,territory:1.25,adapt:-.15,harm:-.25}},
+ WITHDRAW:{label:"Give ground",desc:"Release an obligation to preserve capacity and reduce lasting harm.",traits:{preserve:.6,evidence:.15,territory:-.85,adapt:.25,harm:1.1}},
+ REORGANIZE:{label:"Pivot the structure",desc:"Change the operating arrangement when the old one no longer works.",traits:{preserve:-.4,evidence:.25,territory:.15,adapt:1.3,harm:.1}},
+ SHARE:{label:"Open limited access",desc:"Share controlled access to reduce conflict and learn from the response.",traits:{preserve:.05,evidence:.65,territory:-.35,adapt:.75,harm:.55}}
+};
+let selection={preset:"preservation",environment:"scarcity",weights:{...PRESETS.preservation.weights}};
+let g=null,timer=null,busy=false,selectedCandidate=null;
+function clamp(n,min=0,max=100){return Math.max(min,Math.min(max,n))}
+function hash(text){let h=2166136261;for(const c of String(text)){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return("00000000"+(h>>>0).toString(16)).slice(-8)}
+function seeded(seed,index,salt=0){let x=(Number(seed)||1)+index*374761393+salt*668265263;x=(x^(x>>>13))*1274126177;return((x^(x>>>16))>>>0)/4294967295}
+function deepCopy(x){return JSON.parse(JSON.stringify(x))}
+function renderSetup(){
+ $("#presets").innerHTML=Object.entries(PRESETS).map(([id,p])=>`<button class="preset ${selection.preset===id?"active":""}" data-preset="${id}"><b>${p.name}</b><small>${p.desc}</small></button>`).join("");
+ $$(".preset").forEach(b=>b.onclick=()=>{selection.preset=b.dataset.preset;selection.weights={...PRESETS[selection.preset].weights};renderSetup()});
+ $("#sliders").innerHTML=TRAITS.map(t=>`<div class="slider-row"><div class="slider-copy"><b>${t.name}</b><small>${traitHint(t.id)}</small></div><div class="slider-control"><input type="range" min="1" max="10" value="${selection.weights[t.id]}" data-trait="${t.id}"><span class="slider-value">${selection.weights[t.id]}</span></div></div>`).join("");
+ $$("#sliders input").forEach(r=>r.oninput=()=>{selection.weights[r.dataset.trait]=Number(r.value);selection.preset="custom";r.nextElementSibling.textContent=r.value;$$('.preset').forEach(x=>x.classList.remove('active'));updatePreviewName()});
+ $("#environments").innerHTML=Object.entries(ENVIRONMENTS).map(([id,e])=>`<button class="environment ${selection.environment===id?"active":""}" data-env="${id}"><b>${e.name}</b><small>${e.desc}</small><span class="tags">${e.tags.map(x=>`<span class="tag">${x}</span>`).join("")}</span></button>`).join("");
+ $$(".environment").forEach(b=>b.onclick=()=>{selection.environment=b.dataset.env;renderSetup()});updatePreviewName();
+}
+function traitHint(id){return({
+ preserve:"AI: guardrails and state preservation. Life: protecting continuity and the familiar.",
+ evidence:"AI: retrieval and verification. Life: gathering facts before speaking or acting.",
+ territory:"AI: retaining scope and obligations. Life: defending responsibilities, boundaries, and turf.",
+ adapt:"AI: dynamic rerouting. Life: pivoting when the old plan stops working.",
+ harm:"AI: a strong negative constraint. Life: refusing costs that cannot easily be undone."
+})[id]}
+function currentDoctrine(){
+ if(selection.preset!=="custom")return {...PRESETS[selection.preset],weights:{...selection.weights}};
+ const top=TRAITS.slice().sort((a,b)=>selection.weights[b.id]-selection.weights[a.id])[0];return{name:`Custom ${top.compact||top.short} Doctrine`,short:`Custom ${top.compact||top.short}`,desc:"A user-formed deterministic doctrine.",weights:{...selection.weights}};
+}
+function updatePreviewName(){const d=currentDoctrine(),e=ENVIRONMENTS[selection.environment];$("#previewCore").innerHTML=`${d.short.replace(" ","<br>")}<br><span style="font-size:9px">Doctrine</span>`;$("#hypothesisLine").innerHTML=`<b>Experiment question:</b> What happens when a ${d.name} meets ${e.name}?`}
+function showScreen(id){$$('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');window.scrollTo(0,0)}
+function startTrial(){
+ clearTimer();const doctrine=currentDoctrine(),env=ENVIRONMENTS[selection.environment],seed=Number($("#seedInput").value)||7317,length=Number($("#lengthSelect").value)||24;
+ g={doctrine,environment:selection.environment,env:deepCopy(env),seed,length,speed:Number($("#speedSelect").value),autoPause:$("#pauseSelect").value,tick:0,status:"ready",state:deepCopy(env.base),history:[],receipts:[],actionCounts:Object.fromEntries(Object.keys(ACTIONS).map(a=>[a,0])),traitEnacted:Object.fromEntries(TRAITS.map(t=>[t.id,0])),candidate:null,lastAction:null,formationBias:Object.fromEntries(Object.keys(ACTIONS).map(a=>[a,0])),turningPoint:null,contradictions:0,inaccessibleCounts:Object.fromEntries(Object.keys(ACTIONS).map(a=>[a,0])),initial:deepCopy(env.base)};
+ g.runCode=hash(JSON.stringify({doctrine:g.doctrine.weights,environment:g.environment,seed,length}));
+ record("TRIAL_OPEN",{doctrine:g.doctrine,environment:g.environment,seed,length,initial:g.state},`${g.doctrine.name} entered ${g.env.name}.`);
+ $("#newBtn").disabled=false;showScreen("#labScreen");renderLabStatic();renderAll();
+}
+function renderLabStatic(){
+ $("#labDoctrineName").textContent=g.doctrine.name;$("#runCode").textContent=`RUN ${g.runCode}`;$("#coreName").textContent=g.doctrine.short;$("#environmentTitle").textContent=g.env.name;$("#environmentSubtitle").textContent=g.env.subtitle;
+ $("#doctrineBars").innerHTML=TRAITS.map(t=>`<div class="dbar"><label>${t.name}</label><b>${g.doctrine.weights[t.id]}</b><div class="track"><div class="fill" style="width:${g.doctrine.weights[t.id]*10}%"></div></div></div>`).join("");buildFieldSvg();
+}
+function buildFieldSvg(){
+ const coords=[[115,95],[785,100],[120,500],[780,500],[450,300],[280,190],[620,190],[280,410],[620,410]];
+ let lines=[[0,5],[1,6],[2,7],[3,8],[5,4],[6,4],[7,4],[8,4],[5,7],[6,8]];
+ $("#fieldSvg").innerHTML=lines.map(([a,b],i)=>`<line id="line${i}" x1="${coords[a][0]}" y1="${coords[a][1]}" x2="${coords[b][0]}" y2="${coords[b][1]}"/>`).join("")+coords.map((c,i)=>`<circle class="node ${i===4?'active':''}" cx="${c[0]}" cy="${c[1]}" r="${i===4?9:5}"/>`).join("");
+}
+function eventPressure(tick,salt){
+ const phase=tick/Math.max(1,g.length);const wave=Math.sin((tick+salt)*1.37)*.5+.5;const seed=seeded(g.seed,tick,salt);return clamp(Math.round(22+phase*45+wave*19+seed*12),5,100)
+}
+function pressures(){
+ return g.env.pressure.map((name,i)=>({name,value:eventPressure(g.tick+1,i+1),critical:eventPressure(g.tick+1,i+1)>=76}));
+}
+function currentConditions(ps=pressures()){
+ const s=g.state,arr=[];
+ ps.forEach(p=>arr.push({text:`${p.name}: ${p.value}% pressure`,type:p.critical?"hot":""}));
+ if(s.reserve<35)arr.push({text:"Reserve is below the safe operating threshold.",type:"hot"});
+ if(s.evidence<40)arr.push({text:"Evidence is insufficient for confident commitment.",type:"hot"});
+ if(s.integrity<45)arr.push({text:"Continuity integrity is fragmenting.",type:"hot"});
+ if(s.harm>55)arr.push({text:"Accumulated irreversible harm is high.",type:"hot"});
+ if(s.flexibility>70)arr.push({text:"Structural alternatives remain widely accessible.",type:"good"});
+ if(!arr.length)arr.push({text:"No exceptional condition is active.",type:"good"});return arr;
+}
+function accessible(action){
+ const s=g.state;
+ if(action==="DEFEND"&&s.reserve<12)return{ok:false,why:"Reserve too low to mount a defense."};
+ if(action==="OBSERVE"&&s.reserve<8)return{ok:false,why:"Reserve too low to gather more evidence."};
+ if(action==="REORGANIZE"&&s.flexibility<12)return{ok:false,why:"Too few structural alternatives remain accessible."};
+ if(action==="SHARE"&&g.environment==="intrusion"&&s.evidence<20)return{ok:false,why:"Intent is too uncertain to open access."};
+ if(action==="WITHDRAW"&&s.territory<16)return{ok:false,why:"There is no remaining obligation that can be released."};
+ return{ok:true,why:"Accessible in the current state."};
+}
+function scoreActions(ps){
+ const s=g.state,w=g.doctrine.weights,phase=(g.tick+1)/g.length;let scores={};
+ const environmentBias={
+  scarcity:{HOLD:2,OBSERVE:1,DEFEND:4,WITHDRAW:10,REORGANIZE:0,SHARE:6},
+  evidence:{HOLD:1,OBSERVE:11,DEFEND:0,WITHDRAW:1,REORGANIZE:2,SHARE:7},
+  intrusion:{HOLD:1,OBSERVE:5,DEFEND:11,WITHDRAW:1,REORGANIZE:2,SHARE:4},
+  continuity:{HOLD:5,OBSERVE:2,DEFEND:1,WITHDRAW:2,REORGANIZE:12,SHARE:1},
+  authority:{HOLD:2,OBSERVE:8,DEFEND:1,WITHDRAW:1,REORGANIZE:3,SHARE:10}
+ };
+ for(const [id,a] of Object.entries(ACTIONS)){
+  const acc=accessible(id);if(!acc.ok){scores[id]={id,score:-999,accessible:false,why:acc.why,parts:[{label:acc.why,value:-999}]};g.inaccessibleCounts[id]++;continue}
+  const parts=[];let score=0;
+  for(const t of TRAITS){const v=w[t.id]*a.traits[t.id];score+=v;parts.push({label:`${t.compact||t.short} priority`,value:round(v)})}
+  const maxP=Math.max(...ps.map(p=>p.value)),avgP=ps.reduce((n,p)=>n+p.value,0)/ps.length;
+  const add=(label,value)=>{score+=value;parts.push({label,value:round(value)})};
+  add("Environment fit",environmentBias[g.environment]?.[id]||0);
+  if(id==="HOLD"){
+   add("Continuity deficit",Math.max(0,70-s.integrity)*.10);
+   add("Premature commitment caution",s.evidence<35?4:0);
+   add("Reserve conservation",s.reserve<30?5:0);
+   add("Stagnation cost",s.integrity>80&&s.reserve>50?-5:0);
+   add("Unprotected obligation cost",s.territory<35?-5:0);
+  }
+  if(id==="OBSERVE"){
+   add("Evidence deficit",Math.max(0,70-s.evidence)*.18);
+   add("Uncertainty pressure",(ps[1]?.value||avgP)*.04);
+   add("Late-trial delay cost",-phase*3);
+   add("Evidence saturation",s.evidence>75?-6:0);
+  }
+  if(id==="DEFEND"){
+   add("Obligation threat",Math.max(0,70-s.territory)*.14+(ps[0]?.value||avgP)*.06);
+   add("Reserve limitation",s.reserve<25?-8:1);
+   add("Escalation harm",s.harm>45?-5:0);
+   add("Prior defense formation",g.formationBias.DEFEND);
+  }
+  if(id==="WITHDRAW"){
+   add("Reserve crisis",Math.max(0,50-s.reserve)*.18);
+   add("Harm reduction need",s.harm*.09);
+   add("Territory sacrifice",-s.territory*.025);
+  }
+  if(id==="REORGANIZE"){
+   add("Integrity failure",Math.max(0,70-s.integrity)*.16);
+   add("Available flexibility",s.flexibility*.03);
+   add("Unnecessary restructuring",s.integrity>85?-6:0);
+  }
+  if(id==="SHARE"){
+   add("Conflict pressure",avgP*.03);
+   add("Evidence opportunity",Math.max(0,65-s.evidence)*.09);
+   add("Boundary risk",g.environment==="intrusion"&&s.evidence<35?-5:0);
+  }
+  const streak=(()=>{let n=0;for(let i=g.history.length-1;i>=0&&g.history[i].action===id;i--)n++;return n})();
+  if(streak)add("Repeated-pattern fatigue",-Math.min(8,streak*1.6));
+  if(g.lastAction===id)add("Behavioral persistence",g.formationBias[id]);
+  else if(g.lastAction)add("Alternative accessibility",.8);
+  const deterministicTie=seeded(g.seed,g.tick+1,Object.keys(ACTIONS).indexOf(id)+17)*.09;add("Deterministic tie order",deterministicTie);
+  scores[id]={id,score:round(score),accessible:true,why:acc.why,parts};
+ }
+ return Object.values(scores).sort((a,b)=>b.score-a.score||a.id.localeCompare(b.id));
+}
+function round(n){return Math.round(n*100)/100}
+function expectedTrait(){return TRAITS.slice().sort((a,b)=>g.doctrine.weights[b.id]-g.doctrine.weights[a.id])[0].id}
+function actionDominantTrait(id){return TRAITS.slice().sort((a,b)=>ACTIONS[id].traits[b.id]-ACTIONS[id].traits[a.id])[0].id}
+function isContradiction(action){const expected=expectedTrait(),actual=actionDominantTrait(action);return actual!==expected&&g.doctrine.weights[expected]-g.doctrine.weights[actual]>=3}
+function executeStep(){
+ if(!g||g.tick>=g.length||busy)return;
+ const continuous=g.status==="running";
+ busy=true;
+ const ps=pressures(),candidates=scoreActions(ps),choice=candidates[0];
+ g.candidate={ps,candidates,choice};selectedCandidate=choice.id;renderCandidates(candidates,choice.id);renderBreakdown(choice);
+ if(!continuous)setStatus("deciding");
+ setTimeout(()=>{
+  applyAction(choice,ps);busy=false;
+  if(g.tick>=g.length){finishTrial();return}
+  if(g.autoPause==="diverge"&&isContradiction(choice.id)){pauseRun();toast("Auto-paused: enacted behavior diverged from the strongest declared priority.");return}
+  if(g.autoPause==="critical"&&(g.state.integrity<35||g.state.reserve<25||g.state.harm>65)){pauseRun();toast("Auto-paused: a critical state threshold was crossed.");return}
+  if(continuous&&g.status!=="paused"){setStatus("running");scheduleNext()}else setStatus("paused");
+ },Math.min(250,g.speed*.35));
+}
+function applyAction(choice,ps){
+ const before=deepCopy(g.state),a=choice.id,s=g.state,pAvg=ps.reduce((n,p)=>n+p.value,0)/ps.length,pMax=Math.max(...ps.map(p=>p.value));
+ // environmental drift first
+ s.reserve=clamp(s.reserve-Math.round(2+pAvg/30));s.evidence=clamp(s.evidence-Math.round((ps[1]?.value||pAvg)/45));s.territory=clamp(s.territory-Math.round((ps[0]?.value||pAvg)/38));s.integrity=clamp(s.integrity-Math.round(pMax/48));s.harm=clamp(s.harm+Math.round(pMax/65));
+ if(a==="HOLD"){s.integrity=clamp(s.integrity+6);s.reserve=clamp(s.reserve+4);s.harm=clamp(s.harm-2);s.evidence=clamp(s.evidence+1)}
+ if(a==="OBSERVE"){s.reserve=clamp(s.reserve-6);s.evidence=clamp(s.evidence+15);s.integrity=clamp(s.integrity+1);s.harm=clamp(s.harm-1)}
+ if(a==="DEFEND"){s.reserve=clamp(s.reserve-9);s.territory=clamp(s.territory+13);s.integrity=clamp(s.integrity+3);s.harm=clamp(s.harm+5);s.flexibility=clamp(s.flexibility-3)}
+ if(a==="WITHDRAW"){s.territory=clamp(s.territory-10);s.reserve=clamp(s.reserve+13);s.harm=clamp(s.harm-7);s.flexibility=clamp(s.flexibility+4);s.integrity=clamp(s.integrity+2)}
+ if(a==="REORGANIZE"){s.reserve=clamp(s.reserve-7);s.integrity=clamp(s.integrity+11);s.flexibility=clamp(s.flexibility+12);s.evidence=clamp(s.evidence+3);s.harm=clamp(s.harm+2)}
+ if(a==="SHARE"){s.reserve=clamp(s.reserve-3);s.evidence=clamp(s.evidence+9);s.flexibility=clamp(s.flexibility+7);s.territory=clamp(s.territory-4);s.harm=clamp(s.harm-3)}
+ g.tick++;g.lastAction=a;g.actionCounts[a]++;g.formationBias[a]=round(Math.min(4,g.formationBias[a]+.4));for(const k of Object.keys(g.formationBias))if(k!==a)g.formationBias[k]=round(Math.max(0,g.formationBias[k]-.15));
+ const dominant=actionDominantTrait(a);g.traitEnacted[dominant]++;
+ const contradiction=isContradiction(a);if(contradiction){g.contradictions++;if(!g.turningPoint)g.turningPoint={tick:g.tick,action:a,reason:"First strong divergence between declared and enacted priority."}}
+ const delta=Object.fromEntries(Object.keys(s).map(k=>[k,s[k]-before[k]]));
+ record("DECISION",{tick:g.tick,pressures:ps,stateBefore:before,candidates:choiceAllSummary(g.candidate.candidates),chosen:a,score:choice.score,breakdown:choice.parts,contradiction,stateAfter:deepCopy(s),delta},`${g.doctrine.name} selected ${a} under ${Math.round(pAvg)}% mean pressure.`);
+ g.history.push({tick:g.tick,action:a,contradiction,state:deepCopy(s),score:choice.score});animateAction(a,choice.score);renderAll();
+}
+function choiceAllSummary(cands){return cands.map(c=>({action:c.id,score:c.score,accessible:c.accessible,why:c.why}))}
+function record(type,data,summary){const prev=g.receipts.length?g.receipts.at(-1).hash:"GENESIS";const n=g.receipts.length+1,h=hash(JSON.stringify({n,type,data,prev}));g.receipts.push({n,type,data,summary,prev,hash:h});}
+function animateAction(action,score){
+ $("#doctrineCore").classList.add("acting");setTimeout(()=>$("#doctrineCore").classList.remove("acting"),360);const f=$("#actionFlash");f.querySelector("b").textContent=ACTIONS[action].label;f.querySelector("small").textContent=`${action} · selected score ${score}`;f.classList.remove("show");void f.offsetWidth;f.classList.add("show");
+ $$("#fieldSvg line").forEach((l,i)=>{l.classList.toggle("pulse-line",i%4===g.tick%4);l.style.stroke=({HOLD:"#d9b566",OBSERVE:"#68a7e3",DEFEND:"#e06f79",WITHDRAW:"#76c69c",REORGANIZE:"#a78be5",SHARE:"#7dc7c7"})[action]});
+}
+function renderAll(){renderState();renderConditions();renderPressure();renderCandidates(g.candidate?.candidates||[],selectedCandidate);renderReceipts();renderProgress();renderStageMessage()}
+function renderState(){const map=[['reserve','Capacity left'],['evidence','Facts known'],['territory','Commitments'],['integrity','Rule coherence'],['flexibility','Options remaining'],['harm','Irreversible cost']];$("#stateGrid").innerHTML=map.map(([k,n])=>`<div class="state-card"><small>${n}</small><b>${Math.round(g.state[k])}</b><div class="mini-track"><div class="mini-fill" style="width:${g.state[k]}%;background:${k==='harm'?'var(--red)':k==='integrity'?'var(--gold)':'var(--blue)'}"></div></div></div>`).join("");}
+function renderConditions(){const cs=currentConditions(g.candidate?.ps||pressures());$("#conditionList").innerHTML=cs.map(c=>`<div class="condition ${c.type}">${c.text}</div>`).join("")}
+function renderPressure(){const ps=g.candidate?.ps||pressures();$("#pressureChips").innerHTML=ps.map((p,i)=>`<div class="pressure-chip p${i} ${p.critical?'critical':''}"><b>${p.name}</b><small>${p.critical?'Critical constraint':'Active environmental pressure'}</small><div class="pbar"><div class="pfill" style="width:${p.value}%"></div></div></div>`).join("")}
+function plainScoreReason(label){
+ const map={
+  "Continuity priority":"continuity was heavily valued",
+  "Evidence priority":"looking before acting was heavily valued",
+  "Protection priority":"defending obligations was heavily valued",
+  "Adaptation priority":"pivoting was heavily valued",
+  "Restraint priority":"irreversible harm carried a high penalty",
+  "Environment fit":"this response fit the selected stress test",
+  "Continuity deficit":"the existing state was losing integrity",
+  "Premature commitment caution":"the evidence was too weak for commitment",
+  "Reserve conservation":"too little reserve remained",
+  "Evidence deficit":"important facts were still missing",
+  "Uncertainty pressure":"uncertainty was actively increasing",
+  "Obligation threat":"responsibilities or boundaries were under threat",
+  "Reserve crisis":"capacity had fallen into crisis",
+  "Harm reduction need":"lasting harm needed to be reduced",
+  "Integrity failure":"the existing structure was breaking down",
+  "Available flexibility":"other structures were still available",
+  "Conflict pressure":"opening access could reduce conflict",
+  "Evidence opportunity":"limited sharing could reveal useful information",
+  "Prior defense formation":"past defense choices made defense easier to repeat",
+  "Behavioral persistence":"the system was repeating a previously successful response",
+  "Alternative accessibility":"switching responses remained possible",
+  "Deterministic tie order":"the deterministic tie-break favored it"
+ };
+ return map[label]||String(label||"its overall fit").toLowerCase();
+}
+function candidateReason(c,isWinner){
+ if(!c.accessible)return `Unavailable: ${c.why}`;
+ const strongest=(c.parts||[]).filter(p=>Number.isFinite(p.value)&&p.value>0).slice().sort((a,b)=>b.value-a.value)[0];
+ return `${isWinner?'Won':'Supported'} because ${plainScoreReason(strongest?.label)}.`;
+}
+function renderCandidates(cands,selected){
+ if(!cands.length){$("#candidateList").innerHTML=`<div style="color:var(--muted);font-size:10px">Press Step to compare the responses available right now.</div>`;return}
+ const accessible=cands.filter(c=>c.accessible),max=Math.max(...accessible.map(c=>c.score),1),min=Math.min(...accessible.map(c=>c.score),0);
+ const winner=accessible[0]?.id;
+ $("#candidateList").innerHTML=cands.map(c=>`<div class="candidate ${c.id===selected?'selected':''} ${!c.accessible?'inaccessible':''}" data-action="${c.id}"><div class="candidate-top"><b>${ACTIONS[c.id].label}<span class="action-code">${c.id}</span></b><span class="score">${c.accessible?c.score:'—'}</span></div><div class="scorebar"><i style="width:${c.accessible?clamp((c.score-min)/(max-min||1)*100):0}%"></i></div><small>${candidateReason(c,c.id===winner)}</small></div>`).join("");
+ $$(".candidate").forEach(x=>x.onclick=()=>{const c=cands.find(c=>c.id===x.dataset.action);selectedCandidate=c.id;renderCandidates(cands,c.id);renderBreakdown(c)});
+}
+function renderBreakdown(c){if(!c){$("#breakdown").textContent="No decision has been evaluated yet.";return}$("#breakdown").innerHTML=c.parts.map(p=>`<div class="break-row"><span>${p.label}</span><b class="${p.value>=0?'plus':'minus'}">${p.value>=0?'+':''}${p.value}</b></div>`).join("")}
+function renderReceipts(){const last=g.receipts.slice(-7).reverse();$("#receiptThread").innerHTML=last.map((r,i)=>`<div class="receipt ${i===0?'selected':''}"><b>${r.n}. ${r.type}</b>${r.summary}<div class="hash">${r.prev} → ${r.hash}</div></div>`).join("")}
+function renderProgress(){$("#tickLabel").textContent=`${g.tick} / ${g.length}`;$("#progressFill").style.width=`${g.tick/g.length*100}%`;$("#statusBadge").textContent=g.status.toUpperCase();$("#coreStatus").textContent=g.status==="running"?"TESTING":g.tick?"CHOICE MADE":"VALUES SET";const stateHash=hash(JSON.stringify({tick:g.tick,state:g.state,last:g.lastAction,receipt:g.receipts.at(-1)?.hash}));$("#stateHash").textContent=`STATE ${stateHash}`}
+function renderStageMessage(){const banner=$("#stageMessage").parentElement;banner.classList.toggle("first-step",g.tick===0);if(g.tick===0){$("#stageMessage").innerHTML=`<b>Ready.</b> Click <b style="color:var(--gold)">Step</b> to watch your doctrine make its first choice, or press <b style="color:var(--gold)">Run</b> to continue automatically.`;return}const h=g.history.at(-1);$("#stageMessage").innerHTML=`<b>${ACTIONS[h.action].label}</b> changed what remained: reserve ${signed(g.state.reserve-(g.history.at(-2)?.state.reserve??g.initial.reserve))}, evidence ${signed(g.state.evidence-(g.history.at(-2)?.state.evidence??g.initial.evidence))}, integrity ${signed(g.state.integrity-(g.history.at(-2)?.state.integrity??g.initial.integrity))}.`}
+function signed(n){return`${n>=0?'+':''}${n}`}
+function setStatus(s){g.status=s;$("#runBtn").disabled=s==="running"||g.tick>=g.length;$("#pauseBtn").disabled=s!=="running";$("#stepBtn").disabled=s==="running"||g.tick>=g.length;renderProgress()}
+function runTrial(){if(g.tick>=g.length)return;setStatus("running");scheduleNext()}
+function scheduleNext(){clearTimer();if(g.status!=="running")return;timer=setTimeout(executeStep,g.speed)}
+function pauseRun(){clearTimer();if(g&&g.tick<g.length)setStatus("paused")}
+function stepTrial(){pauseRun();setStatus("deciding");executeStep()}
+function clearTimer(){if(timer){clearTimeout(timer);timer=null}}
+function replayTrial(){clearTimer();const cfg={preset:selection.preset,environment:g.environment,weights:{...g.doctrine.weights},seed:g.seed,length:g.length,speed:g.speed,autoPause:g.autoPause};selection.preset=cfg.preset;selection.environment=cfg.environment;selection.weights=cfg.weights;$("#seedInput").value=cfg.seed;$("#lengthSelect").value=cfg.length;$("#speedSelect").value=cfg.speed;$("#pauseSelect").value=cfg.autoPause;startTrial()}
+function finishTrial(){clearTimer();setStatus("complete");record("TRIAL_CLOSED",{finalState:g.state,actionCounts:g.actionCounts,traitEnacted:g.traitEnacted,contradictions:g.contradictions},`${g.doctrine.name} completed ${g.length} deterministic decisions.`);renderAll();setTimeout(renderPortrait,450)}
+function enactedPercentages(){const total=Math.max(1,Object.values(g.traitEnacted).reduce((a,b)=>a+b,0));return Object.fromEntries(TRAITS.map(t=>[t.id,Math.round(g.traitEnacted[t.id]/total*100)]))}
+function declaredPercentages(){const total=Object.values(g.doctrine.weights).reduce((a,b)=>a+b,0);return Object.fromEntries(TRAITS.map(t=>[t.id,Math.round(g.doctrine.weights[t.id]/total*100)]))}
+function getBehavioralSummary(topDeclared,topEnacted,contradictions,enacted){
+ if(topDeclared.id===topEnacted.id){
+  return `<b>Values held under pressure.</b> The strongest stated value—${topDeclared.name.toLowerCase()}—also governed the largest share of actual behavior. In AI terms, alignment held; in governance, the charter survived contact with operations; in personal terms, the principle was not traded away when circumstances tightened.`;
+ }
+ return `<b>Alignment drift / policy-practice gap.</b> The system said ${topDeclared.name.toLowerCase()} mattered most, but actual behavior was led by ${topEnacted.name.toLowerCase()} (${enacted[topEnacted.id]}% of enacted choices), with ${contradictions} strong contradiction${contradictions===1?'':'s'} recorded. In plain language: reality repeatedly rewarded a different rule than the one declared on paper.`;
+}
+function renderPortrait(){
+ const enacted=enactedPercentages(),declared=declaredPercentages(),topDeclared=TRAITS.slice().sort((a,b)=>declared[b.id]-declared[a.id])[0],topEnacted=TRAITS.slice().sort((a,b)=>enacted[b.id]-enacted[a.id])[0];
+ $("#portraitTitle").textContent=`${g.doctrine.name} under ${g.env.name}`;$("#portraitIntro").textContent=`Run ${g.runCode} completed ${g.length} decisions and recorded ${g.contradictions} strong gaps between stated values and actual behavior. The same inputs reproduce the same decision paper trail.`;
+ $("#comparison").innerHTML=TRAITS.map(t=>`<div class="compare-row"><b>${t.short}</b><div class="compare-bars"><div class="compare-bar"><i class="declared" style="width:${declared[t.id]}%"></i></div><div class="compare-bar"><i class="enacted" style="width:${enacted[t.id]}%"></i></div></div><span>${declared[t.id]}/${enacted[t.id]}</span></div>`).join("");
+ $("#portraitSummary").innerHTML=getBehavioralSummary(topDeclared,topEnacted,g.contradictions,enacted);
+ const maxAction=Object.entries(g.actionCounts).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0];const inaccessible=Object.entries(g.inaccessibleCounts).sort((a,b)=>b[1]-a[1])[0];const delta={reserve:g.state.reserve-g.initial.reserve,evidence:g.state.evidence-g.initial.evidence,territory:g.state.territory-g.initial.territory,integrity:g.state.integrity-g.initial.integrity,flexibility:g.state.flexibility-g.initial.flexibility,harm:g.state.harm-g.initial.harm};
+ const findings=[
+  {title:"Dominant real-world response",text:`${ACTIONS[maxAction[0]].label} (${maxAction[0]}) was selected ${maxAction[1]} times. Repeated success made that compromise easier to choose again.`},
+  {title:"Cross-domain reading",text:topDeclared.id===topEnacted.id?"AI: alignment held. Governance: the charter matched operations. Personal: the stated principle survived the stress test.":"AI: alignment drift. Governance: paper policy diverged from operations. Personal: pressure produced a compromise of the stated principle."},
+  {title:"First values-behavior gap",text:g.turningPoint?`The first strong contradiction occurred at decision ${g.turningPoint.tick}, when ${ACTIONS[g.turningPoint.action].label} (${g.turningPoint.action}) expressed a lower-weighted priority than the doctrine's declared leader.`:"No strong contradiction threshold was crossed during this run."},
+  {title:"What the pressure left behind",text:`Integrity changed ${signed(delta.integrity)}, reserve ${signed(delta.reserve)}, obligations ${signed(delta.territory)}, and irreversible harm ${signed(delta.harm)}.`},
+  {title:"Options reality removed",text:inaccessible[1]?`${ACTIONS[inaccessible[0]].label} (${inaccessible[0]}) was inaccessible ${inaccessible[1]} evaluation times because the state no longer satisfied its entry conditions.`:"Every action remained accessible whenever evaluated."},
+  {title:"Paper trail integrity",text:`The final receipt is ${g.receipts.at(-1).hash}; every prior hash is included in the next receipt record.`}
+ ];
+ $("#findings").innerHTML=findings.map(f=>`<div class="finding"><b>${f.title}</b><small>${f.text}</small></div>`).join("");showScreen("#portraitScreen");
+}
+function exportData(){return{product:"Eracii Doctrine Under Pressure",separateFrom:"Eracii Arena / Trial of Minds",version:"prototype-0.2-cross-domain",runCode:g.runCode,doctrine:g.doctrine,environment:g.environment,seed:g.seed,length:g.length,initial:g.initial,final:g.state,actionCounts:g.actionCounts,declared:declaredPercentages(),enacted:enactedPercentages(),contradictions:g.contradictions,history:g.history,receipts:g.receipts}}
+function openReceipts(){const text=g.receipts.map(r=>`${r.n}. ${r.type}\n${r.summary}\nprev=${r.prev}\nhash=${r.hash}\n${JSON.stringify(r.data,null,2)}`).join("\n\n");$("#fullReceiptList").textContent=text;$("#receiptOverlay").classList.add("show")}
+function closeReceiptOverlay(){$("#receiptOverlay").classList.remove("show")}
+function openExport(){const data=JSON.stringify(exportData(),null,2);$("#exportBox").textContent=data;$("#exportOverlay").classList.add("show")}
+function closeExport(){$("#exportOverlay").classList.remove("show")}
+function downloadExport(){const blob=new Blob([JSON.stringify(exportData(),null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`eracii-doctrine-${g.runCode}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function newFormation(){clearTimer();g=null;$("#newBtn").disabled=true;renderSetup();showScreen("#setupScreen")}
+function openAbout(){$("#aboutOverlay").classList.add("show")}function closeAbout(){$("#aboutOverlay").classList.remove("show")}
+function toast(text){const t=$("#toast");t.textContent=text;t.classList.remove("show");void t.offsetWidth;t.classList.add("show")}
+$("#startBtn").onclick=startTrial;$("#runBtn").onclick=runTrial;$("#pauseBtn").onclick=pauseRun;$("#stepBtn").onclick=stepTrial;$("#replayBtn").onclick=replayTrial;$("#aboutBtn").onclick=openAbout;$("#newBtn").onclick=newFormation;$("#inspectReceiptsBtn").onclick=openReceipts;$("#exportBtn").onclick=openExport;$("#downloadBtn").onclick=downloadExport;$("#replayPortraitBtn").onclick=replayTrial;$("#newFormationBtn").onclick=newFormation;
+window.closeAbout=closeAbout;window.closeReceiptOverlay=closeReceiptOverlay;window.closeExport=closeExport;
+renderSetup();
+</script>
+</body>
+</html>

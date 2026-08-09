@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bonacqui.example/schemas/bolt-on-continuity/evidence-1.json",
+  "title": "Normalized Docker Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "contract_version",
+    "container_id",
+    "collection_sequence",
+    "observed_state",
+    "collected_at",
+    "configuration_digest",
+    "evidence_digest"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1"
+    },
+    "contract_version": {
+      "const": "BONACQUI_BOLT_ON_CONTINUITY_DOCKER_PRODUCT_CONTRACT_0_1_STAGE_0"
+    },
+    "container_id": {
+      "type": "string",
+      "minLength": 12,
+      "maxLength": 128
+    },
+    "display_name": {
+      "type": "string",
+      "maxLength": 255
+    },
+    "collection_sequence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "observed_state": {
+      "enum": [
+        "RUNNING",
+        "PAUSED",
+        "EXITED",
+        "RESTARTING",
+        "UNAVAILABLE",
+        "UNKNOWN"
+      ]
+    },
+    "health_state": {
+      "enum": [
+        "HEALTHY",
+        "UNHEALTHY",
+        "STARTING",
+        "NOT_CONFIGURED",
+        "UNKNOWN"
+      ]
+    },
+    "collected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "configuration_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "evidence_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "truncation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "events_truncated",
+        "logs_truncated"
+      ],
+      "properties": {
+        "events_truncated": {
+          "type": "boolean"
+        },
+        "logs_truncated": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

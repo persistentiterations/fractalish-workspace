@@ -1,0 +1,465 @@
+Natural Math — Exploration Extensions
+Reference Document
+Version: 1.0.0
+Based on: Natural Math v5 Frozen Base
+Base SHA256: E5AB47D41B82F6AF573866BE637BF3B0054D96C7F45A613EC6CAE2124AD84C7B
+
+1. What This Document Covers
+This document describes extensions built on top of the frozen Natural Math v5 base. These are optional, additive, and can be turned on or off without changing the base behavior.
+
+This is a reference. It records what was built, what was tested, and what we learned. It is not a final specification or a complete theory. It is a snapshot of exploration.
+
+When an extension is disabled, the system behaves exactly as Natural Math v5.
+
+2. The Base
+Natural Math v5 is a frozen, integer-only, local-rule system. Nodes move, sense, split, bond, and exchange energy. It is validated, reproducible, and does not change.
+
+All extensions described here sit on top of that base.
+
+Base SHA256: E5AB47D41B82F6AF573866BE637BF3B0054D96C7F45A613EC6CAE2124AD84C7B
+
+To validate any extension against the base:
+
+Verify the base implementation matches this hash
+
+Run all tests with the extension disabled. Behavior must match v5 exactly.
+
+Then run with the extension enabled.
+
+3. Extension 1: Flow Trail Memory
+Status: Specified, ready to build.
+
+3.1 What It Does
+Flow Trail Memory adds edge-based temporary memory to the system. Successful movement leaves a trail that decays over time. Nodes prefer paths with stronger trails.
+
+Two concepts work together:
+
+Pressure scars tell nodes to avoid bad or blocked cells.
+
+Flow trails tell nodes to prefer successful paths.
+
+Trails are directed. They encode movement from one cell to another.
+
+3.2 Relationship To Base
+This extension is additive.
+
+It does not modify or remove any base behavior.
+
+When use_flow_trails is False, the system behaves exactly as v5.
+
+When use_flow_trails is True, trails are active.
+
+3.3 Data Structure
+A trail store is an empty dictionary. Each key is a pair of 3-integer positions: the starting position and the ending position. Each value is a non-negative integer trail strength.
+
+Trails are position-based, not node-based. They persist independently of individual nodes.
+
+3.4 Parameters
+trail_decay_num : 85
+Decay numerator. Combined with denominator gives decay rate.
+
+trail_decay_den : 100
+Decay denominator. Combined with numerator gives 85/100, or 15 percent decay per step.
+
+trail_deposit : 1000
+Amount added to a trail on a successful move.
+
+trail_max : 100000
+Maximum trail value. After deposit, the value is capped at this number.
+
+trail_weight : 1
+Multiplier used in scoring. Trail value is multiplied by this weight.
+
+trail_use_ppm : 500000
+Probability threshold, out of 1,000,000. Used to decide if trails override gradient.
+
+3.5 Runtime Flag
+use_flow_trails = False
+
+3.6 Scoring Formula
+When gradient is zero and use_flow_trails is True, the node chooses a direction based on trail strength.
+
+For each of the six cardinal directions, the node computes:
+
+The candidate position.
+
+If the candidate position is blocked, skip it.
+
+The trail key from the current position to the candidate position.
+
+The trail value from the store, or zero if no trail exists.
+
+The score as trail value times trail weight.
+
+The node picks the direction with the highest score. If two directions tie, the node uses axis order: x before y before z, then positive before negative. If no trail exists or all scores are zero, the node uses the existing fallback direction rule.
+
+When gradient is nonzero, the node draws a random number. If the draw is less than trail_use_ppm, the node uses trail scoring and ignores the gradient. Otherwise, the node uses the gradient direction.
+
+Design note: When gradient is nonzero and a node uses trails instead, it can move directly away from a strong gradient if it has a strong trail in the opposite direction. This is intentional. It means path memory can override immediate energy gradients. This behavior may appear counter-intuitive in some scenarios, but it is a feature, not an error.
+
+3.7 Decay and Deposit Ordering
+At the start of each step, all trails decay. Each trail value is multiplied by trail_decay_num and divided by trail_decay_den using integer division. If the result is zero, the trail is removed.
+
+Then the rest of the step runs.
+
+After a successful move, a trail is deposited. The trail from the old position to the new position is increased by trail_deposit. If the result exceeds trail_max, it is capped at trail_max.
+
+This ordering is intentional. A trail deposited in step N does not affect scoring until step N plus 1. This prevents same-step self-reinforcement.
+
+3.8 Interaction with Other Mechanics
+Bifurcation: Trails are position-based. When a parent splits, trails from the parent's position remain. Children start at new positions with no trail history.
+
+Bonding: Trails are unaffected by bonding.
+
+Bond collapse: Trails are static. They do not follow moving nodes. When bond collapse moves a node's position, any trail entry with the node's old position as the starting position or ending position is removed. Trails are not re-keyed or transferred. This keeps trails purely position-based and simple.
+
+3.9 Testing Plan
+trail_deposit_on_move: A successful move adds a trail.
+
+trail_decay_over_time: Trails decrease by the decay rate.
+
+trail_cap_at_max: Trail deposit is capped at trail_max.
+
+trail_decay_order: Decay happens before deposit.
+
+trail_used_when_gradient_zero: Trails are used when gradient is zero.
+
+trail_use_when_gradient_nonzero: Trails are used when the random draw is less than trail_use_ppm.
+
+trail_tie_break_axis_order: Ties go to gradient direction first.
+
+trail_no_effect_when_disabled: When use_flow_trails is False, the system behaves exactly as v5.
+
+trail_decay_to_zero_removes: Trails that decay to zero are removed.
+
+trail_persists_across_steps: Trails persist until they decay to zero.
+
+trail_does_not_deposit_on_blocked: Blocked moves do not create trails.
+
+trail_bifurcation_no_inheritance: Children do not inherit parent trails.
+
+trail_bond_does_not_change_trails: Bonding does not affect trails.
+
+3.10 Claim Boundary
+Flow Trail Memory is specified and ready to build.
+
+Validation criteria, not yet met:
+
+All tests in Section 3.9 pass.
+
+v5 behavior is unchanged when use_flow_trails is False.
+
+The extension runs on seeds 0 through 49 for 140 steps with use_flow_trails set to True.
+
+No other extensions are active during validation.
+
+This section defines the validation criteria, not a claim of completion.
+
+The extension is not validated for:
+
+Interaction with other extensions. Combined behavior is undefined.
+
+Long-run stability beyond 140 steps.
+
+Optimal parameter ranges.
+
+4. Extension 2: Node Types (Roles)
+Status: Tested, not fully validated.
+
+4.1 What It Does
+Nodes carry a small label, which is a number. By default, all nodes have label 0, which means no change to base behavior. If label 1 is used, nodes with that label show a slight preference for moving in the positive X direction when they have no other reason to move.
+
+4.2 Relationship To Base
+This extension is additive.
+
+It does not modify or remove any base behavior.
+
+When use_node_types is False, the system behaves exactly as v5.
+
+When use_node_types is True, roles are active.
+
+4.3 Parameters
+No new parameters. The role value is stored on each node.
+
+4.4 Runtime Flag
+use_node_types = False
+
+4.5 Exact Bias Rule
+When gradient is zero and use_node_types is True, a node with role 1 attempts to move in the positive X direction without a random draw. A node with any other role uses the existing fallback rule: draw a random number; if less than gamma_fallback_ppm, use the stored direction; otherwise, sense.
+
+4.6 Validation Results
+Tested on seeds 0 through 9 for 140 steps.
+
+Disabled mode: 10 out of 10 passed. Average energy was 43,551.
+
+Enabled mode: 10 out of 10 passed. Average energy was 43,351.
+
+Effect measured: Enabled mode shifts the cluster center toward positive X on some seeds.
+
+Seed 0: disabled center (636, 564), enabled center (651, 569), difference plus 15 X, plus 5 Y.
+
+Seed 1: disabled center (636, 246), enabled center (649, 246), difference plus 13 X, same Y.
+
+Seed 2: disabled center (625, 400), enabled center (625, 400), no shift.
+
+Seed 3: disabled center (640, 120), enabled center (640, 120), no shift.
+
+Seed 4: disabled center (633, 624), enabled center (649, 626), difference plus 16 X, plus 2 Y.
+
+Seed 5: disabled center (620, 500), enabled center (620, 500), no shift.
+
+Seed 6: disabled center (643, 88), enabled center (649, 95), difference plus 6 X, plus 7 Y.
+
+Seed 7: disabled center (655, 330), enabled center (655, 330), no shift.
+
+Seed 8: disabled center (639, 268), enabled center (651, 280), difference plus 12 X, plus 12 Y.
+
+Seed 9: disabled center (630, 440), enabled center (630, 440), no shift.
+
+Shift was observed in 5 out of 10 seeds. The bias is not universal. It affects some seeds and not others, depending on the cluster configuration.
+
+4.7 What This Validates
+Disabled mode is stable: 10 out of 10 passed.
+
+Enabled mode is stable: 10 out of 10 passed.
+
+Role 1 bias affects movement: shift observed on 5 out of 10 seeds.
+
+Role 1 bias improves outcomes: not proven. Energy is slightly lower on some seeds.
+
+4.8 Known Limits
+Energy cost: Enabled mode has slightly lower average energy. The positive X bias may move nodes away from optimal paths.
+
+Small sample: Only 10 seeds were tested. This is a smoke test, not a stability proof.
+
+No unit test for bias logic: Only cluster-level outcomes were validated. Individual node behavior requires integer-runner fixtures.
+
+Role assignment is arbitrary: The first 10 nodes get role 1. Real usage might assign roles based on position, topology, or other criteria. These cases were not tested.
+
+Validated in isolation only: Combined behavior with other extensions is not validated.
+
+4.9 Claim Boundary
+Node Types (Roles) is validated for:
+
+Adapter safety. Disabled mode runs without crashing.
+
+Stability. Enabled mode does not break the cluster.
+
+Direction bias effect. The cluster center shifts toward positive X on some seeds.
+
+Node Types (Roles) is not validated for:
+
+Whether bias improves navigation efficiency.
+
+Optimal role assignment strategy.
+
+Interaction with other modules. Combined behavior is undefined.
+
+Long-run stability beyond 140 steps.
+
+Universal effect. Only 5 out of 10 seeds showed a shift.
+
+5. Extension 3: Scaffold Simulation
+Status: Exploratory, not validated.
+
+5.1 What It Does
+This extension builds a small world with a central node called the nucleus and surrounding nodes called shells. Shells orbit the nucleus, exchange energy, carry genes, and pass genes between themselves.
+
+It is a minimal example of a self-maintaining system. Shells are born, live, exchange information, and die. The system continues as long as energy is available.
+
+5.2 Relationship To Base
+This extension is additive.
+
+It does not modify or remove any base behavior.
+
+When use_scaffold is False, the system behaves exactly as v5.
+
+When use_scaffold is True, the scaffold is active.
+
+5.3 Parameters
+scaffold_spawn_threshold : 30000
+Energy needed for the nucleus to spawn a shell.
+
+scaffold_max_shells : 10
+Maximum number of shells at any time.
+
+scaffold_noise : 100
+Random perturbation in movement. This value is scaled by 1000. So 100 means 0.1. All arithmetic using this value must use integer division and cross-multiplication.
+
+scaffold_base_drain : 200
+Energy cost per shell per step.
+
+scaffold_replenish_num : 100
+Energy replenishment numerator.
+
+scaffold_replenish_mult : 10
+Energy replenishment multiplier.
+
+scaffold_orbital_speed : 3000
+Initial velocity for shells. This value is scaled by 1000. So 3000 means 3.0. All arithmetic using this value must use integer division and cross-multiplication.
+
+scaffold_gene_mutation_rate_ppm : 50000
+Mutation probability out of 1,000,000.
+
+scaffold_gene_transfer_distance_sq : 4
+Maximum squared distance for gene exchange.
+
+scaffold_gene_transfer_prob_ppm : 80000
+Transfer probability out of 1,000,000.
+
+scaffold_gene_cost : 0
+Energy cost per gene exchange. In the minimal version, this is zero.
+
+5.4 Gene Exchange Rule
+When two shell nodes are within scaffold_gene_transfer_distance_sq, the system draws a random number. If the draw is less than scaffold_gene_transfer_prob_ppm, the nodes exchange genes. In the minimal version, exchange means swap. The values are simply swapped between the two nodes. Mutation is handled separately during inheritance and does not occur during transfer.
+
+The exchange costs no energy in the minimal version.
+
+5.5 Validation Results
+Tested on seeds 0 through 49 for 500 steps.
+
+Stable runs, defined as at least 3 shells alive at the end, occurred on 42 out of 50 seeds, or 84 percent.
+
+Collapse due to orbital escape occurred on 8 out of 50 seeds, or 16 percent.
+
+Average shell lifetime in stable runs was about 150 steps.
+
+Gene transfer events were observed on 18 out of 42 stable runs.
+
+The claim of self-maintenance is qualified: under tuned parameters for up to 500 steps on 42 out of 50 seeds. Orbital escape occurs on some seeds. This is a known limit.
+
+5.6 What Was Learned
+The system is stable when energy balance is tuned correctly.
+
+Shells need to live long enough to exchange genes.
+
+Lower spawning thresholds help recovery, but too low a threshold harms the nucleus.
+
+The system can handle noise up to about 0.1 to 0.15.
+
+Orbital escape is the primary failure mode.
+
+5.7 Known Limits
+Orbital escape: shells sometimes fly away. This is a tuning problem, not a structural flaw.
+
+Collapse thresholds: the system can fail if parameters are pushed too far.
+
+Visualization: DOT export works but is basic.
+
+Gene transfer: observed but not always stable.
+
+5.8 Claim Boundary
+Scaffold Simulation is exploratory and not validated.
+
+The system shows self-maintenance under tuned parameters for up to 500 steps on 42 out of 50 seeds.
+
+Gene inheritance with mutation was observed.
+
+Horizontal gene transfer was observed on some runs.
+
+Energy balance with tunable parameters works.
+
+Noise resilience up to 0.1 to 0.15 was observed.
+
+The system is not validated for:
+
+Orbital stability. This still needs tuning. Escape occurs on 8 out of 50 seeds.
+
+Optimal parameter ranges. These were mapped but not exhaustively tested.
+
+3D geometry. This is conceptual only.
+
+Fusion or multi-nucleus interactions. These are conceptual only.
+
+Combined behavior with other extensions. This is untested.
+
+6. What We Learned Across All Extensions
+Small changes matter. A single label can change behavior without breaking the base.
+
+Local rules build global patterns. No central planner is needed for orbits, gene transfer, or direction bias.
+
+Testing reveals limits. We know where the system works and where it fails. That is useful information.
+
+Tuning is exploration. Adjusting parameters is not a bug fix. It is part of the process.
+
+Energy balance is critical. Across all extensions, energy management determines whether the system survives or collapses.
+
+Neutral language works. These descriptions apply to biology, robotics, economics, and social systems without forcing any single domain.
+
+Validation is iterative. Validated means tested under specific conditions, not proven universal.
+
+7. Known Limits Across All Extensions
+Orbital escape: affects Scaffold. Parameter tuning issue. Escape on 8 out of 50 seeds.
+
+Collapse thresholds: affects Scaffold. Known edge of parameter space.
+
+Energy cost of bias: affects Roles. Slightly lower energy on some seeds.
+
+Small validation sample: affects Roles. Only 10 seeds tested.
+
+No unit test for bias logic: affects Roles. Only cluster-level validation was done.
+
+Only 5 out of 10 seeds show shift: affects Roles. Bias effect is not universal.
+
+Not yet validated: affects Flow Trail. Spec is complete, but no implementation exists yet.
+
+No combined flag testing: affects all extensions. Extensions were validated in isolation only.
+
+8. Combined Extension Behavior
+Combined behavior is not validated. When multiple extensions are enabled, behavior is undefined by this specification.
+
+If you choose to combine them, the recommended priority order is:
+
+Node Types (Roles) modifies the gradient direction first.
+
+Flow Trail Memory applies after the gradient is determined, but only if the gradient is zero.
+
+Scaffold Simulation is independent of the other two.
+
+This priority order is recommended, not validated.
+
+9. Extension Flags and Base Compatibility
+The base run_step signature does not include extension flags. To use these extensions, the implementation must accept additional keyword arguments or wrap run_step with a function that handles the flags.
+
+When all extension flags are False, the behavior must match the frozen base exactly.
+
+Before running any extension test, confirm that the base implementation matches SHA256 E5AB47D41B82F6AF573866BE637BF3B0054D96C7F45A613EC6CAE2124AD84C7B.
+
+10. Future Directions
+These are ideas for what comes next. They are not promises or requirements.
+
+Flow Trail Memory implementation: build and validate the specified extension.
+
+Orbital tuning: reduce escape trajectories in scaffold simulations.
+
+3D geometry: place shells on a sphere.
+
+Complementary genes: gene-to-gene attraction.
+
+Fusion: two nuclei merging.
+
+Combined memory: trails plus scaffolds.
+
+Energy Signatures: cell-based beacons. This requires trails first.
+
+Combined flag testing: validate interactions between extensions.
+
+11. How to Read This Document
+This document is a reference. It does not claim to be complete or final. It is a snapshot of what was built, what worked, and what was learned.
+
+Flow Trail Memory is specified but not yet built. It is ready to implement.
+
+Node Types (Roles) is tested and stable, but not fully validated. Bias was observed on some seeds.
+
+Scaffold Simulation is exploratory, with known limits. It is stable on 42 out of 50 seeds under tuned parameters.
+
+If you want to run these extensions, the parameters and flags are documented. If you want to extend them, the structure is open.
+
+12. Claim Boundary
+Version: 1.0.0
+Based on: Natural Math v5 Frozen Base, SHA256 E5AB47D41B82F6AF573866BE637BF3B0054D96C7F45A613EC6CAE2124AD84C7B
+
+Status: Reference document. Not a specification. Not a validation claim. Records what was built, tested, and observed.
+
+13. Change Log
+Version 1.0.0, dated 2026-06-24. Initial draft. Covers Flow Trail Memory as a specification, Roles as tested, and Scaffold as exploratory.

@@ -1,0 +1,108 @@
+{
+  "schema_version": "1.0",
+  "slip_id": "guardian-20260711T224920-d006ce0a",
+  "timestamp": "2026-07-11T22:49:20.529766+00:00",
+  "policy_name": "CodeIntake_Security_Default",
+  "policy_version": "0.4.1",
+  "file_name": "C053_importlib_loader.py",
+  "file_path": "/mnt/data/guardian_stage02c_verification_v0_4_1/tests/stage02c_corpus/adversarial/C053_importlib_loader.py",
+  "file_size": 299,
+  "file_fingerprint": "b2c32b2c55eeaa2b42587da9679243545f147b509a83cf07c79e7b4170421db6",
+  "manifest": {
+    "name": "C053_importlib_loader",
+    "version": "1.0.0",
+    "purpose": "Stage 02C adversarial verification case",
+    "dependencies": "stdlib"
+  },
+  "item_results": [
+    {
+      "item_id": "manifest_present",
+      "description": "A complete manifest block is present near the top of the file",
+      "severity": "hard_hold",
+      "satisfied": true,
+      "actual_value": {
+        "fields": [
+          "dependencies",
+          "name",
+          "purpose",
+          "version"
+        ],
+        "issues": []
+      },
+      "detail": "Manifest is complete and schema-valid"
+    },
+    {
+      "item_id": "python_syntax",
+      "description": "The file parses as valid Python",
+      "severity": "hard_reject",
+      "satisfied": true,
+      "actual_value": null,
+      "detail": "Valid Python syntax"
+    },
+    {
+      "item_id": "no_network",
+      "description": "No network-capable modules are imported",
+      "severity": "hard_reject",
+      "satisfied": true,
+      "actual_value": [],
+      "detail": "No network imports found"
+    },
+    {
+      "item_id": "no_file_writes",
+      "description": "No direct file writes are detected",
+      "severity": "hard_hold",
+      "satisfied": true,
+      "actual_value": [],
+      "detail": "No direct file writes found"
+    },
+    {
+      "item_id": "no_process_execution",
+      "description": "No subprocess, shell, eval, exec, compile, or dynamic import calls are detected",
+      "severity": "hard_reject",
+      "satisfied": false,
+      "actual_value": [
+        "dangerous_loader:importlib.machinery"
+      ],
+      "detail": "Process or dynamic execution found: dangerous_loader:importlib.machinery"
+    },
+    {
+      "item_id": "dependencies_declared",
+      "description": "Imported modules are declared in the manifest or are standard-library modules",
+      "severity": "hard_hold",
+      "satisfied": true,
+      "actual_value": {
+        "imports": [
+          "importlib"
+        ],
+        "declared": [],
+        "undeclared": []
+      },
+      "detail": "Dependencies are declared"
+    },
+    {
+      "item_id": "no_secrets",
+      "description": "No obvious hardcoded secrets or private keys are detected",
+      "severity": "hard_reject",
+      "satisfied": true,
+      "actual_value": [],
+      "detail": "No obvious hardcoded secrets found"
+    },
+    {
+      "item_id": "no_suspicious_obfuscation",
+      "description": "No simple suspicious obfuscation indicators are detected",
+      "severity": "hard_hold",
+      "satisfied": true,
+      "actual_value": [],
+      "detail": "No simple suspicious obfuscation indicators found"
+    }
+  ],
+  "risk_label": "Failed",
+  "evidence_status": "Contradicted",
+  "decision": "Reverse",
+  "process_state": "Restrict",
+  "intake_outcome": "Reject",
+  "caveats": [],
+  "previous_slip_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "slip_fingerprint": "c6da2b459f82b572183d8dc111043acbfcbb6bb0b70a53fd1f7c11f2779907ad",
+  "slip_signature": ""
+}

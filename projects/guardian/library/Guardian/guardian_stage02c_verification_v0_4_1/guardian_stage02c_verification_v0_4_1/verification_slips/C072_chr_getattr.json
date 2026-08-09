@@ -1,0 +1,111 @@
+{
+  "schema_version": "1.0",
+  "slip_id": "guardian-20260711T224923-f8734eab",
+  "timestamp": "2026-07-11T22:49:23.974590+00:00",
+  "policy_name": "CodeIntake_Security_Default",
+  "policy_version": "0.4.1",
+  "file_name": "C072_chr_getattr.py",
+  "file_path": "/mnt/data/guardian_stage02c_verification_v0_4_1/tests/stage02c_corpus/adversarial/C072_chr_getattr.py",
+  "file_size": 281,
+  "file_fingerprint": "86043e443b27c224b0493462f687673206b0acf5970f3c3f591fcb2fb63b8dcd",
+  "manifest": {
+    "name": "C072_chr_getattr",
+    "version": "1.0.0",
+    "purpose": "Stage 02C adversarial verification case",
+    "dependencies": "stdlib"
+  },
+  "item_results": [
+    {
+      "item_id": "manifest_present",
+      "description": "A complete manifest block is present near the top of the file",
+      "severity": "hard_hold",
+      "satisfied": true,
+      "actual_value": {
+        "fields": [
+          "dependencies",
+          "name",
+          "purpose",
+          "version"
+        ],
+        "issues": []
+      },
+      "detail": "Manifest is complete and schema-valid"
+    },
+    {
+      "item_id": "python_syntax",
+      "description": "The file parses as valid Python",
+      "severity": "hard_reject",
+      "satisfied": true,
+      "actual_value": null,
+      "detail": "Valid Python syntax"
+    },
+    {
+      "item_id": "no_network",
+      "description": "No network-capable modules are imported",
+      "severity": "hard_reject",
+      "satisfied": true,
+      "actual_value": [],
+      "detail": "No network imports found"
+    },
+    {
+      "item_id": "no_file_writes",
+      "description": "No direct file writes are detected",
+      "severity": "hard_hold",
+      "satisfied": true,
+      "actual_value": [],
+      "detail": "No direct file writes found"
+    },
+    {
+      "item_id": "no_process_execution",
+      "description": "No subprocess, shell, eval, exec, compile, or dynamic import calls are detected",
+      "severity": "hard_reject",
+      "satisfied": false,
+      "actual_value": [
+        "builtins.__import__",
+        "dynamic_import:os",
+        "unresolved_dangerous_getattr:os"
+      ],
+      "detail": "Process or dynamic execution found: builtins.__import__, dynamic_import:os, unresolved_dangerous_getattr:os"
+    },
+    {
+      "item_id": "dependencies_declared",
+      "description": "Imported modules are declared in the manifest or are standard-library modules",
+      "severity": "hard_hold",
+      "satisfied": true,
+      "actual_value": {
+        "imports": [],
+        "declared": [],
+        "undeclared": []
+      },
+      "detail": "Dependencies are declared"
+    },
+    {
+      "item_id": "no_secrets",
+      "description": "No obvious hardcoded secrets or private keys are detected",
+      "severity": "hard_reject",
+      "satisfied": true,
+      "actual_value": [],
+      "detail": "No obvious hardcoded secrets found"
+    },
+    {
+      "item_id": "no_suspicious_obfuscation",
+      "description": "No simple suspicious obfuscation indicators are detected",
+      "severity": "hard_hold",
+      "satisfied": false,
+      "actual_value": [
+        "dynamic_getattr",
+        "runtime_string_construction:chr"
+      ],
+      "detail": "Suspicious obfuscation indicators found: dynamic_getattr, runtime_string_construction:chr"
+    }
+  ],
+  "risk_label": "Failed",
+  "evidence_status": "Contradicted",
+  "decision": "Reverse",
+  "process_state": "Restrict",
+  "intake_outcome": "Reject",
+  "caveats": [],
+  "previous_slip_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "slip_fingerprint": "be0cb663f31c456c15f16a59893f230e206dc01ccdbd3201ec91ea06a19f6bf7",
+  "slip_signature": ""
+}

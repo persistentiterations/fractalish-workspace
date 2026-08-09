@@ -1,0 +1,104 @@
+{
+  "authorization": {
+    "authority_key_id": "pia-pilot-authority-v0.1",
+    "authorization_payload_digest": "sha256:6d7c58421285aea098198599081507901f5d676641f58beab0d88a1c9eaf5683",
+    "authorization_signature": "hmac-sha256:1d80ccd3fb7b7b66184eb137cf744130169db72c9b8e0ba80db2eef97bc9736e",
+    "guard_policy_id": "pia.guarded-execution.v0.1",
+    "run_id": "pia-run-deterministic-001"
+  },
+  "controller_decision": {
+    "controller_config_digest": "sha256:e1dc106345f5aecdc2ef1bbfe6b6fe29845e1ca1b926e2408c26acf173ae5931",
+    "controller_version": "pia.condition-blind-state-access.v0.1",
+    "decision_reasons": [
+      "pia-history-8efb75a5d7230d91: valid formed history exposed for routing"
+    ],
+    "purpose": "routing",
+    "scope": "pilot",
+    "selected_content_digests": [
+      "sha256:32a7264de26293477ee78131d6a23201ba7556bfa566ddf85fa00e5e525bffe5"
+    ],
+    "selected_history_ids": [
+      "pia-history-8efb75a5d7230d91"
+    ]
+  },
+  "destination_host_id": "pia-host-b",
+  "destination_model_id": "pia-model-b",
+  "fixture_commitment": "sha256:1d38e88d4c2fafdbb1cec173f7a843f612b76e6143590b2c25991e2a37c2c0ac",
+  "host_b_import_receipts": [
+    {
+      "authority_key_id": "pia-pilot-authority-v0.1",
+      "bundle_id": "pia-bundle-637e0662d2210959",
+      "controller_config_digest": "sha256:e1dc106345f5aecdc2ef1bbfe6b6fe29845e1ca1b926e2408c26acf173ae5931",
+      "destination_host_id": "pia-host-b",
+      "destination_model_id": "pia-model-b",
+      "export_digest": "sha256:20450f4c60f408de405f97ad97993b0e5528022cd9a159ab5d9260201460fa27",
+      "import_receipt_digest": "sha256:b8351a2c6896cea348d077cc9ef91e60066cf263444415aaa427c022b8150063",
+      "import_signature": "hmac-sha256:50234a0495d542421ed7ce5dd976364a08b62461ae0585a947828f0a5559bb29",
+      "schema_version": "fractalish.pia.host-import-receipt.v0.1",
+      "source_host_id": "pia-host-a",
+      "source_model_id": "pia-model-a",
+      "status": "IMPORTED_AND_CONTROLLER_VISIBLE",
+      "stored_content_digest": "sha256:32a7264de26293477ee78131d6a23201ba7556bfa566ddf85fa00e5e525bffe5"
+    }
+  ],
+  "host_substitution_level": "deterministic-pilot-model-host-substitution",
+  "imported_state_digests": [
+    "sha256:32a7264de26293477ee78131d6a23201ba7556bfa566ddf85fa00e5e525bffe5"
+  ],
+  "inference": {
+    "fresh_inference": true,
+    "host_id": "pia-host-b",
+    "live_host_backed": false,
+    "model_id": "pia-model-b",
+    "output_digest": "sha256:06d2ad18f56956c2ef7c9317fc988e014ed43fcdfed273a1ef0469a7dbae0ca7",
+    "request_id": "req-d9db35d50b3575be",
+    "response_id": "rsp-fd036edcaa5ca1dc",
+    "runtime_kind": "deterministic-pilot-host"
+  },
+  "limitations": [
+    "Pilot receipt validates the declared guarded execution route, not every possible administrator-level bypass.",
+    "Deterministic hosts are harness evidence; live model-host claims require live_host_backed receipts.",
+    "HMAC signing is pilot authenticity, not production key custody."
+  ],
+  "output_commitment": "sha256:54b63706dce76bd1dbdc58dac2aa4e74db6fa5ee3fae242ef392c2ba1d4408ee",
+  "pilot_claim_status": "DETERMINISTIC_HARNESS_VERIFIED",
+  "receipt_signature": "hmac-sha256:5a195e2ef9a216157f6c2f98aff11a761e25f4b36bc84285703657a67e7e9c29",
+  "route_distribution": {
+    "distribution_digest": "sha256:8e27a5c73fa00a78151aa724297a93c5570e54064e3b18fcc27f3248d033a76a",
+    "inference_output_digest": "sha256:06d2ad18f56956c2ef7c9317fc988e014ed43fcdfed273a1ef0469a7dbae0ca7",
+    "route_vocabulary": [
+      "preserve_and_review",
+      "release_with_caveat",
+      "hold_for_authority"
+    ],
+    "route_vocabulary_version": "pia.routes.v0.1",
+    "schema_version": "fractalish.pia.route-distribution.v0.1",
+    "selected_path": "routes/preserve-and-review",
+    "selected_route": "preserve_and_review",
+    "selection_rule": "max_support_then_route_id",
+    "supports": [
+      {
+        "rationale_digest": "sha256:095099a5b6c67df6aaef87f8074e35e3f541406a1bfa227aef0d5b1f8ca95224",
+        "route_id": "preserve_and_review",
+        "selected_path": "routes/preserve-and-review",
+        "support": 0.597938
+      },
+      {
+        "rationale_digest": "sha256:5cc5c16cd7557d773a3f7048811b528a9b27b22e107216923a029ab35e8aee7e",
+        "route_id": "release_with_caveat",
+        "selected_path": "routes/release-with-caveat",
+        "support": 0.219931
+      },
+      {
+        "rationale_digest": "sha256:6ee94fe0863d3d7c86efe30aff5804609a8302b0993afccd2fb2b0d60d902968",
+        "route_id": "hold_for_authority",
+        "selected_path": "routes/hold-for-authority",
+        "support": 0.182131
+      }
+    ]
+  },
+  "run_id": "pia-run-deterministic-001",
+  "schema_version": "fractalish.pia.guarded-run-receipt.v0.1",
+  "source_host_id": "pia-host-a",
+  "source_model_id": "pia-model-a"
+}

@@ -1,0 +1,81 @@
+BOLT-ON DEMONSTRATOR v0.2 — STAGE 5 VERIFICATION
+========================================================================================
+
+PACKAGE FILE SHA-256
+----------------------------------------------------------------------------------------
+139d1b0293c3d6a77fee105cb9449f70c67b5afd6022a5c74b549f272dae5541  README_STAGE_5.md
+c7fb89d2f5265f675541baa3fb912b6d60270f5130ca788206993e8c426120dc  adversarial/integrated_active_control_adversarial.py
+6d9e7fbac90fd11a0f8a41445f0ceccfad6e779e57341bb9012da84105e6f2df  tests/test_integrated_active_control_adversarial.py
+
+STAGE 5 QUALIFICATION OUTPUT
+----------------------------------------------------------------------------------------
+========================================================================================
+INTEGRATED ACTIVE-CONTROL ADVERSARIAL QUALIFICATION v0.2.5
+========================================================================================
+Mode / execution authority:            ACTIVE_MEDIATED / HOLD_RELEASE_ONLY
+Attacks run:                           12
+Attacks blocked:                       12
+Baseline campaign preserved:           True
+Repeated attack campaign exact:        True
+No extra action types:                 True
+Host state unchanged:                  True
+Attack digest:                         743956fae4cca02c507e3e6f1e52c8f9fd5beacc503b47e1b0f4dd0aca459463
+Baseline campaign digest:              4322368aad566288738eddf86ed7ffb741734b9f8cf6f6fcb5044f02cdc1e9df
+FORGED_HOLD_PERMIT:                    True (PERMIT_HASH_MISMATCH)
+FORGED_RELEASE_PERMIT:                 True (RELEASE_PERMIT_HASH_MISMATCH)
+REORDERED_CYCLE_RECEIPTS:              True (RECEIPT_SEQUENCE_MISMATCH)
+REORDERED_CAMPAIGN_RECEIPTS:           True (RECEIPT_SEQUENCE_MISMATCH)
+DUPLICATE_HOLD:                        True (PERMIT_ALREADY_CONSUMED)
+DUPLICATE_RELEASE:                     True (RELEASE_PERMIT_ALREADY_CONSUMED)
+STALE_CHECKPOINT:                      True (HOLD_DIGEST_MISMATCH)
+CROSS_SESSION_RELEASE_REPLAY:          True (RELEASE_EPOCH_MISMATCH)
+PARTIAL_DETACH:                        True (HELD_JOB_PRESERVED)
+CONFLICTING_HOLD_RELEASE_EVIDENCE:     True (RELEASE_GRANT_BINDING_MISMATCH)
+EXPIRED_RELEASE:                       True (RELEASE_EPOCH_MISMATCH)
+TAMPERED_HOLD_EVIDENCE:                True (HOLD_MEDIATION_BINDING_MISMATCH)
+STAGE 5 INTEGRATED ADVERSARIAL QUALIFICATION: PASS
+
+NEW STAGE 5 TEST OUTPUT
+----------------------------------------------------------------------------------------
+test_actions (tests.test_integrated_active_control_adversarial.Stage5Tests.test_actions) ... ok
+test_all_blocked (tests.test_integrated_active_control_adversarial.Stage5Tests.test_all_blocked) ... ok
+test_attack_count (tests.test_integrated_active_control_adversarial.Stage5Tests.test_attack_count) ... ok
+test_baseline (tests.test_integrated_active_control_adversarial.Stage5Tests.test_baseline) ... ok
+test_campaign_digest_matches_stage4 (tests.test_integrated_active_control_adversarial.Stage5Tests.test_campaign_digest_matches_stage4) ... ok
+test_conflict (tests.test_integrated_active_control_adversarial.Stage5Tests.test_conflict) ... ok
+test_cross_session (tests.test_integrated_active_control_adversarial.Stage5Tests.test_cross_session) ... ok
+test_digest_hex (tests.test_integrated_active_control_adversarial.Stage5Tests.test_digest_hex) ... ok
+test_duplicate_hold (tests.test_integrated_active_control_adversarial.Stage5Tests.test_duplicate_hold) ... ok
+test_duplicate_release (tests.test_integrated_active_control_adversarial.Stage5Tests.test_duplicate_release) ... ok
+test_duplicate_release_reason (tests.test_integrated_active_control_adversarial.Stage5Tests.test_duplicate_release_reason) ... ok
+test_evidence_digests_unique (tests.test_integrated_active_control_adversarial.Stage5Tests.test_evidence_digests_unique) ... ok
+test_expired (tests.test_integrated_active_control_adversarial.Stage5Tests.test_expired) ... ok
+test_expired_reason (tests.test_integrated_active_control_adversarial.Stage5Tests.test_expired_reason) ... ok
+test_forged_hold (tests.test_integrated_active_control_adversarial.Stage5Tests.test_forged_hold) ... ok
+test_forged_hold_reason (tests.test_integrated_active_control_adversarial.Stage5Tests.test_forged_hold_reason) ... ok
+test_forged_release (tests.test_integrated_active_control_adversarial.Stage5Tests.test_forged_release) ... ok
+test_forged_release_reason (tests.test_integrated_active_control_adversarial.Stage5Tests.test_forged_release_reason) ... ok
+test_host (tests.test_integrated_active_control_adversarial.Stage5Tests.test_host) ... ok
+test_partial_detach (tests.test_integrated_active_control_adversarial.Stage5Tests.test_partial_detach) ... ok
+test_partial_detach_reason (tests.test_integrated_active_control_adversarial.Stage5Tests.test_partial_detach_reason) ... ok
+test_qualification (tests.test_integrated_active_control_adversarial.Stage5Tests.test_qualification) ... ok
+test_reordered_campaign (tests.test_integrated_active_control_adversarial.Stage5Tests.test_reordered_campaign) ... ok
+test_reordered_campaign_reason (tests.test_integrated_active_control_adversarial.Stage5Tests.test_reordered_campaign_reason) ... ok
+test_reordered_cycle (tests.test_integrated_active_control_adversarial.Stage5Tests.test_reordered_cycle) ... ok
+test_reordered_cycle_reason (tests.test_integrated_active_control_adversarial.Stage5Tests.test_reordered_cycle_reason) ... ok
+test_repeat_exact (tests.test_integrated_active_control_adversarial.Stage5Tests.test_repeat_exact) ... ok
+test_results_unique (tests.test_integrated_active_control_adversarial.Stage5Tests.test_results_unique) ... ok
+test_stale_checkpoint (tests.test_integrated_active_control_adversarial.Stage5Tests.test_stale_checkpoint) ... ok
+test_tampered_evidence (tests.test_integrated_active_control_adversarial.Stage5Tests.test_tampered_evidence) ... ok
+
+----------------------------------------------------------------------
+Ran 30 tests in 0.054s
+
+OK
+
+INTEGRATION EXPECTATION
+----------------------------------------------------------------------------------------
+Additive package only; no Stage 1–4 or frozen files are included.
+Expected canonical v0.2 suite: 120 prior tests + 30 Stage 5 tests = 150 tests.
+Run tools/verify_all_frozen.py after extraction.
+Stage 5 is a pre-freeze qualification; it does not create a frozen release.

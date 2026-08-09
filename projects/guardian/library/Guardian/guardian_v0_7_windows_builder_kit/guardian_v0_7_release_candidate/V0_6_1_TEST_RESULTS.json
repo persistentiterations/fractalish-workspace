@@ -1,0 +1,61 @@
+{
+  "stage": "Guardian v0.6.1 Release Integrity and Documentation",
+  "package_version": "0.6.1",
+  "engine_version": "0.5.0",
+  "engine_sha256": "db269d956eaa39fdba9c1e19840590da378c6c30ac24511bc82687d138212bd8",
+  "engine_unchanged": true,
+  "release_tests_run": 4,
+  "release_tests_passed": true,
+  "pip_install_passed": true,
+  "version_command_passed": true,
+  "version_output": "{\"engine_version\": \"0.5.0\", \"policy_schema_version\": \"1.0\", \"slip_schema_version\": \"1.0\"}",
+  "verify_installation_passed": true,
+  "sample_results": [
+    {
+      "file": "clean.py",
+      "expected_outcome": "Let In",
+      "actual_outcome": "Let In",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "passed": true
+    },
+    {
+      "file": "hold_file_write.py",
+      "expected_outcome": "Hold",
+      "actual_outcome": "Hold",
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "passed": true
+    },
+    {
+      "file": "reject_unsafe.py",
+      "expected_outcome": "Reject",
+      "actual_outcome": "Reject",
+      "expected_exit": 3,
+      "actual_exit": 3,
+      "passed": true
+    },
+    {
+      "file": "missing_manifest.py",
+      "expected_outcome": "Hold",
+      "actual_outcome": "Hold",
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "passed": true
+    }
+  ],
+  "all_sample_results_passed": true,
+  "signed_ledger_replay_passed": true,
+  "signed_ledger_replay_output": "Ledger replay passed. Chain integrity confirmed.",
+  "html_checks": {
+    "doctype": true,
+    "watermark": true,
+    "notice": true,
+    "four_samples": true,
+    "boundary": true
+  },
+  "html_sanity_passed": true,
+  "standalone_executable_built": false,
+  "standalone_executable_status": "Deferred to platform-specific signed build and test.",
+  "v0_6_1_freeze_passed": true
+}

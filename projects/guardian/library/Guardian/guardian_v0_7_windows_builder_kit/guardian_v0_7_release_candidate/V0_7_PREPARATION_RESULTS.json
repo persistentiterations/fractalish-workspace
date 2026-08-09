@@ -1,0 +1,25 @@
+{
+  "stage": "Guardian v0.7 \u2014 Real Release Build and Usability Validation",
+  "package_version": "0.7.0",
+  "engine_version": "0.5.0",
+  "engine_sha256": "db269d956eaa39fdba9c1e19840590da378c6c30ac24511bc82687d138212bd8",
+  "linux_preparation": {
+    "pip_install_passed": true,
+    "module_version_passed": true,
+    "module_version_output": "{\"engine_version\": \"0.5.0\", \"policy_schema_version\": \"1.0\", \"slip_schema_version\": \"1.0\"}",
+    "embedded_integrity_passed": true,
+    "static_checks": {
+      "required_files_present": true,
+      "spec_bundles_policy": true,
+      "spec_bundles_release_manifest": true,
+      "validator_checks_all_four_outcomes": true,
+      "validator_does_not_call_python": true
+    }
+  },
+  "windows_release": {
+    "guardian_exe_built": false,
+    "clean_machine_validated": false,
+    "status": "pending Windows build and Python-free machine validation"
+  },
+  "stage_status": "release candidate prepared; final Windows gate pending"
+}

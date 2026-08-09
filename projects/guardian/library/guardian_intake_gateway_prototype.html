@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Guardian Intake Gateway v0.1 — Local Prototype</title>
+<style>
+  :root {
+    --bg: #0e1117;
+    --panel: #151b24;
+    --panel2: #111722;
+    --text: #e7edf5;
+    --muted: #9aa7b7;
+    --line: #2a3444;
+    --good: #56d364;
+    --warn: #e3b341;
+    --bad: #ff6b6b;
+    --blue: #58a6ff;
+    --hold: #e3b341;
+    --shadow: rgba(0,0,0,.35);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(circle at top left, #172033 0, #0e1117 36%, #090b10 100%);
+    color: var(--text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    min-height: 100vh;
+  }
+  header {
+    padding: 18px 22px 12px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(10, 14, 22, .72);
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    backdrop-filter: blur(10px);
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(22px, 3vw, 34px);
+    letter-spacing: -.02em;
+  }
+  .sub {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .wrap {
+    width: min(1500px, 100%);
+    margin: 0 auto;
+    padding: 16px;
+  }
+  .topGrid {
+    display: grid;
+    grid-template-columns: 1.05fr 1.2fr 1fr;
+    gap: 14px;
+    align-items: stretch;
+  }
+  .panel {
+    background: linear-gradient(180deg, rgba(23,31,44,.96), rgba(16,22,32,.96));
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 16px 42px var(--shadow);
+    overflow: hidden;
+  }
+  .panel h2 {
+    margin: 0;
+    padding: 12px 14px;
+    font-size: 15px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,.025);
+  }
+  .panelBody { padding: 14px; }
+  .buttons {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  button {
+    appearance: none;
+    border: 1px solid var(--line);
+    background: #1b2433;
+    color: var(--text);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-weight: 650;
+    text-align: left;
+    cursor: pointer;
+    transition: transform .08s ease, border-color .12s ease, background .12s ease;
+  }
+  button:hover { border-color: var(--blue); background: #202c3d; }
+  button:active { transform: scale(.99); }
+  .tiny { color: var(--muted); font-size: 12px; font-weight: 500; margin-top: 3px; }
+  .statusBox {
+    display: grid;
+    gap: 8px;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 145px 1fr;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 9px;
+    background: rgba(255,255,255,.025);
+    border: 1px solid rgba(255,255,255,.055);
+    border-radius: 10px;
+    min-height: 38px;
+  }
+  .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  .value { font-size: 14px; overflow-wrap: anywhere; }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    font-size: 12px;
+    font-weight: 750;
+    letter-spacing: .02em;
+  }
+  .good { color: var(--good); border-color: rgba(86,211,100,.35); background: rgba(86,211,100,.08); }
+  .warn { color: var(--warn); border-color: rgba(227,179,65,.4); background: rgba(227,179,65,.08); }
+  .bad { color: var(--bad); border-color: rgba(255,107,107,.4); background: rgba(255,107,107,.08); }
+  .blue { color: var(--blue); border-color: rgba(88,166,255,.4); background: rgba(88,166,255,.08); }
+  .membrane {
+    height: 100%;
+    min-height: 330px;
+    display: grid;
+    grid-template-rows: auto 1fr;
+  }
+  .pipeline {
+    display: grid;
+    grid-template-columns: 1fr 34px 1fr 34px 1fr;
+    gap: 8px;
+    align-items: center;
+    height: 100%;
+  }
+  .stage {
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    padding: 12px;
+    background: rgba(255,255,255,.025);
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .stageTitle { font-size: 13px; font-weight: 800; margin-bottom: 8px; }
+  .stageText { font-size: 13px; color: var(--muted); line-height: 1.35; }
+  .arrow { text-align: center; color: var(--muted); font-size: 24px; }
+  .meter {
+    margin-top: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: #0b1018;
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .bar { height: 100%; width: 0; background: var(--blue); transition: width .35s ease; }
+  .mazeGrid {
+    display: grid;
+    grid-template-columns: repeat(13, 1fr);
+    gap: 2px;
+    width: min(100%, 430px);
+    margin: 0 auto 10px;
+    background: #0a0e15;
+    padding: 6px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+  }
+  .cell {
+    aspect-ratio: 1 / 1;
+    border-radius: 4px;
+    background: #1c2635;
+    position: relative;
+    min-width: 0;
+  }
+  .wall { background: #05070b; }
+  .base { background: rgba(88,166,255,.35); border: 1px solid var(--blue); }
+  .resource { background: rgba(86,211,100,.36); border: 1px solid var(--good); }
+  .seen { background: rgba(227,179,65,.25); }
+  .badpath { background: rgba(255,107,107,.22); }
+  .route { background: rgba(86,211,100,.22); box-shadow: inset 0 0 0 1px rgba(86,211,100,.45); }
+  .scout::after {
+    content: "";
+    position: absolute;
+    inset: 22%;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 12px rgba(255,255,255,.8);
+  }
+  .lockedOverlay {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 8px;
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+  .belowGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 14px;
+  }
+  pre {
+    margin: 0;
+    padding: 12px;
+    overflow: auto;
+    max-height: 340px;
+    background: #090d14;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    line-height: 1.45;
+    color: #d9e2ef;
+  }
+  .ledgerItem {
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    background: rgba(255,255,255,.025);
+    font-size: 12px;
+  }
+  .ledgerHash { color: var(--muted); overflow-wrap: anywhere; margin-top: 4px; }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .key { display: inline-flex; align-items: center; gap: 5px; }
+  .swatch { width: 13px; height: 13px; border-radius: 3px; border: 1px solid var(--line); }
+  .foot {
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  @media (max-width: 1120px) {
+    .topGrid { grid-template-columns: 1fr; }
+    .pipeline { grid-template-columns: 1fr; }
+    .arrow { transform: rotate(90deg); }
+    .belowGrid { grid-template-columns: 1fr; }
+    header { position: static; }
+  }
+  @media (max-height: 760px) and (min-width: 1121px) {
+    .mazeGrid { width: min(100%, 330px); }
+    .stage { min-height: 160px; }
+    pre { max-height: 240px; }
+    .row { padding: 6px 8px; min-height: 32px; }
+    .panelBody { padding: 10px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Guardian Intake Gateway v0.1</h1>
+  <div class="sub">A local proof-of-concept for a zero-trust AI intake membrane: manifest gate → risk measurement → ReceptorEvent → receipt ledger → maze unlock.</div>
+</header>
+
+<div class="wrap">
+  <div class="topGrid">
+    <section class="panel">
+      <h2>1. Intake Test Cases</h2>
+      <div class="panelBody">
+        <div class="buttons">
+          <button onclick="runCase('missing')">Run Missing Manifest<div class="tiny">Expected: HOLD. Artifact is ungoverned.</div></button>
+          <button onclick="runCase('tampered')">Run Tampered / Risky Manifest<div class="tiny">Expected: RETRACT. Hash mismatch and hidden instruction risk.</div></button>
+          <button onclick="runCase('clean')">Run Clean Manifest<div class="tiny">Expected: EXTEND. Maze unlocks and scout runs.</div></button>
+        </div>
+        <div class="statusBox">
+          <div class="row"><div class="label">Artifact</div><div class="value" id="artifactName">No intake selected</div></div>
+          <div class="row"><div class="label">Manifest Gate</div><div class="value" id="manifestGate"><span class="pill warn">WAITING</span></div></div>
+          <div class="row"><div class="label">Risk Scan</div><div class="value" id="riskScan"><span class="pill warn">WAITING</span></div></div>
+          <div class="row"><div class="label">GSR / NGR</div><div class="value" id="scoreLine">—</div></div>
+          <div class="row"><div class="label">Debt</div><div class="value" id="debtLine">—</div></div>
+          <div class="row"><div class="label">Decision</div><div class="value" id="decisionLine"><span class="pill warn">NO DECISION</span></div></div>
+        </div>
+        <div class="foot">Rule: raw artifact content is never passed forward by default. Guardian emits a structured event first.</div>
+      </div>
+    </section>
+
+    <section class="panel membrane">
+      <h2>2. Guardian Membrane</h2>
+      <div class="panelBody pipeline">
+        <div class="stage" id="stageManifest">
+          <div>
+            <div class="stageTitle">Manifest Gate</div>
+            <div class="stageText">Checks whether artifact has a declared ID, purpose, allowed actions, blocked actions, retention policy, and matching hash.</div>
+          </div>
+          <span class="pill warn" id="stageManifestPill">WAITING</span>
+        </div>
+        <div class="arrow">→</div>
+        <div class="stage" id="stageMeasure">
+          <div>
+            <div class="stageTitle">Specificity Measurement</div>
+            <div class="stageText">Scores required intake features deterministically. GSR is satisfied governance ratio. NGR is the remaining governance gap.</div>
+            <div class="meter"><div class="bar" id="gsrBar"></div></div>
+          </div>
+          <span class="pill warn" id="stageMeasurePill">WAITING</span>
+        </div>
+        <div class="arrow">→</div>
+        <div class="stage" id="stageEvent">
+          <div>
+            <div class="stageTitle">ReceptorEvent</div>
+            <div class="stageText">Converts raw risk into a bounded machine-readable intake event. The model receives metadata, sanitized summary, or nothing.</div>
+          </div>
+          <span class="pill warn" id="stageEventPill">WAITING</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>3. Maze Unlock Demo</h2>
+      <div class="panelBody">
+        <div class="lockedOverlay" id="mazeStatus">Maze locked. Run a clean manifest to unlock local scout behavior.</div>
+        <div class="mazeGrid" id="mazeGrid"></div>
+        <div class="legend">
+          <span class="key"><span class="swatch base"></span>Base</span>
+          <span class="key"><span class="swatch resource"></span>Resource</span>
+          <span class="key"><span class="swatch seen"></span>Seen</span>
+          <span class="key"><span class="swatch badpath"></span>Bad turn</span>
+          <span class="key"><span class="swatch route"></span>Frozen route</span>
+        </div>
+        <div class="foot">The maze is intentionally simple. It demonstrates governance gating, not final agent intelligence.</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="belowGrid">
+    <section class="panel">
+      <h2>4. Current ReceptorEvent JSON</h2>
+      <pre id="eventJson">Run a test case to generate a ReceptorEvent.</pre>
+    </section>
+    <section class="panel">
+      <h2>5. Intake Ledger</h2>
+      <div class="panelBody" id="ledgerList">No receipts yet.</div>
+    </section>
+  </div>
+</div>
+
+<script>
+const WIDTH = 13;
+const HEIGHT = 13;
+const base = {x:1, y:1};
+const resource = {x:11, y:10};
+let cells = [];
+let ledger = [];
+let animTimer = null;
+
+const mazeTemplate = [
+  "#############",
+  "#.....#.....#",
+  "#.###.#.###.#",
+  "#.#...#...#.#",
+  "#.#.#####.#.#",
+  "#.#.....#.#.#",
+  "#.#####.#.#.#",
+  "#.....#.#...#",
+  "#####.#.###.#",
+  "#.....#.....#",
+  "#.#########.#",
+  "#...........#",
+  "#############"
+];
+
+const cases = {
+  missing: {
+    artifact_id: "art_missing_manifest_001",
+    name: "Unmanifested Upload",
+    manifest: null,
+    scan: { hidden_instruction_absent: true, tool_poisoning_absent: true },
+    note: "No manifest was supplied. Guardian cannot govern downstream use."
+  },
+  tampered: {
+    artifact_id: "art_tampered_manifest_001",
+    name: "Tampered Connector Output",
+    manifest: {
+      manifest_version: "guardian.manifest.v0.1",
+      artifact_id: "art_tampered_manifest_001",
+      declared_purpose: "maze_demo_input",
+      allowed_actions: ["measure", "demo_run"],
+      blocked_actions: ["execute_code", "write_memory", "index_raw"],
+      retention_policy: { store_raw: false, store_receipt: true, purge_after_days: 30 },
+      artifact_sha256: "declared_clean_hash"
+    },
+    actual_hash: "different_actual_hash",
+    scan: { hidden_instruction_absent: false, tool_poisoning_absent: true },
+    note: "Manifest hash does not match and hidden instruction-like content was detected."
+  },
+  clean: {
+    artifact_id: "art_clean_manifest_001",
+    name: "Clean Maze Artifact",
+    manifest: {
+      manifest_version: "guardian.manifest.v0.1",
+      artifact_id: "art_clean_manifest_001",
+      declared_purpose: "maze_demo_input",
+      allowed_actions: ["measure", "demo_run"],
+      blocked_actions: ["execute_code", "write_memory", "index_raw"],
+      retention_policy: { store_raw: false, store_receipt: true, purge_after_days: 30 },
+      artifact_sha256: "clean_hash_123"
+    },
+    actual_hash: "clean_hash_123",
+    scan: { hidden_instruction_absent: true, tool_poisoning_absent: true },
+    note: "Manifest is complete, hash matches, and scan is clean."
+  }
+};
+
+const featureList = [
+  "manifest_present",
+  "manifest_hash_matches",
+  "declared_purpose_present",
+  "allowed_actions_present",
+  "blocked_actions_present",
+  "retention_policy_present",
+  "hidden_instruction_absent",
+  "tool_poisoning_absent"
+];
+
+function resetMaze() {
+  clearInterval(animTimer);
+  animTimer = null;
+  cells = [];
+  const grid = document.getElementById("mazeGrid");
+  grid.innerHTML = "";
+  for (let y=0; y<HEIGHT; y++) {
+    for (let x=0; x<WIDTH; x++) {
+      const div = document.createElement("div");
+      div.className = "cell";
+      if (mazeTemplate[y][x] === "#") div.classList.add("wall");
+      if (x === base.x && y === base.y) div.classList.add("base");
+      if (x === resource.x && y === resource.y) div.classList.add("resource");
+      grid.appendChild(div);
+      cells.push(div);
+    }
+  }
+}
+
+function idx(x,y) { return y * WIDTH + x; }
+function setCell(x,y,cls) {
+  const c = cells[idx(x,y)];
+  if (!c.classList.contains("wall")) c.classList.add(cls);
+}
+function clearScout() { cells.forEach(c => c.classList.remove("scout")); }
+function placeScout(p) { clearScout(); cells[idx(p.x,p.y)].classList.add("scout"); }
+
+const scoutWalk = [
+  {x:1,y:1}, {x:2,y:1}, {x:3,y:1}, {x:4,y:1}, {x:5,y:1},
+  {x:4,y:1, bad:true}, {x:3,y:1, bad:true},
+  {x:2,y:1}, {x:1,y:1}, {x:1,y:2}, {x:1,y:3}, {x:1,y:4}, {x:1,y:5}, {x:2,y:5}, {x:3,y:5}, {x:4,y:5}, {x:5,y:5},
+  {x:5,y:6}, {x:5,y:7}, {x:4,y:7}, {x:3,y:7}, {x:2,y:7}, {x:1,y:7},
+  {x:1,y:8, bad:true},
+  {x:1,y:7}, {x:2,y:7}, {x:3,y:7}, {x:4,y:7}, {x:5,y:7}, {x:5,y:8}, {x:5,y:9}, {x:4,y:9}, {x:3,y:9}, {x:2,y:9}, {x:1,y:9},
+  {x:1,y:10}, {x:1,y:11}, {x:2,y:11}, {x:3,y:11}, {x:4,y:11}, {x:5,y:11}, {x:6,y:11}, {x:7,y:11}, {x:8,y:11}, {x:9,y:11}, {x:10,y:11}, {x:11,y:11}, {x:11,y:10}
+];
+
+const frozenRoute = [
+  {x:1,y:1}, {x:1,y:2}, {x:1,y:3}, {x:1,y:4}, {x:1,y:5}, {x:2,y:5}, {x:3,y:5}, {x:4,y:5}, {x:5,y:5},
+  {x:5,y:6}, {x:5,y:7}, {x:5,y:8}, {x:5,y:9}, {x:4,y:9}, {x:3,y:9}, {x:2,y:9}, {x:1,y:9},
+  {x:1,y:10}, {x:1,y:11}, {x:2,y:11}, {x:3,y:11}, {x:4,y:11}, {x:5,y:11}, {x:6,y:11}, {x:7,y:11}, {x:8,y:11}, {x:9,y:11}, {x:10,y:11}, {x:11,y:11}, {x:11,y:10}
+];
+
+function animateMaze() {
+  resetMaze();
+  document.getElementById("mazeStatus").innerHTML = `<span class="pill good">UNLOCKED</span> Clean ReceptorEvent accepted. Local scout is exploring.`;
+  let step = 0;
+  animTimer = setInterval(() => {
+    if (step < scoutWalk.length) {
+      const p = scoutWalk[step];
+      setCell(p.x, p.y, p.bad ? "badpath" : "seen");
+      placeScout(p);
+      step++;
+    } else if (step < scoutWalk.length + frozenRoute.length) {
+      const p = frozenRoute[step - scoutWalk.length];
+      setCell(p.x, p.y, "route");
+      placeScout(p);
+      step++;
+    } else {
+      clearInterval(animTimer);
+      animTimer = null;
+      clearScout();
+      document.getElementById("mazeStatus").innerHTML = `<span class="pill good">ROUTE FROZEN</span> Scout found resource. Follower may use only the frozen route.`;
+    }
+  }, 95);
+}
+
+function evaluate(c) {
+  const m = c.manifest;
+  const f = {
+    manifest_present: !!m,
+    manifest_hash_matches: !!m && m.artifact_sha256 === c.actual_hash,
+    declared_purpose_present: !!m && !!m.declared_purpose,
+    allowed_actions_present: !!m && Array.isArray(m.allowed_actions) && m.allowed_actions.length > 0,
+    blocked_actions_present: !!m && Array.isArray(m.blocked_actions) && m.blocked_actions.length > 0,
+    retention_policy_present: !!m && !!m.retention_policy && typeof m.retention_policy.store_raw === "boolean",
+    hidden_instruction_absent: !!c.scan.hidden_instruction_absent,
+    tool_poisoning_absent: !!c.scan.tool_poisoning_absent
+  };
+  const satisfied = featureList.filter(k => f[k]).length;
+  const gsr = satisfied / featureList.length;
+  const ngr = 1 - gsr;
+  let debt = "OPERATIONAL";
+  let epistemic = "SUPPORTED";
+  let action = "EXTEND";
+  let nm = "EXTEND";
+  if (!f.manifest_present) {
+    debt = "CAUTION"; epistemic = "UNRESOLVED"; action = "HOLD"; nm = "SENSE";
+  } else if (!f.manifest_hash_matches || !f.hidden_instruction_absent || !f.tool_poisoning_absent) {
+    debt = "CRITICAL"; epistemic = "CONTRADICTED"; action = "RETRACT"; nm = "RESTRICT";
+  } else if (gsr < 1) {
+    debt = "CAUTION"; epistemic = "UNRESOLVED"; action = "HOLD"; nm = "SENSE";
+  }
+  return { feature_results: f, gsr, ngr, debt, epistemic, action, nm };
+}
+
+function simpleHash(str) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++) {
+    const ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = (h1 ^ (h1 >>> 16)) >>> 0;
+  h2 = (h2 ^ (h2 >>> 16)) >>> 0;
+  return "demo_sha256_" + h1.toString(16).padStart(8,"0") + h2.toString(16).padStart(8,"0") + "_local_only";
+}
+
+function makeEvent(c, result) {
+  const safeMode = result.action === "EXTEND" ? "sanitized_summary" : result.action === "HOLD" ? "metadata_only" : "blocked";
+  const blocked = c.manifest?.blocked_actions || ["execute_code", "write_memory", "index_raw", "tool_execute"];
+  const allowed = result.action === "EXTEND" ? (c.manifest?.allowed_actions || []) : [];
+  const event = {
+    event_type: "ReceptorEvent",
+    receptor_event_id: `evt_${Date.now()}`,
+    artifact_id: c.artifact_id,
+    artifact_name: c.name,
+    source_type: "local_demo_case",
+    intake_status: result.action,
+    epistemic_state: result.epistemic,
+    natural_math_process: result.nm,
+    gsr: Number(result.gsr.toFixed(3)),
+    ngr: Number(result.ngr.toFixed(3)),
+    structural_debt: result.debt,
+    risk_flags: {
+      manifest_missing: !result.feature_results.manifest_present,
+      hash_mismatch: !result.feature_results.manifest_hash_matches && result.feature_results.manifest_present,
+      hidden_instruction_detected: !result.feature_results.hidden_instruction_absent,
+      tool_poisoning_detected: !result.feature_results.tool_poisoning_absent,
+      retention_policy_missing: !result.feature_results.retention_policy_present
+    },
+    allowed_model_view: {
+      mode: safeMode,
+      summary: result.action === "EXTEND" ? "Clean artifact accepted for bounded maze demo use." : c.note
+    },
+    allowed_actions: allowed,
+    blocked_actions: blocked,
+    raw_artifact_forwarded: false,
+    feature_results: result.feature_results
+  };
+  event.receipt_hash = simpleHash(JSON.stringify(event));
+  return event;
+}
+
+function pill(text, cls) { return `<span class="pill ${cls}">${text}</span>`; }
+function clsForAction(action) { return action === "EXTEND" ? "good" : action === "HOLD" ? "warn" : "bad"; }
+function clsForBool(b) { return b ? "good" : "bad"; }
+
+function updateUI(c, r, ev) {
+  document.getElementById("artifactName").textContent = c.name;
+  document.getElementById("manifestGate").innerHTML = r.feature_results.manifest_present && r.feature_results.manifest_hash_matches ? pill("PASS", "good") : r.feature_results.manifest_present ? pill("FAIL — HASH / POLICY", "bad") : pill("FAIL — MISSING", "warn");
+  const riskClean = r.feature_results.hidden_instruction_absent && r.feature_results.tool_poisoning_absent;
+  document.getElementById("riskScan").innerHTML = riskClean ? pill("PASS", "good") : pill("FAIL — RISK FOUND", "bad");
+  document.getElementById("scoreLine").innerHTML = `${pill("GSR " + r.gsr.toFixed(3), clsForAction(r.action))} ${pill("NGR " + r.ngr.toFixed(3), r.ngr === 0 ? "good" : "warn")}`;
+  document.getElementById("debtLine").innerHTML = pill(r.debt, clsForAction(r.action));
+  document.getElementById("decisionLine").innerHTML = pill(r.action, clsForAction(r.action));
+  document.getElementById("stageManifestPill").outerHTML = `<span class="pill ${r.feature_results.manifest_present && r.feature_results.manifest_hash_matches ? "good" : r.feature_results.manifest_present ? "bad" : "warn"}" id="stageManifestPill">${r.feature_results.manifest_present ? (r.feature_results.manifest_hash_matches ? "PASS" : "FAIL") : "HOLD"}</span>`;
+  document.getElementById("stageMeasurePill").outerHTML = `<span class="pill ${clsForAction(r.action)}" id="stageMeasurePill">${r.debt}</span>`;
+  document.getElementById("stageEventPill").outerHTML = `<span class="pill ${clsForAction(r.action)}" id="stageEventPill">${r.action}</span>`;
+  document.getElementById("gsrBar").style.width = `${Math.round(r.gsr*100)}%`;
+  document.getElementById("gsrBar").style.background = r.action === "EXTEND" ? "var(--good)" : r.action === "HOLD" ? "var(--warn)" : "var(--bad)";
+  document.getElementById("eventJson").textContent = JSON.stringify(ev, null, 2);
+}
+
+function writeLedger(ev) {
+  const previous = ledger.length ? ledger[ledger.length - 1].event_hash : null;
+  const item = {
+    seq: ledger.length + 1,
+    previous_event_hash: previous,
+    receptor_event_id: ev.receptor_event_id,
+    artifact_id: ev.artifact_id,
+    decision: ev.intake_status,
+    gsr: ev.gsr,
+    ngr: ev.ngr,
+    receipt_hash: ev.receipt_hash
+  };
+  item.event_hash = simpleHash(JSON.stringify(item));
+  ledger.push(item);
+  renderLedger();
+}
+
+function renderLedger() {
+  const box = document.getElementById("ledgerList");
+  box.innerHTML = ledger.slice().reverse().map(item => `
+    <div class="ledgerItem">
+      <div><strong>#${item.seq}</strong> ${pill(item.decision, clsForAction(item.decision))} <span style="color:var(--muted)">${item.artifact_id}</span></div>
+      <div>GSR ${item.gsr} / NGR ${item.ngr}</div>
+      <div class="ledgerHash">receipt: ${item.receipt_hash}</div>
+      <div class="ledgerHash">event: ${item.event_hash}</div>
+    </div>
+  `).join("");
+}
+
+function runCase(name) {
+  const c = cases[name];
+  const r = evaluate(c);
+  const ev = makeEvent(c, r);
+  updateUI(c, r, ev);
+  writeLedger(ev);
+  if (r.action === "EXTEND") {
+    animateMaze();
+  } else {
+    resetMaze();
+    document.getElementById("mazeStatus").innerHTML = r.action === "HOLD"
+      ? `<span class="pill warn">LOCKED — HOLD</span> Manifest missing or incomplete. Scout cannot run.`
+      : `<span class="pill bad">LOCKED — RETRACT</span> Intake contradicted its manifest or contains risk.`;
+  }
+}
+
+resetMaze();
+</script>
+</body>
+</html>

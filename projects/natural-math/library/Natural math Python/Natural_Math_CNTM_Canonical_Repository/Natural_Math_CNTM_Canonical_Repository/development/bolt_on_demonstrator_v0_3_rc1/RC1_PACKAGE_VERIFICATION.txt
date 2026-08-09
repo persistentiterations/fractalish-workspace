@@ -1,0 +1,11 @@
+Bolt-On Demonstrator v0.3 Stage 6 / RC1 package verification
+
+RC1 package tests: 46 passed
+Complete v0.3 development tests: 256 passed
+Portable adapter structural authority scan: clean
+Expected Stage 5 source commit: 0e92ecaca48c4c5bf85bab658a4e693aae3d36f6
+Expected development manifest: 48cf74381b3ab47be7cffb652da91c6a62a7532f2256c92619fe2ff750664b0b
+Frozen v0.2 release manifest: e020199f5327866bfcbe34877466ea06558eb6650c578ce841c37b4c9abd159c
+
+The canonical repository must run qualify_v0_3_rc1.py to produce and approve
+RC1_QUALIFICATION.json. This package does not freeze v0.3.

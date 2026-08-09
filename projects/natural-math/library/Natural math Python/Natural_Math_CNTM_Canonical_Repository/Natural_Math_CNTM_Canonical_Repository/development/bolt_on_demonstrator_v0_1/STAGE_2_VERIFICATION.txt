@@ -1,0 +1,49 @@
+BOLT-ON DEMONSTRATOR v0.1 — STAGE 2 VERIFICATION
+
+Direct host digest: 04d2438f1dbff0b0ddfe5e5eb6382f6623fbe1d18e92078bde8b8dc95bba1c8e
+Observed host digest: 04d2438f1dbff0b0ddfe5e5eb6382f6623fbe1d18e92078bde8b8dc95bba1c8e
+Observer digest: 7943e8e6422a0b3beef771649327be0ecacbcdc59f63d2c18b1bc0b2c158f42d
+Observation receipt count: 24
+Host source SHA-256: edac50eb29be0af77a7ebfe97953b9e702da3ac4383b727dc0b44a464808d96a
+Adapter source SHA-256: a9eaa86d045c6d55124aaaffc4a26aeb811c784188b294bdee471ac857246bfe
+Stage 2 test source SHA-256: d726827fcfd87b5c28529b887d967308718bf3018f2ccead10633d44d725960b
+
+========================================================================================
+BOLT-ON OBSERVATION-ONLY ADAPTER v0.2
+========================================================================================
+Host output equivalent:       True
+Host digest equivalent:       True
+Host source unchanged:        True
+Input objects unchanged:      True
+Observation replay pass:      True
+Observation receipt count:    24
+Direct host digest:           04d2438f1dbff0b0ddfe5e5eb6382f6623fbe1d18e92078bde8b8dc95bba1c8e
+Observed host digest:         04d2438f1dbff0b0ddfe5e5eb6382f6623fbe1d18e92078bde8b8dc95bba1c8e
+Observer digest:              7943e8e6422a0b3beef771649327be0ecacbcdc59f63d2c18b1bc0b2c158f42d
+STAGE 2 EQUIVALENCE:          PASS
+
+test_baseline_contract (test_host_baseline.OrdinaryHostBaselineTests.test_baseline_contract) ... ok
+test_duplicate_ids_are_rejected_deterministically (test_host_baseline.OrdinaryHostBaselineTests.test_duplicate_ids_are_rejected_deterministically) ... ok
+test_host_has_no_bolt_on_dependencies (test_host_baseline.OrdinaryHostBaselineTests.test_host_has_no_bolt_on_dependencies) ... ok
+test_input_jobs_are_not_mutated (test_host_baseline.OrdinaryHostBaselineTests.test_input_jobs_are_not_mutated) ... ok
+test_invalid_values_and_operations_are_rejected (test_host_baseline.OrdinaryHostBaselineTests.test_invalid_values_and_operations_are_rejected) ... ok
+test_repeat_is_exact (test_host_baseline.OrdinaryHostBaselineTests.test_repeat_is_exact) ... ok
+test_source_hash_is_reported_for_reference (test_host_baseline.OrdinaryHostBaselineTests.test_source_hash_is_reported_for_reference) ... ok
+test_unmet_dependency_is_delayed_without_blocking_valid_work (test_host_baseline.OrdinaryHostBaselineTests.test_unmet_dependency_is_delayed_without_blocking_valid_work) ... ok
+test_adapter_has_no_governance_or_memory_dependencies (test_observation_adapter.ObservationOnlyAdapterTests.test_adapter_has_no_governance_or_memory_dependencies) ... ok
+test_baseline_host_output_is_exactly_equivalent (test_observation_adapter.ObservationOnlyAdapterTests.test_baseline_host_output_is_exactly_equivalent) ... ok
+test_equivalence_qualification_passes (test_observation_adapter.ObservationOnlyAdapterTests.test_equivalence_qualification_passes) ... ok
+test_host_source_bytes_remain_unchanged (test_observation_adapter.ObservationOnlyAdapterTests.test_host_source_bytes_remain_unchanged) ... ok
+test_input_objects_are_not_mutated (test_observation_adapter.ObservationOnlyAdapterTests.test_input_objects_are_not_mutated) ... ok
+test_missing_receipt_is_rejected (test_observation_adapter.ObservationOnlyAdapterTests.test_missing_receipt_is_rejected) ... ok
+test_nonbaseline_fixture_is_also_equivalent (test_observation_adapter.ObservationOnlyAdapterTests.test_nonbaseline_fixture_is_also_equivalent) ... ok
+test_observation_replay_validates_full_chain (test_observation_adapter.ObservationOnlyAdapterTests.test_observation_replay_validates_full_chain) ... ok
+test_observer_is_deterministic (test_observation_adapter.ObservationOnlyAdapterTests.test_observer_is_deterministic) ... ok
+test_safe_detachment_returns_same_host_behavior (test_observation_adapter.ObservationOnlyAdapterTests.test_safe_detachment_returns_same_host_behavior) ... ok
+test_snapshot_is_an_independent_value_record (test_observation_adapter.ObservationOnlyAdapterTests.test_snapshot_is_an_independent_value_record) ... ok
+test_tampered_receipt_is_rejected (test_observation_adapter.ObservationOnlyAdapterTests.test_tampered_receipt_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.005s
+
+OK

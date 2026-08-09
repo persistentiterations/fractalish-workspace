@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bonacqui.example/schemas/bolt-on-continuity/action-request-1.json",
+  "title": "Bounded Action Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "contract_version",
+    "request_id",
+    "container_id",
+    "requested_action",
+    "expected_state",
+    "incident_digest",
+    "configuration_digest",
+    "issued_at",
+    "expires_at",
+    "request_digest"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1"
+    },
+    "contract_version": {
+      "const": "BONACQUI_BOLT_ON_CONTINUITY_DOCKER_PRODUCT_CONTRACT_0_1_STAGE_0"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 128
+    },
+    "container_id": {
+      "type": "string",
+      "minLength": 12,
+      "maxLength": 128
+    },
+    "requested_action": {
+      "enum": [
+        "HOLD",
+        "RELEASE"
+      ]
+    },
+    "expected_state": {
+      "enum": [
+        "RUNNING",
+        "PAUSED"
+      ]
+    },
+    "incident_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "configuration_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "request_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  }
+}

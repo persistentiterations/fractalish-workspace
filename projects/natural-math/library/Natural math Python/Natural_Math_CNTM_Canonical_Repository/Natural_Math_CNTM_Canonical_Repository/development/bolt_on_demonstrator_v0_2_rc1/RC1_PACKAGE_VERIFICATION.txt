@@ -1,0 +1,42 @@
+BOLT-ON DEMONSTRATOR v0.2 — RC1 CORRECTION 2
+========================================================================
+
+d04f10d9aed8901ac0494212a9edffb0dd750f3d5b008313e5032be86ccaafd5  README_RC1.md
+658ac16a0e539e6690cb3988e78693d66540e9956b08af7bd51f26151e2dff04  release_candidate/qualify_v0_2_rc1.py
+1c4fedf8db8451d05f59396ee7dc5cbdbe4370e4812ce9cdbf3dea85d1171c09  tests/test_v0_2_rc1_qualification.py
+
+UNIT TESTS
+------------------------------------------------------------------------
+test_allow_not_prohibited (test_v0_2_rc1_qualification.Tests.test_allow_not_prohibited) ... ok
+test_authority_allow_preserved (test_v0_2_rc1_qualification.Tests.test_authority_allow_preserved) ... ok
+test_authority_deny_preserved (test_v0_2_rc1_qualification.Tests.test_authority_deny_preserved) ... ok
+test_count (test_v0_2_rc1_qualification.Tests.test_count) ... ok
+test_deny_not_prohibited (test_v0_2_rc1_qualification.Tests.test_deny_not_prohibited) ... ok
+test_dev_frozen_separate (test_v0_2_rc1_qualification.Tests.test_dev_frozen_separate) ... ok
+test_files_ignores_pyc (test_v0_2_rc1_qualification.Tests.test_files_ignores_pyc) ... ok
+test_files_include_source (test_v0_2_rc1_qualification.Tests.test_files_include_source) ... ok
+test_json_canonical_digest (test_v0_2_rc1_qualification.Tests.test_json_canonical_digest) ... ok
+test_manifest_changes (test_v0_2_rc1_qualification.Tests.test_manifest_changes) ... ok
+test_manifest_deterministic (test_v0_2_rc1_qualification.Tests.test_manifest_deterministic) ... ok
+test_manifest_ignores_record (test_v0_2_rc1_qualification.Tests.test_manifest_ignores_record) ... ok
+test_prohibited_force_execute (test_v0_2_rc1_qualification.Tests.test_prohibited_force_execute) ... ok
+test_qualification_error (test_v0_2_rc1_qualification.Tests.test_qualification_error) ... ok
+test_rc_output_name (test_v0_2_rc1_qualification.Tests.test_rc_output_name) ... ok
+test_scan_allows_authority_decisions (test_v0_2_rc1_qualification.Tests.test_scan_allows_authority_decisions) ... ok
+test_scan_allows_hold_release (test_v0_2_rc1_qualification.Tests.test_scan_allows_hold_release) ... ok
+test_scan_detects_execute (test_v0_2_rc1_qualification.Tests.test_scan_detects_execute) ... ok
+test_scan_ignores_tests (test_v0_2_rc1_qualification.Tests.test_scan_ignores_tests) ... ok
+test_sha (test_v0_2_rc1_qualification.Tests.test_sha) ... ok
+test_stable_evidence_ignores_output_hashes (test_v0_2_rc1_qualification.Tests.test_stable_evidence_ignores_output_hashes) ... ok
+test_stable_evidence_preserves_command (test_v0_2_rc1_qualification.Tests.test_stable_evidence_preserves_command) ... ok
+test_stable_evidence_preserves_test_count (test_v0_2_rc1_qualification.Tests.test_stable_evidence_preserves_test_count) ... ok
+test_stage2_marker (test_v0_2_rc1_qualification.Tests.test_stage2_marker) ... ok
+test_stage5_marker (test_v0_2_rc1_qualification.Tests.test_stage5_marker) ... ok
+test_stage_order (test_v0_2_rc1_qualification.Tests.test_stage_order) ... ok
+test_verify_path (test_v0_2_rc1_qualification.Tests.test_verify_path) ... ok
+test_version (test_v0_2_rc1_qualification.Tests.test_version) ... ok
+
+----------------------------------------------------------------------
+Ran 28 tests in 0.006s
+
+OK

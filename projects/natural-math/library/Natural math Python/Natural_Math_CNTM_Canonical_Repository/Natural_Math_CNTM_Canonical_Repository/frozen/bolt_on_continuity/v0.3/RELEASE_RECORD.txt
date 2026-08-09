@@ -1,0 +1,37 @@
+BOLT-ON CONTINUITY FOR DOCKER v0.3 FROZEN RELEASE RECORD
+
+Release: v0.3
+Approved candidate: v0.3-rc2
+Freeze authorization: explicit user authorization received 2026-07-29
+
+CORRECTED CANDIDATE
+Source commit: 67e0da7e41e96870d8dbeafa8031e4de694bb03f
+Tree files: 76
+Tree SHA-256: 203d43b5e3f7330c47f7cc72916540b887dccb67d039e1348989a6a8a2ea2376
+
+RC2 PREPARATION
+Head: 59bddbbeac43914633782be45d01e90f3d97b7c0
+Record SHA-256: 3075d810faf9ae1cf0b201e94b81f0287894149479eba341b66a6ac6cfd8a051
+Preparation manifest SHA-256: cf36118ccdeb9642509f96fc986a7c7711976a09a91bdc3f68acb54de3c11f6d
+
+RC2 FORMAL REVIEW
+Head: d020acac41bfbcfde67ca82692331649686d9f38
+Review SHA-256: 5e1709214599c0bf075e04557952ee5b563461749df71a41d6fe7bbcc4e1adeb
+Review manifest SHA-256: 41ca1731ed27ab8a23f653e0e6abfab372540ca7db200c80ad3b3088ffa2f917
+Status: READY_FOR_FREEZE_DECISION
+
+LOCAL QUALIFICATION
+Tests passed: 90
+Frozen regression: PASS
+Frozen diff before freeze: CLEAN
+Working tree before freeze: CLEAN
+
+AUTHORITY AFTER FREEZE
+release_frozen = true
+merge_authorized = false
+tag_authorized = false
+publication_authorized = false
+installation_authorized = false
+native_execution_authorized = false
+container_mutation_authorized = false
+production_readiness_claim_authorized = false

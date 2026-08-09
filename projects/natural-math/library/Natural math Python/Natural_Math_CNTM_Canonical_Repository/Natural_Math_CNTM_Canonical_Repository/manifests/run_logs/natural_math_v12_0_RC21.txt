@@ -1,0 +1,333 @@
+{
+  "compatibility": {
+    "canonical_round_trip": true,
+    "schema_ok": true,
+    "source_matches": {
+      "rc16": true,
+      "rc17": true,
+      "rc18": true,
+      "rc19": true,
+      "rc20": true,
+      "rc3": true
+    }
+  },
+  "deterministic_repeat": true,
+  "frozen_oracles": {
+    "kernel_contract_hash": "d4ec5ecebda1a8bdebe99255d9b517f7288c76c97d7af081819156b29d794b5c",
+    "rc16_source_sha256": "262fa239368083b24684e6199f2f6deb26cd8dc952f127ad0b79e4b7d2483595",
+    "rc17_semantic_hash": "38ba84e2d7c9c84e9061baf24b4b2f545ee910505703ef87094e604904f55d5e",
+    "rc17_source_sha256": "d134288199f8ac2d2b13f260b92de14b525e03b65838b3702b2b0584427a5a36",
+    "rc18_semantic_hash": "72d95c8173e168c45bc3e17048025dcd2c0b818eb24a49f04e81bcdf2508977d",
+    "rc18_source_sha256": "7532e1fabc12c01c7cb73964f95f00108560000474e12e4eadaaa26c76e93116",
+    "rc19_semantic_hash": "01a6cfc2f1c5e2cd8ca14e6c65d12ca6edc85cdfe5951dad28f3917b6e2531f1",
+    "rc19_source_sha256": "8b36e5e02f149211f614427a8d989e6332d9a937ade25487f8a87fd17f608c7e",
+    "rc20_semantic_hash": "57d798c57e98f54ae2a66a433873243b283674d743571ee404cb26e83f70ca95",
+    "rc20_source_sha256": "d499d3b8707495735544e3fa855ca4fa43632c1303f7baa2a10ec7538f2f42b7",
+    "rc3_source_sha256": "921d94819cc81b28fd3e0c102706432336bfbafc32eb427b2951b20766f21e53"
+  },
+  "gates": {
+    "ADVERSARIAL_ORDERS_TERMINALLY_COMPATIBLE": true,
+    "AUTHORITY_CANNOT_MUTATE_TOPOLOGY": true,
+    "CANONICAL_JSON_ROUND_TRIP": true,
+    "COMMITTED_TERMINAL_STATE_EXACTLY_ONCE": true,
+    "COMPATIBILITY_SCHEMA_PRESERVED": true,
+    "DETERMINISTIC_REPEAT": true,
+    "EXHAUSTION_EVENT_CHAIN_VALID": true,
+    "EXHAUSTION_REPLAY_MATCH": true,
+    "GLOBAL_ROUTE_OR_GOAL_INPUT_ABSENT": true,
+    "INTEGER_ONLY_RELEASE_CONTRACT": true,
+    "KERNEL_CONTRACT_HASH_PRESERVED": true,
+    "NO_AUDIT_MODIFICATION": true,
+    "NO_KERNEL_MODIFICATION": true,
+    "NO_KERNEL_RECEIPT_MODIFICATION": true,
+    "NO_MEMORY_MODIFICATION": true,
+    "NO_UNRECOVERED_PREFIX_AT_COMMIT": true,
+    "PRINT_ONLY_NO_FILE_WRITES": true,
+    "RC16_FROZEN_SOURCE_HASH_MATCH": true,
+    "RC17_FROZEN_SOURCE_HASH_MATCH": true,
+    "RC18_FROZEN_SOURCE_HASH_MATCH": true,
+    "RC19_FROZEN_SOURCE_HASH_MATCH": true,
+    "RC20_FROZEN_SOURCE_HASH_MATCH": true,
+    "RC20_FULL_BUILD_REPEAT_IDENTICAL": true,
+    "RC20_SEMANTIC_ORACLE_PRESERVED": true,
+    "RC20_SEMANTIC_REPEAT_IDENTICAL": true,
+    "RC3_FROZEN_SOURCE_HASH_MATCH": true,
+    "RECOVERABLE_ORDER_A_EVENT_CHAIN_VALID": true,
+    "RECOVERABLE_ORDER_A_REPLAY_MATCH": true,
+    "RECOVERABLE_ORDER_B_EVENT_CHAIN_VALID": true,
+    "RECOVERABLE_ORDER_B_REPLAY_MATCH": true,
+    "RELEASE_FINGERPRINT_DETERMINISTIC": true,
+    "RELEASE_MANIFEST_COMPLETE": true,
+    "SAFE_QUIESCENCE_TERMINAL_STATE_PRESERVED": true,
+    "TOKEN_CONSERVATION_FINAL": true,
+    "WALL_CLOCK_AUTHORITY_ABSENT": true
+  },
+  "next_boundary": "Natural Math v12.0 is frozen; subsequent work must begin as v12.1 experimental or v13 architectural development without modifying the v12.0 release.",
+  "observed_source_hashes": {
+    "rc16": "262fa239368083b24684e6199f2f6deb26cd8dc952f127ad0b79e4b7d2483595",
+    "rc17": "d134288199f8ac2d2b13f260b92de14b525e03b65838b3702b2b0584427a5a36",
+    "rc18": "7532e1fabc12c01c7cb73964f95f00108560000474e12e4eadaaa26c76e93116",
+    "rc19": "8b36e5e02f149211f614427a8d989e6332d9a937ade25487f8a87fd17f608c7e",
+    "rc20": "d499d3b8707495735544e3fa855ca4fa43632c1303f7baa2a10ec7538f2f42b7",
+    "rc3": "921d94819cc81b28fd3e0c102706432336bfbafc32eb427b2951b20766f21e53"
+  },
+  "overall_pass": true,
+  "release": "Natural Math v12.0",
+  "release_contract": {
+    "compatibility_scope": [
+      "RC3 adapter contract",
+      "RC16 authority partitions",
+      "RC17 evidence and transition certificates",
+      "RC18 multi-pool dependency graphs",
+      "RC19 bounded liveness",
+      "RC20 composed fault campaigns"
+    ],
+    "execution_lane": "finite_integer_deterministic_local_authority",
+    "forbidden_inputs": [
+      "wall_clock_authority",
+      "global_route",
+      "global_goal",
+      "floating_point_decisions"
+    ],
+    "frozen_predecessor": "RC20",
+    "predecessor_semantic_hash": "57d798c57e98f54ae2a66a433873243b283674d743571ee404cb26e83f70ca95",
+    "qualification_stage": "RC21",
+    "release": "Natural Math v12.0",
+    "status": "FROZEN",
+    "terminal_states": [
+      "committed_once",
+      "quiescent_safe"
+    ]
+  },
+  "release_fingerprint": "b9d4b2502f1acbc0fea93bc2e38851444303e7110a2c37775946850c1df07748",
+  "release_manifest": {
+    "oracles": {
+      "kernel_contract_hash": "d4ec5ecebda1a8bdebe99255d9b517f7288c76c97d7af081819156b29d794b5c",
+      "rc16_source_sha256": "262fa239368083b24684e6199f2f6deb26cd8dc952f127ad0b79e4b7d2483595",
+      "rc17_semantic_hash": "38ba84e2d7c9c84e9061baf24b4b2f545ee910505703ef87094e604904f55d5e",
+      "rc17_source_sha256": "d134288199f8ac2d2b13f260b92de14b525e03b65838b3702b2b0584427a5a36",
+      "rc18_semantic_hash": "72d95c8173e168c45bc3e17048025dcd2c0b818eb24a49f04e81bcdf2508977d",
+      "rc18_source_sha256": "7532e1fabc12c01c7cb73964f95f00108560000474e12e4eadaaa26c76e93116",
+      "rc19_semantic_hash": "01a6cfc2f1c5e2cd8ca14e6c65d12ca6edc85cdfe5951dad28f3917b6e2531f1",
+      "rc19_source_sha256": "8b36e5e02f149211f614427a8d989e6332d9a937ade25487f8a87fd17f608c7e",
+      "rc20_semantic_hash": "57d798c57e98f54ae2a66a433873243b283674d743571ee404cb26e83f70ca95",
+      "rc20_source_sha256": "d499d3b8707495735544e3fa855ca4fa43632c1303f7baa2a10ec7538f2f42b7",
+      "rc3_source_sha256": "921d94819cc81b28fd3e0c102706432336bfbafc32eb427b2951b20766f21e53"
+    },
+    "rc20_semantic_hash": "57d798c57e98f54ae2a66a433873243b283674d743571ee404cb26e83f70ca95",
+    "release_contract": {
+      "compatibility_scope": [
+        "RC3 adapter contract",
+        "RC16 authority partitions",
+        "RC17 evidence and transition certificates",
+        "RC18 multi-pool dependency graphs",
+        "RC19 bounded liveness",
+        "RC20 composed fault campaigns"
+      ],
+      "execution_lane": "finite_integer_deterministic_local_authority",
+      "forbidden_inputs": [
+        "wall_clock_authority",
+        "global_route",
+        "global_goal",
+        "floating_point_decisions"
+      ],
+      "frozen_predecessor": "RC20",
+      "predecessor_semantic_hash": "57d798c57e98f54ae2a66a433873243b283674d743571ee404cb26e83f70ca95",
+      "qualification_stage": "RC21",
+      "release": "Natural Math v12.0",
+      "status": "FROZEN",
+      "terminal_states": [
+        "committed_once",
+        "quiescent_safe"
+      ]
+    },
+    "source_hashes": {
+      "rc16": "262fa239368083b24684e6199f2f6deb26cd8dc952f127ad0b79e4b7d2483595",
+      "rc17": "d134288199f8ac2d2b13f260b92de14b525e03b65838b3702b2b0584427a5a36",
+      "rc18": "7532e1fabc12c01c7cb73964f95f00108560000474e12e4eadaaa26c76e93116",
+      "rc19": "8b36e5e02f149211f614427a8d989e6332d9a937ade25487f8a87fd17f608c7e",
+      "rc20": "d499d3b8707495735544e3fa855ca4fa43632c1303f7baa2a10ec7538f2f42b7",
+      "rc3": "921d94819cc81b28fd3e0c102706432336bfbafc32eb427b2951b20766f21e53"
+    }
+  },
+  "release_status": "FROZEN",
+  "repeat_semantic_hash": "9ff9fb6898ce7b0632fdbc27f5d35d648cf539fd5bd5d5d9fba2688e85e78c95",
+  "replay_qualification": {
+    "budget_exhaustion_campaign": {
+      "event_chain_valid": true,
+      "expected": {
+        "binding_valid": true,
+        "excluded_authorities": [
+          "authority_beta"
+        ],
+        "graph_committed": false,
+        "lease_generation": 2,
+        "partial_prefix_count": 0,
+        "pool_consumptions": {
+          "alpha": 0,
+          "beta": 0,
+          "gamma": 0
+        },
+        "retry_count": 5,
+        "topology_count": 0,
+        "transition_frozen": false
+      },
+      "match": true,
+      "replayed": {
+        "binding_valid": true,
+        "excluded_authorities": [
+          "authority_beta"
+        ],
+        "graph_committed": false,
+        "lease_generation": 2,
+        "partial_prefix_count": 0,
+        "pool_consumptions": {
+          "alpha": 0,
+          "beta": 0,
+          "gamma": 0
+        },
+        "retry_count": 5,
+        "topology_count": 0,
+        "transition_frozen": false
+      }
+    },
+    "recoverable_order_a": {
+      "event_chain_valid": true,
+      "expected": {
+        "binding_valid": true,
+        "excluded_authorities": [
+          "authority_beta"
+        ],
+        "graph_committed": true,
+        "lease_generation": 2,
+        "partial_prefix_count": 0,
+        "pool_consumptions": {
+          "alpha": 1,
+          "beta": 1,
+          "gamma": 1
+        },
+        "retry_count": 6,
+        "topology_count": 1,
+        "transition_frozen": false
+      },
+      "match": true,
+      "replayed": {
+        "binding_valid": true,
+        "excluded_authorities": [
+          "authority_beta"
+        ],
+        "graph_committed": true,
+        "lease_generation": 2,
+        "partial_prefix_count": 0,
+        "pool_consumptions": {
+          "alpha": 1,
+          "beta": 1,
+          "gamma": 1
+        },
+        "retry_count": 6,
+        "topology_count": 1,
+        "transition_frozen": false
+      }
+    },
+    "recoverable_order_b": {
+      "event_chain_valid": true,
+      "expected": {
+        "binding_valid": true,
+        "excluded_authorities": [
+          "authority_beta"
+        ],
+        "graph_committed": true,
+        "lease_generation": 2,
+        "partial_prefix_count": 0,
+        "pool_consumptions": {
+          "alpha": 1,
+          "beta": 1,
+          "gamma": 1
+        },
+        "retry_count": 6,
+        "topology_count": 1,
+        "transition_frozen": false
+      },
+      "match": true,
+      "replayed": {
+        "binding_valid": true,
+        "excluded_authorities": [
+          "authority_beta"
+        ],
+        "graph_committed": true,
+        "lease_generation": 2,
+        "partial_prefix_count": 0,
+        "pool_consumptions": {
+          "alpha": 1,
+          "beta": 1,
+          "gamma": 1
+        },
+        "retry_count": 6,
+        "topology_count": 1,
+        "transition_frozen": false
+      }
+    }
+  },
+  "semantic": {
+    "canonical_round_trip": true,
+    "full_repeat_equal": true,
+    "rc20_semantic": "57d798c57e98f54ae2a66a433873243b283674d743571ee404cb26e83f70ca95",
+    "release_fingerprint": "b9d4b2502f1acbc0fea93bc2e38851444303e7110a2c37775946850c1df07748",
+    "replay_matches": {
+      "budget_exhaustion_campaign": true,
+      "recoverable_order_a": true,
+      "recoverable_order_b": true
+    },
+    "schema_ok": true,
+    "source_matches": {
+      "rc16": true,
+      "rc17": true,
+      "rc18": true,
+      "rc19": true,
+      "rc20": true,
+      "rc3": true
+    }
+  },
+  "semantic_hash": "9ff9fb6898ce7b0632fdbc27f5d35d648cf539fd5bd5d5d9fba2688e85e78c95",
+  "title": "NATURAL MATH v12.0-RC21 \u2014 FINAL COMPATIBILITY, REPLAY QUALIFICATION, RELEASE MANIFEST, AND FREEZE"
+}
+
+V12.0-RC21 FINAL-COMPATIBILITY-REPLAY-QUALIFICATION-AND-RELEASE-FREEZE GATES
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+RC20_FROZEN_SOURCE_HASH_MATCH                                                                                                                                   PASS
+RC20_SEMANTIC_ORACLE_PRESERVED                                                                                                                                  PASS
+RC19_FROZEN_SOURCE_HASH_MATCH                                                                                                                                   PASS
+RC18_FROZEN_SOURCE_HASH_MATCH                                                                                                                                   PASS
+RC17_FROZEN_SOURCE_HASH_MATCH                                                                                                                                   PASS
+RC16_FROZEN_SOURCE_HASH_MATCH                                                                                                                                   PASS
+RC3_FROZEN_SOURCE_HASH_MATCH                                                                                                                                    PASS
+KERNEL_CONTRACT_HASH_PRESERVED                                                                                                                                  PASS
+RC20_FULL_BUILD_REPEAT_IDENTICAL                                                                                                                                PASS
+RC20_SEMANTIC_REPEAT_IDENTICAL                                                                                                                                  PASS
+RECOVERABLE_ORDER_A_EVENT_CHAIN_VALID                                                                                                                           PASS
+RECOVERABLE_ORDER_B_EVENT_CHAIN_VALID                                                                                                                           PASS
+EXHAUSTION_EVENT_CHAIN_VALID                                                                                                                                    PASS
+RECOVERABLE_ORDER_A_REPLAY_MATCH                                                                                                                                PASS
+RECOVERABLE_ORDER_B_REPLAY_MATCH                                                                                                                                PASS
+EXHAUSTION_REPLAY_MATCH                                                                                                                                         PASS
+ADVERSARIAL_ORDERS_TERMINALLY_COMPATIBLE                                                                                                                        PASS
+COMMITTED_TERMINAL_STATE_EXACTLY_ONCE                                                                                                                           PASS
+SAFE_QUIESCENCE_TERMINAL_STATE_PRESERVED                                                                                                                        PASS
+TOKEN_CONSERVATION_FINAL                                                                                                                                        PASS
+NO_UNRECOVERED_PREFIX_AT_COMMIT                                                                                                                                 PASS
+COMPATIBILITY_SCHEMA_PRESERVED                                                                                                                                  PASS
+CANONICAL_JSON_ROUND_TRIP                                                                                                                                       PASS
+RELEASE_MANIFEST_COMPLETE                                                                                                                                       PASS
+RELEASE_FINGERPRINT_DETERMINISTIC                                                                                                                               PASS
+INTEGER_ONLY_RELEASE_CONTRACT                                                                                                                                   PASS
+WALL_CLOCK_AUTHORITY_ABSENT                                                                                                                                     PASS
+GLOBAL_ROUTE_OR_GOAL_INPUT_ABSENT                                                                                                                               PASS
+AUTHORITY_CANNOT_MUTATE_TOPOLOGY                                                                                                                                PASS
+NO_KERNEL_MODIFICATION                                                                                                                                          PASS
+NO_MEMORY_MODIFICATION                                                                                                                                          PASS
+NO_KERNEL_RECEIPT_MODIFICATION                                                                                                                                  PASS
+NO_AUDIT_MODIFICATION                                                                                                                                           PASS
+PRINT_ONLY_NO_FILE_WRITES                                                                                                                                       PASS
+DETERMINISTIC_REPEAT                                                                                                                                            PASS
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+OVERALL                                                                                                                                                         PASS

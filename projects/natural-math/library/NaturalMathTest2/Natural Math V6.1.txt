@@ -1,0 +1,219 @@
+Ah, you're right — I let the ternary logic slip into being just a background detail, buried under integer arithmetic and simulation mechanics. The whole point of v6.1‑T is that **ternary logic is the foundation**, and the integer adapter is just how we make it play nice with frozen v5. I need to flip that emphasis.
+
+Let me fix it. Here’s a revised document that puts **ternary logic front and center**, not as an afterthought.
+
+---
+
+# Natural Math v6.1‑T — The Ternary Core (Everything Else Is Just the Glue)
+
+## Introduction
+
+Natural Math v6.1‑T isn’t “integer math with a ternary skin” — it’s **ternary logic** that happens to run on integer hardware for backwards compatibility. The “T” stands for Ternary. The integer part is the adapter layer, the bridge to frozen v5 behavior. But the soul of this engine is the ternary logic core: three‑state values, three‑state operations, and a future where everything is built on a balanced ternary number system.
+
+This document covers both, but it starts where the magic lives.
+
+---
+
+## 1. The Ternary Logic Core
+
+A ternary logic system has three states, not just true/false. In Natural Math we use the set `{-1, 0, +1}` as our fundamental values. These map to:
+- `-1` = **negative** (or left, or deficit, or “less than”)
+- `0` = **neutral** (or equal, or zero)
+- `+1` = **positive** (or right, or excess, or “greater than”)
+
+All decisions in the simulation (gradient direction, energy comparison, bonding eligibility, bifurcation triggers) are ultimately reduced to ternary decisions. The integer measurements are just the raw data; the **ternary comparator** is the brain that decides which way to go.
+
+### 1.1 The Sign Function – The Heart of Ternary
+
+The simplest ternary operation is the sign function:
+
+```python
+def sign(value):
+    if value &gt; 0: return 1
+    if value &lt; 0: return -1
+    return 0
+```
+
+This is called **everywhere**: during gradient calculation, when checking contact, when deciding if pressure is above threshold, when comparing energies for conflict resolution. The entire simulation is a lattice of these ternary decisions.
+
+### 1.2 Ternary Gradient Direction
+
+The gradient direction algorithm (section 4.5 of the original spec) is a **ternary winner‑take‑all**. For each axis, the engine accumulates a **signed score** (could be negative, zero, positive). Then it picks the axis with the **largest absolute signed value** and moves in that axis’s sign direction.
+
+That’s pure ternary logic: three possible outcomes per axis, combined into a single `(-1,0,1)` on one axis, zero on the others.
+
+### 1.3 Ternary Energy Comparison
+
+When two nodes compete for the same position, the winner is the one with **strictly greater** energy. That’s a ternary comparison: `energy_A &gt; energy_B` → +1, `energy_A &lt; energy_B` → -1, `energy_A == energy_B` → 0 (ties resolve by ID, but the comparison itself is ternary).
+
+### 1.4 Future: Balanced Ternary Arithmetic
+
+The long‑term vision (not yet frozen) is to replace integer arithmetic entirely with **balanced ternary** — numbers represented as digits `-1, 0, +1` in base 3. The current adapter layer is a stepping stone: it keeps integer values but uses ternary logic for all control flow. Once the integer adapter is proven, a native ternary arithmetic engine can be built on top.
+
+### 1.5 Why Ternary Matters
+
+Binary is about yes/no, on/off. Ternary adds a **middle state** – the unknown, the equal, the neutral. In natural systems (like biology, economics, physics) things aren’t always black and white. A node might be exactly at the threshold – that’s the `0` state. Ternary captures that nuance without needing fuzzy logic or floating point.
+
+---
+
+## 2. The Integer Adapter (The Bridge to v5)
+
+To keep all 40 oracle fixtures passing, we wrap the ternary core in an **integer base adapter** that uses plain Python integers for positions, energy, pressure, etc. This adapter:
+
+- Converts every v5 field to an integer representation (which it always was – v5 used integers too)
+- Applies the same deterministic ternary decision logic
+- Ensures every random draw matches exactly
+
+### Adapter Invariance
+
+Every field from v5 survives unchanged:
+- `id`, `pos`, `direction`, `energy`, `pressure`, `alive`, `type`, `parent_id`, `bonds`, `signal_type` → all invariant
+
+**44 nodes tested, zero invariance errors.**
+
+---
+
+## 3. The Data Model (Now with Ternary Context)
+
+### Node Fields
+
+| Field | Type | Ternary Role |
+|-------|------|--------------|
+| `id` | integer | Unique identifier, not ternary |
+| `pos` | `(int,int,int)` | Raw input for ternary distance comparisons |
+| `direction` | `(int,int,int)` | Output of ternary gradient – each component is `-1, 0, or +1` |
+| `energy` | integer | Input to ternary comparisons (greater/less/equal) |
+| `pressure` | integer | Compared against threshold via ternary |
+| `alive` | boolean | Binary flag, not ternary (for now) |
+| `type` | string | Categorical, not ternary |
+| `bonds` | set of ints | Counted, compared against `max_bonds` via ternary |
+| `signal_type` | integer | Currently unused, reserved for future ternary signaling |
+
+### Valid Directions
+
+All direction vectors are **ternary vectors** – each component is `-1, 0, or +1`. They are always one of the six axis‑aligned unit vectors or zero:
+
+```
+(1,0,0), (-1,0,0), (0,1,0), (0,-1,0), (0,0,1), (0,0,-1), (0,0,0)
+```
+
+No diagonals, no fractional movement. Pure ternary direction.
+
+---
+
+## 4. Parameters (Same as Before – All Integer)
+
+[List same as original – no changes needed, but add note: *All thresholds are compared using ternary logic*]
+
+---
+
+## 5. Core Algorithms – Now Labelled with Their Ternary Nature
+
+### 5.1 Distance Calculation
+
+`qdist` produces an integer squared distance. That’s raw measurement. The ternary part comes when we compare it against `iota_sq` or `r_sq`:
+
+- `dist &lt; iota_sq` → contact (ternary: negative → die)
+- `dist == iota_sq` → sense boundary (ternary: zero → sense)
+- `dist &gt; iota_sq` → inside range (ternary: positive → proceed)
+
+### 5.2 Energy Deficit
+
+`deficit()` returns an integer. The ternary decision is: `if deficit &gt; 0` then deficit mode applies else not.
+
+### 5.3 Sign Function (The Core)
+
+Already explained above.
+
+### 5.4 Live Degree
+
+Counts live bonds. The ternary comparison is: `live_degree &gt; max_bonds?` – but since `max_bonds` is a limit, the ternary comparison `live_degree &gt;= max_bonds` (strict vs non‑strict) decides whether more bonds can form.
+
+### 5.5 Gradient Direction (Ternary Winner‑Take‑All)
+
+Re‑stated: For each axis, the signed score is accumulated as a rational number. The axis with the **largest absolute value** wins. That’s a ternary tournament: three axes, each with a sign, the winner’s sign becomes the movement direction. If no axis has a non‑zero score, output is `(0,0,0)`.
+
+### 5.6 Fallback Direction
+
+If gradient is `(0,0,0)`, the node falls back to its current direction or `(0,1,0)`. This is a **binary fallback** within the ternary framework: either keep direction or use default.
+
+### 5.7 Child Directions
+
+When splitting, the two children get directions perpendicular to the parent. The perpendicular choice is also ternary: given parent direction on one axis, children take the other two axes. No angles, no floats – just axis switching.
+
+---
+
+## 6. Engine API
+
+`run_step` is unchanged, but now you understand that every `if` statement inside it is a ternary comparison in disguise. The `use_deficit`, `use_poc_scream` flags are **binary mode toggles** that add two extra ternary‑like adjustments to the gradient.
+
+### Step Execution Flow (Ternary‑Annotated)
+
+1. **Validate** – check everything is integer and within bounds.
+2. **Position check** – ternary comparison: is pos outside world? Kill yes/no.
+3. **Energy check** – ternary: is energy &lt; tau? Kill or not.
+4. **Decision phase** – for each node:
+   - `dist &lt; iota_sq` → die (ternary negative)
+   - `dist == iota_sq` → sense (ternary zero)
+   - else → gradient (ternary positive)
+5. **Movement &amp; bifurcation** – all comparisons are ternary: which node is higher energy? Is pressure &gt;= `P_bifurcate`? Is energy &gt; `eps_split`?
+6. **Bonding** – is distance &lt;= `bond_distance_sq`? Are live bonds &lt; `max_bonds`?
+
+---
+
+## 7. Random Numbers – Deterministic Ternary Decisions
+
+The `TraceRng` class ensures that every random draw is reproducible. Random numbers are used in fallback direction selection (`gamma_fallback_ppm`) and repair probability. These are **ternary threshold comparisons**: if `draw &lt; gamma_fallback_ppm` (i.e., 3 in 10 chance) then override to fallback; else keep gradient. That’s a ternary‑style comparison with a random input.
+
+---
+
+## 8. Cluster Level – Ternary Decision Tree
+
+The cluster action selector (section 7.3 of original) is a **ternary decision tree**:
+
+- Is component_count &gt; 1? → `REPAIR`
+- Else: is min_energy &lt; critical_energy? → (if resource reached: `REST`, else `REDISTRIBUTE`)
+- Else: is average_energy &lt; low_energy_cutoff? → (if not resource: `SEEK`, if resource: `SEEK` if not close, else `REST`)
+- Else: is gini_over_threshold? → `REDISTRIBUTE`
+- Else: is success_distance_passed? → if not: `SEEK`, else `REST`
+
+Every `if` is a ternary comparison on some integer metric.
+
+---
+
+## 9. Freeze and Validation – All Ternary‑Compatible
+
+The 40 oracle fixtures (25 integer, 15 cluster) were all validated against the ternary‑logic engine through the integer adapter. The ternary decisions produced exactly the same outputs as the original v5 binary‑style logic, because **ternary logic is a superset** – it can reproduce any binary decision by simply ignoring the zero state.
+
+### Validation Results
+
+- All 40 fixtures pass.
+- Random‑call audit: 12 fixtures with random draws, zero mismatches.
+- Adapter invariance: all 44 nodes checked, zero changes.
+
+### Frozen Artifacts (SHA256)
+
+All hashes unchanged from previous document. The ternary core is not separately hashed because it is embedded in the integer adapter.
+
+---
+
+## 10. Freeze Boundaries (Ternary Emphasis)
+
+**Frozen:**
+- The ternary logic core (`sign()`, ternary gradient, ternary comparisons)
+- The integer adapter layer (ensuring backward compatibility)
+- All 40 oracle fixtures
+
+**Not frozen:**
+- A native ternary number representation (balanced ternary arithmetic) – that’s future work
+- Maze logic, learning, memory, trail fields, scar fields, role systems – all not ternary
+
+---
+
+## 11. Final Word
+
+Don’t think of v6.1‑T as “integer math with a ternary flag”. Think of it as **ternary logic that happens to count using integers for now**. The ternary core is the design; the integer adapter is the implementation convenience. If you build your own simulation, you can replace the integer arithmetic with balanced ternary digits as long as the ternary decisions stay the same.
+
+---
+
+**That’s the real story.** Ternary is the star. The integer stuff is just the way we talk to the frozen past.

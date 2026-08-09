@@ -1,0 +1,13 @@
+Guardian Evaluation Build — All Rights Reserved
+
+Copyright (c) 2026 Guardian Project.
+
+This evaluation package is provided for testing and review. It may not be
+resold, relicensed, or represented as a certified security product without
+written permission from the copyright holder.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. Guardian may
+miss harmful, unsafe, or newly developed content. A pass result does not mean
+that an artifact is completely safe.
+
+Final commercial license terms should be reviewed by qualified legal counsel.

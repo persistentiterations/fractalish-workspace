@@ -1,0 +1,24 @@
+{
+  "schema_version": "1",
+  "product_contract": "BONACQUI_BOLT_ON_CONTINUITY_DOCKER_PRODUCT_CONTRACT_0_1_STAGE_0",
+  "configured_container": {
+    "container_id": "REPLACE_WITH_FULL_IMMUTABLE_CONTAINER_ID",
+    "display_name": "example-service"
+  },
+  "observation": {
+    "max_log_bytes_per_sample": 65536,
+    "max_events_per_sample": 100,
+    "max_evidence_age_seconds": 30
+  },
+  "actions": {
+    "projection_enabled": false,
+    "allowed_actions": [
+      "HOLD",
+      "RELEASE"
+    ]
+  },
+  "storage": {
+    "receipt_directory": "./data/receipts",
+    "export_directory": "./data/exports"
+  }
+}

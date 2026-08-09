@@ -1,0 +1,70 @@
+{
+  "policy_schema_version": "1.0",
+  "name": "CodeIntake_Security_Default",
+  "version": "0.5.0",
+  "description": "Manifest-first static policy with Stage 03 trust infrastructure",
+  "limits": {
+    "max_file_bytes": 1000000,
+    "allowed_extensions": [
+      ".py"
+    ]
+  },
+  "checklist": [
+    {
+      "id": "manifest_present",
+      "description": "A complete manifest block is present near the top of the file",
+      "severity": "hard_hold",
+      "check_type": "manifest_complete",
+      "target_value": true
+    },
+    {
+      "id": "python_syntax",
+      "description": "The file parses as valid Python",
+      "severity": "hard_reject",
+      "check_type": "python_syntax",
+      "target_value": true
+    },
+    {
+      "id": "no_network",
+      "description": "No network-capable modules are imported",
+      "severity": "hard_reject",
+      "check_type": "no_network",
+      "target_value": true
+    },
+    {
+      "id": "no_file_writes",
+      "description": "No direct file writes are detected",
+      "severity": "hard_hold",
+      "check_type": "no_file_writes",
+      "target_value": true
+    },
+    {
+      "id": "no_process_execution",
+      "description": "No process, shell, eval, exec, compile, or dynamic loader operation is detected",
+      "severity": "hard_reject",
+      "check_type": "no_process_execution",
+      "target_value": true
+    },
+    {
+      "id": "dependencies_declared",
+      "description": "Imported modules are declared or are standard-library modules",
+      "severity": "hard_hold",
+      "check_type": "dependencies_declared",
+      "target_value": true
+    },
+    {
+      "id": "no_secrets",
+      "description": "No obvious hardcoded secrets or private keys are detected",
+      "severity": "hard_reject",
+      "check_type": "no_secrets",
+      "target_value": true
+    },
+    {
+      "id": "no_suspicious_obfuscation",
+      "description": "No configured suspicious-obfuscation indicator is detected",
+      "severity": "hard_hold",
+      "check_type": "no_suspicious_obfuscation",
+      "target_value": true
+    }
+  ]
+}
