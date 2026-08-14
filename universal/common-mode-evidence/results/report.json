@@ -1,0 +1,43 @@
+{
+  "trial": "common-mode-evidence-constructed-fixtures",
+  "case_count": 16,
+  "summaries": [
+    {
+      "policy": "MESSAGE_COUNT",
+      "decision_correct": 6,
+      "root_counts_correct": 4,
+      "total": 16,
+      "false_establishments": 9,
+      "missed_establishments": 0,
+      "receipt_head": "8e90e157974c64303568b69d924ff452e64e60cd48709b561341184533930595"
+    },
+    {
+      "policy": "RELAY_ID_COUNT",
+      "decision_correct": 5,
+      "root_counts_correct": 3,
+      "total": 16,
+      "false_establishments": 9,
+      "missed_establishments": 1,
+      "receipt_head": "ab6dd51e119f96d792b8ed9dbd5123b123e27124b58e2e18277823fd17c33ba7"
+    },
+    {
+      "policy": "DECLARED_PROVENANCE_ROOT",
+      "decision_correct": 9,
+      "root_counts_correct": 9,
+      "total": 16,
+      "false_establishments": 6,
+      "missed_establishments": 0,
+      "receipt_head": "6739d2f42f86b8995acb08606a5896ca9d65823b2fcb41fa8ccc9e71a3e8431f"
+    },
+    {
+      "policy": "CAUSAL_DEPENDENCY_ROOT",
+      "decision_correct": 16,
+      "root_counts_correct": 16,
+      "total": 16,
+      "false_establishments": 0,
+      "missed_establishments": 0,
+      "receipt_head": "01e50e06dfb50ccb7c303b417d63d686a6cbdf4fb6d373eb490b9ac07f50a3e6"
+    }
+  ],
+  "replay_hash": "e884b75c637f4dc7c17125cbf71a49ff4f8c76ac03ef5c5162902b43f5ebb996"
+}
