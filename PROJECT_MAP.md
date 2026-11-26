@@ -1,5 +1,27 @@
 # Project Map
 
+## Consequential Formation implementation index
+
+Fractalish explains the investigation and publishes evidence records. This
+working library preserves technical entry points and earlier iterations.
+Status applies to the specific artifact and the tests it has undergone.
+
+| Area | Source and status | Reproduction or contribution |
+| --- | --- | --- |
+| Natural Math and computational CNTM | [Natural Math library](projects/natural-math/README.md) contains multiple implementations. The [frozen scale release](https://fractalish.com/releases/2026-09-13-natural-math-scale) reports 44/64 transported-reuse seeds at x1 and 64/64 at x2 and x3 within the tested simulation. | Start from the frozen release and its manifest. Compare the same seeds, scale and denominator before interpreting efficiency. Record version ambiguities in the project index. |
+| Material CNTM and Agentic Formation | [CNTM realization record](https://fractalish.com/cntm-realization) documents the working investigation. Material tokenization, developing memory and portable realization are proposals. | Define a bounded comparison of state retention, recovery and full lifecycle expenditure. Demonstration of integrated material intelligence remains open. |
+| SymLan, SemCom, Exosemy and Alpha Dictionary | [SymLan library](projects/symlan/README.md) contains language, persistence and teaching work. Integrated semantic and lexical components require separate source and version verification. | Identify a reproducible public entry point with example input, expected output and provenance. |
+| Bolt-On and verification | [Bolt-On](projects/bolt-on/README.md) and [Guardian](projects/guardian/README.md) preserve working files, freezes and verification material. | Cite the version-specific run instructions and results before comparing releases. Review which artifacts qualify as maintained entry points. |
+| ConnectorDome | [ConnectorDome](https://github.com/persistentiterations/connectordome) is a public connector and verification repository for provenance-bearing observations. | Follow its repository instructions and report observation, simulation and verification results separately. |
+| Anti-Illogical | [Anti-Illogical](https://github.com/persistentiterations/anti-illogical) has a public repository. Current reproduction and test status are pending audit. | Identify the maintained entry point and document a bounded result with test output. |
+| Persistent software and distributed retention | [Fractalish Core](projects/fractalish-core/README.md), [Fractalish AI v2](https://github.com/persistentiterations/fractalish-ai-v2) and the [Persistent Observer](https://fractalish.com/persistent-observer) preserve architecture and prototype lineage. | Compare state persistence after restart, provenance and recovery. Preserve negative results and distinguish experimental fixtures from deployed capabilities. |
+| InfinitySight, CF Globe, SERA, Fractal Robotics, SymID and predictive autonomic formation | Source and public implementation crosswalk pending per project. | Resolve rightful public paths and versions. Separately report sensing, authority, continuity and total expenditure. |
+| Language scavenging and analog or continuous computation | Research directions with public reproduction records pending confirmation. | Propose a comparison with declared baseline, replicable inputs, costs and conditions for failure. |
+
+Contributions should identify the exact version, the reproduction command, the
+expected and observed results, dependencies and known failure cases. See the
+[contribution guide](CONTRIBUTING.md) and [Fractalish evidence archive](https://fractalish.com/evidence).
+
 ## Natural Math
 
 Path: `projects/natural-math/`
